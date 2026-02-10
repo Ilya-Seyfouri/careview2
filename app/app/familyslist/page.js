@@ -1,6 +1,5 @@
-import Dashboard from "./components/Dashboard";
-import ManagerSidebar from "./components/ManagerSidebar";
-import Residents from "./components/Residents";
+import ManagerSidebar from "../components/ManagerSidebar";
+import FamilyList from "../components/FamilyList";
 
 
 export default function Home() {
@@ -8,8 +7,7 @@ export default function Home() {
   <div className="flex h-screen">
       <ManagerSidebar/>
       <main className="flex-1 overflow-y-auto bg-gray-50">
-        <Dashboard/>
-       
+        <FamilyList/>
       </main>
     </div>
     </>
