@@ -1,10 +1,10 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, useRef } from "react";
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 import { Send, Phone, Video, Info, ChevronLeft } from "lucide-react";
 
-const CARER_ID  = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+const CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 const FAMILY_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd";
 
 function formatTime(ts) {
@@ -35,7 +35,11 @@ function groupByDate(messages) {
   for (const msg of messages) {
     const date = new Date(msg.created_at).toDateString();
     if (date !== lastDate) {
-      groups.push({ type: "divider", label: formatDateDivider(msg.created_at), id: `divider-${msg.id}` });
+      groups.push({
+        type: "divider",
+        label: formatDateDivider(msg.created_at),
+        id: `divider-${msg.id}`,
+      });
       lastDate = date;
     }
     groups.push({ type: "message", ...msg });
@@ -47,16 +51,16 @@ export default function Messages() {
   const supabase = createClient();
   const { demoUser, loading: userLoading } = useDemoUser();
 
-  const [messages, setMessages]   = useState([]);
-  const [profiles, setProfiles]   = useState({});
-  const [patient, setPatient]     = useState(null);   // the resident linking carer ↔ family
-  const [input, setInput]         = useState("");
-  const [loading, setLoading]     = useState(true);
-  const [sending, setSending]     = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [profiles, setProfiles] = useState({});
+  const [patient, setPatient] = useState(null); // the resident linking carer ↔ family
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
-  const bottomRef   = useRef(null);
-  const inputRef    = useRef(null);
-  const channelRef  = useRef(null);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+  const channelRef = useRef(null);
 
   // Determine which side the current user is on
   const isCurrentUserCarer = demoUser?.id === CARER_ID;
@@ -112,7 +116,7 @@ export default function Messages() {
 
       // Step 3: find the shared patient (intersection)
       const sharedPatientId = carerPatientIds.find((id) =>
-        familyPatientIds.includes(id)
+        familyPatientIds.includes(id),
       );
 
       if (sharedPatientId) {
@@ -162,7 +166,7 @@ export default function Messages() {
               return [...prev, msg];
             });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -191,12 +195,14 @@ export default function Messages() {
       setSending(true);
       const { data, error } = await supabase
         .from("messages")
-        .insert([{
-          content: text,
-          sender_id: demoUser.id,
-          carer_id: CARER_ID,
-          family_id: FAMILY_ID,
-        }])
+        .insert([
+          {
+            content: text,
+            sender_id: demoUser.id,
+            carer_id: CARER_ID,
+            family_id: FAMILY_ID,
+          },
+        ])
         .select()
         .single();
 
@@ -204,7 +210,7 @@ export default function Messages() {
 
       // Replace optimistic with real
       setMessages((prev) =>
-        prev.map((m) => (m.id === optimistic.id ? data : m))
+        prev.map((m) => (m.id === optimistic.id ? data : m)),
       );
     } catch (err) {
       console.error("Send failed:", err);
@@ -223,9 +229,9 @@ export default function Messages() {
     }
   };
 
-  const otherPerson      = profiles[otherPersonId];
-  const grouped          = groupByDate(messages);
-  const isLoading        = userLoading || loading;
+  const otherPerson = profiles[otherPersonId];
+  const grouped = groupByDate(messages);
+  const isLoading = userLoading || loading;
 
   // Contextual subtitle depending on who is viewing
   const familyPerson = profiles[FAMILY_ID];
@@ -239,7 +245,6 @@ export default function Messages() {
 
   return (
     <section className="min-h-screen bg-slate-50 flex flex-col">
-
       {/* ── Page header ── */}
       <div className="container mx-auto px-6 lg:px-10 pt-10 pb-4 max-w-2xl">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
@@ -249,20 +254,18 @@ export default function Messages() {
           {isLoading
             ? "Loading..."
             : isCurrentUserCarer
-            ? patient
-              ? `Messaging ${familyPerson?.full_name ?? "family"} · Family of ${patient.full_name}, Room ${patient.room}`
-              : "Direct line between care staff and family members"
-            : patient
-              ? `Messaging the care team looking after your relative, ${patient.full_name} · Room ${patient.room}`
-              : "Direct line between care staff and family members"}
+              ? patient
+                ? `Messaging ${familyPerson?.full_name ?? "family"} · Family of ${patient.full_name}, Room ${patient.room}`
+                : "Direct line between care staff and family members"
+              : patient
+                ? `Messaging the care team looking after your relative, ${patient.full_name} · Room ${patient.room}`
+                : "Direct line between care staff and family members"}
         </p>
       </div>
 
       <div className="container mx-auto px-0 lg:px-10 pb-0 lg:pb-10 flex-1 flex flex-col max-w-2xl">
-
         {/* Chat window wrapper */}
         <div className="flex-1 flex flex-col bg-white lg:rounded-2xl lg:border lg:border-gray-200 lg:shadow-sm overflow-hidden">
-
           {/* ── iMessage-style header ── */}
           <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
             <button className="lg:hidden p-1.5 -ml-1 text-cyan-500">
@@ -283,9 +286,7 @@ export default function Messages() {
               <p className="text-sm font-bold text-gray-900 truncate">
                 {otherPerson?.full_name || "Loading..."}
               </p>
-              <p className="text-xs text-gray-400 truncate">
-                {headerSubtitle}
-              </p>
+              <p className="text-xs text-gray-400 truncate">{headerSubtitle}</p>
             </div>
 
             {/* Header actions */}
@@ -320,19 +321,21 @@ export default function Messages() {
                   <p className="text-sm font-semibold text-gray-700">
                     {otherPerson?.full_name || ""}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {headerSubtitle}
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{headerSubtitle}</p>
                 </div>
                 <p className="text-xs text-gray-400 text-center max-w-xs leading-relaxed">
-                  This is the beginning of your conversation. Send a message to get started.
+                  This is the beginning of your conversation. Send a message to
+                  get started.
                 </p>
               </div>
             ) : (
               grouped.map((item) => {
                 if (item.type === "divider") {
                   return (
-                    <div key={item.id} className="flex items-center justify-center py-3">
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-center py-3"
+                    >
                       <span className="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">
                         {item.label}
                       </span>
@@ -354,7 +357,9 @@ export default function Messages() {
                       </div>
                     )}
 
-                    <div className={`flex flex-col gap-0.5 max-w-[72%] ${isMe ? "items-end" : "items-start"}`}>
+                    <div
+                      className={`flex flex-col gap-0.5 max-w-[72%] ${isMe ? "items-end" : "items-start"}`}
+                    >
                       <div
                         className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-opacity ${
                           item._optimistic ? "opacity-70" : "opacity-100"
@@ -409,13 +414,15 @@ export default function Messages() {
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                <Send size={15} className={input.trim() ? "translate-x-px" : ""} />
+                <Send
+                  size={15}
+                  className={input.trim() ? "translate-x-px" : ""}
+                />
               </button>
             </div>
           </div>
         </div>
       </div>
-    
     </section>
   );
 }

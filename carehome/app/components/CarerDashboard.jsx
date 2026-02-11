@@ -18,7 +18,7 @@ import {
   History,
   Timer,
 } from "lucide-react";
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 
 export default function CarerDashboard() {
   const supabase = createClient();

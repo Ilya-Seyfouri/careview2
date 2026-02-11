@@ -15,7 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 
 export default function ScheduleManager() {
   const supabase = createClient();
@@ -787,62 +787,62 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
     }
   };
 
- const handleSubmit = async (e) => {
-   e.preventDefault();
-   if (
-     !formData.title ||
-     !formData.patient_id ||
-     !formData.carer_id ||
-     !formData.start_at ||
-     !formData.end_at
-   ) {
-     setError("Please fill in all required fields");
-     return;
-   }
-   if (new Date(formData.end_at) <= new Date(formData.start_at)) {
-     setError("End time must be after start time");
-     return;
-   }
-   try {
-     setSaving(true);
-     setError(null);
-     if (!demoUser) throw new Error("No demo user selected.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (
+      !formData.title ||
+      !formData.patient_id ||
+      !formData.carer_id ||
+      !formData.start_at ||
+      !formData.end_at
+    ) {
+      setError("Please fill in all required fields");
+      return;
+    }
+    if (new Date(formData.end_at) <= new Date(formData.start_at)) {
+      setError("End time must be after start time");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError(null);
+      if (!demoUser) throw new Error("No demo user selected.");
 
-     const { data: newSchedule, error: insertError } = await supabase
-       .from("schedules")
-       .insert([
-         {
-           title: formData.title,
-           patient_id: formData.patient_id,
-           carer_id: formData.carer_id,
-           start_at: formData.start_at,
-           end_at: formData.end_at,
-           status: formData.status,
-           required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
-           created_by: demoUser.id,
-           created_at: new Date().toISOString(),
-         },
-       ])
-       .select()
-       .single();
+      const { data: newSchedule, error: insertError } = await supabase
+        .from("schedules")
+        .insert([
+          {
+            title: formData.title,
+            patient_id: formData.patient_id,
+            carer_id: formData.carer_id,
+            start_at: formData.start_at,
+            end_at: formData.end_at,
+            status: formData.status,
+            required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
+            created_by: demoUser.id,
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
 
-     if (insertError) throw insertError;
+      if (insertError) throw insertError;
 
-     // Audit log: schedule created
-     await supabase.from("audit_logs").insert({
-       action_type: "schedule_created",
-       actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-       related_to: formData.patient_id,
-       created_at: new Date().toISOString(),
-     });
+      // Audit log: schedule created
+      await supabase.from("audit_logs").insert({
+        action_type: "schedule_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: formData.patient_id,
+        created_at: new Date().toISOString(),
+      });
 
-     onSuccess();
-   } catch (err) {
-     setError(err.message || "Failed to add schedule");
-   } finally {
-     setSaving(false);
-   }
- };
+      onSuccess();
+    } catch (err) {
+      setError(err.message || "Failed to add schedule");
+    } finally {
+      setSaving(false);
+    }
+  };
   const inputClass =
     "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors";
 

@@ -21,7 +21,7 @@ import {
   CalendarDays,
   UserCheck,
 } from "lucide-react";
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 
 export default function MyLovedOnes() {
   const supabase = createClient();

@@ -13,7 +13,7 @@ import {
   Heart,
   Activity,
 } from "lucide-react";
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 
 const DEMO_CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 

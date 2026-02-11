@@ -1,7 +1,7 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
-import { useDemoUser } from "../components/DemoContext";
+import { useDemoUser } from "./DemoContext";
 import {
   AlertCircle,
   Clock,
@@ -84,61 +84,61 @@ export default function ShiftHandover() {
     setRedFlags((prev) => prev.filter((_, i) => i !== idx));
   };
 
-const handleSubmit = async () => {
-  setError(null);
+  const handleSubmit = async () => {
+    setError(null);
 
-  if (redFlags.length === 0) {
-    setError("Please add at least one resident red flag before saving.");
-    return;
-  }
+    if (redFlags.length === 0) {
+      setError("Please add at least one resident red flag before saving.");
+      return;
+    }
 
-  try {
-    setSaving(true);
+    try {
+      setSaving(true);
 
-    const rows = redFlags.map((flag) => ({
-      patient_id: flag.patient_id,
-      shift_type: shiftType,
-      notes: generalNotes || null,
-      patient_notes: flag.patient_notes || null,
-      created_by: demoUser.id,
-    }));
+      const rows = redFlags.map((flag) => ({
+        patient_id: flag.patient_id,
+        shift_type: shiftType,
+        notes: generalNotes || null,
+        patient_notes: flag.patient_notes || null,
+        created_by: demoUser.id,
+      }));
 
-    const { data: insertedHandovers, error: insertError } = await supabase
-      .from("shift_handovers")
-      .insert(rows)
-      .select();
+      const { data: insertedHandovers, error: insertError } = await supabase
+        .from("shift_handovers")
+        .insert(rows)
+        .select();
 
-    if (insertError) throw insertError;
+      if (insertError) throw insertError;
 
-    // Audit log: shift handover created (one log per handover created)
-    // Use manager ID (aaa...) if manager, or carer ID (bbb...) if carer
-    const actorId =
-      demoUser.role === "carer"
-        ? "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-        : "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+      // Audit log: shift handover created (one log per handover created)
+      // Use manager ID (aaa...) if manager, or carer ID (bbb...) if carer
+      const actorId =
+        demoUser.role === "carer"
+          ? "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+          : "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 
-    const auditLogs = insertedHandovers.map((handover) => ({
-      action_type: "shift_handover_created",
-      actor_id: actorId,
-      related_to: handover.patient_id,
-      created_at: new Date().toISOString(),
-    }));
+      const auditLogs = insertedHandovers.map((handover) => ({
+        action_type: "shift_handover_created",
+        actor_id: actorId,
+        related_to: handover.patient_id,
+        created_at: new Date().toISOString(),
+      }));
 
-    await supabase.from("audit_logs").insert(auditLogs);
+      await supabase.from("audit_logs").insert(auditLogs);
 
-    setSaved(true);
-    setTimeout(() => {
-      setGeneralNotes("");
-      setRedFlags([]);
-      setSaved(false);
-      fetchData(demoUser);
-    }, 1200);
-  } catch (err) {
-    setError(err.message || "Failed to save handover");
-  } finally {
-    setSaving(false);
-  }
-};
+      setSaved(true);
+      setTimeout(() => {
+        setGeneralNotes("");
+        setRedFlags([]);
+        setSaved(false);
+        fetchData(demoUser);
+      }, 1200);
+    } catch (err) {
+      setError(err.message || "Failed to save handover");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const sortedPatients = [...patients].sort((a, b) =>
     a.full_name.localeCompare(b.full_name),
@@ -175,7 +175,6 @@ const handleSubmit = async () => {
             </p>
           </div>
           <div className="flex gap-3">
-            
             <button
               onClick={() => handleSubmit("published")}
               disabled={saving || saved || isLoading}
