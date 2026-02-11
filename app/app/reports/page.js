@@ -1,12 +1,11 @@
-import AuditLog from "../components/AuditLog";
-import ManagerSidebar from "../components/ManagerSidebar";
+import Reports from "../components/Reports"
 
 export default function Home() {
   return (
     <>
       <div className="flex h-screen">
         <main className="flex-1 overflow-y-auto bg-gray-50">
-          <AuditLog/>
+          <Reports />
         </main>
       </div>
     </>

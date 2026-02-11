@@ -1,12 +1,11 @@
-import AuditLog from "../components/AuditLog";
-import ManagerSidebar from "../components/ManagerSidebar";
+import ShiftHandover from "../components/ShiftHandover";
 
 export default function Home() {
   return (
     <>
       <div className="flex h-screen">
         <main className="flex-1 overflow-y-auto bg-gray-50">
-          <AuditLog/>
+          <ShiftHandover/>
         </main>
       </div>
     </>

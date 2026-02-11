@@ -15,6 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { useDemoUser } from "../components/DemoContext";
+
 export default function ScheduleManager() {
   const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
@@ -709,11 +711,10 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
     </div>
   );
 }
-
 function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
   const supabase = createClient();
+  const { demoUser } = useDemoUser();
 
-  // Format the selected date for the datetime-local input
   const formatDateForInput = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -735,6 +736,10 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
   const [error, setError] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
 
+  // Required tasks state
+  const [taskInput, setTaskInput] = useState("");
+  const [tasks, setTasks] = useState([]);
+
   useEffect(() => {
     fetchPatientsAndCarers();
   }, []);
@@ -742,12 +747,10 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
   const fetchPatientsAndCarers = async () => {
     try {
       setLoadingData(true);
-
       const { data: patientsData, error: patientsError } = await supabase
         .from("patients")
         .select("id, full_name, room")
         .order("full_name", { ascending: true });
-
       if (patientsError) throw patientsError;
 
       const { data: carersData, error: carersError } = await supabase
@@ -755,22 +758,37 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
         .select("id, full_name, role")
         .eq("role", "carer")
         .order("full_name", { ascending: true });
-
       if (carersError) throw carersError;
 
       setPatients(patientsData || []);
       setCarers(carersData || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
       setError(err.message);
     } finally {
       setLoadingData(false);
     }
   };
 
+  const handleAddTask = () => {
+    const trimmed = taskInput.trim();
+    if (!trimmed) return;
+    setTasks((prev) => [...prev, trimmed]);
+    setTaskInput("");
+  };
+
+  const handleRemoveTask = (index) => {
+    setTasks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTaskKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTask();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       !formData.title ||
       !formData.patient_id ||
@@ -781,51 +799,39 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
       setError("Please fill in all required fields");
       return;
     }
-
     if (new Date(formData.end_at) <= new Date(formData.start_at)) {
       setError("End time must be after start time");
       return;
     }
-
     try {
       setSaving(true);
       setError(null);
+      if (!demoUser) throw new Error("No demo user selected.");
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        throw new Error("Unable to get current user. Please log in again.");
-      }
-
-      const { data, error: insertError } = await supabase
-        .from("schedules")
-        .insert([
-          {
-            title: formData.title,
-            patient_id: formData.patient_id,
-            carer_id: formData.carer_id,
-            start_at: formData.start_at,
-            end_at: formData.end_at,
-            status: formData.status,
-            created_by: user.id,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select();
-
+      const { error: insertError } = await supabase.from("schedules").insert([
+        {
+          title: formData.title,
+          patient_id: formData.patient_id,
+          carer_id: formData.carer_id,
+          start_at: formData.start_at,
+          end_at: formData.end_at,
+          status: formData.status,
+          required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
+          created_by: demoUser.id,
+          created_at: new Date().toISOString(),
+        },
+      ]);
       if (insertError) throw insertError;
-
       onSuccess();
     } catch (err) {
-      console.error("Error adding schedule:", err);
       setError(err.message || "Failed to add schedule");
     } finally {
       setSaving(false);
     }
   };
+
+  const inputClass =
+    "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors";
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -844,13 +850,11 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
 
         {loadingData ? (
           <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading data...</p>
-            </div>
+            <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Title */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Title *
@@ -861,12 +865,13 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
                 placeholder="e.g., Morning Rounds, Medication Administration"
                 required
               />
             </div>
 
+            {/* Patient + Carer */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -877,18 +882,17 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   onChange={(e) =>
                     setFormData({ ...formData, patient_id: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 >
                   <option value="">Select a patient</option>
-                  {patients.map((patient) => (
-                    <option key={patient.id} value={patient.id}>
-                      {patient.full_name} - Room {patient.room}
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name} - Room {p.room}
                     </option>
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Carer *
@@ -898,19 +902,20 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   onChange={(e) =>
                     setFormData({ ...formData, carer_id: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 >
                   <option value="">Select a carer</option>
-                  {carers.map((carer) => (
-                    <option key={carer.id} value={carer.id}>
-                      {carer.full_name}
+                  {carers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.full_name}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
+            {/* Start + End */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -922,11 +927,10 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   onChange={(e) =>
                     setFormData({ ...formData, start_at: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   End Time *
@@ -937,12 +941,13 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   onChange={(e) =>
                     setFormData({ ...formData, end_at: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 />
               </div>
             </div>
 
+            {/* Status */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Status
@@ -952,13 +957,73 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
               >
                 <option value="scheduled">Scheduled</option>
-                <option value="in_progress">In Progress</option>
+                <option value="in progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+            </div>
+
+            {/* ── Required Tasks ── */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Required Tasks
+                <span className="ml-2 text-xs text-muted-foreground font-normal">
+                  (optional — press Enter or + to add)
+                </span>
+              </label>
+
+              {/* Task input row */}
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
+                  onKeyDown={handleTaskKeyDown}
+                  className={`${inputClass} flex-1`}
+                  placeholder="e.g. Morning Medication"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTask}
+                  disabled={!taskInput.trim()}
+                  className="px-4 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Task chips */}
+              {tasks.length > 0 && (
+                <div className="space-y-2">
+                  {tasks.map((task, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-4 h-4 rounded border border-white/20 flex-shrink-0" />
+                        <span className="text-sm text-foreground">{task}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTask(index)}
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tasks.length === 0 && (
+                <p className="text-xs text-muted-foreground italic">
+                  No tasks added yet
+                </p>
+              )}
             </div>
 
             {error && (
@@ -979,7 +1044,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50"
               >
                 {saving ? "Adding..." : "Add Schedule"}
               </button>
@@ -1004,6 +1069,16 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  // Parse existing tasks from JSON string
+  const parseExistingTasks = () => {
+    try {
+      if (!schedule.required_tasks) return [];
+      return JSON.parse(schedule.required_tasks);
+    } catch {
+      return [];
+    }
+  };
+
   const [formData, setFormData] = useState({
     title: schedule.title || "",
     patient_id: schedule.patient_id || "",
@@ -1017,6 +1092,8 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [taskInput, setTaskInput] = useState("");
+  const [tasks, setTasks] = useState(parseExistingTasks);
 
   useEffect(() => {
     fetchPatientsAndCarers();
@@ -1025,35 +1102,44 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
   const fetchPatientsAndCarers = async () => {
     try {
       setLoadingData(true);
-
-      const { data: patientsData, error: patientsError } = await supabase
+      const { data: patientsData } = await supabase
         .from("patients")
         .select("id, full_name, room")
-        .order("full_name", { ascending: true });
-
-      if (patientsError) throw patientsError;
-
-      const { data: carersData, error: carersError } = await supabase
+        .order("full_name");
+      const { data: carersData } = await supabase
         .from("profiles")
         .select("id, full_name, role")
         .eq("role", "carer")
-        .order("full_name", { ascending: true });
-
-      if (carersError) throw carersError;
-
+        .order("full_name");
       setPatients(patientsData || []);
       setCarers(carersData || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
       setError(err.message);
     } finally {
       setLoadingData(false);
     }
   };
 
+  const handleAddTask = () => {
+    const trimmed = taskInput.trim();
+    if (!trimmed) return;
+    setTasks((prev) => [...prev, trimmed]);
+    setTaskInput("");
+  };
+
+  const handleRemoveTask = (index) => {
+    setTasks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTaskKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTask();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (
       !formData.title ||
       !formData.patient_id ||
@@ -1064,16 +1150,13 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
       setError("Please fill in all required fields");
       return;
     }
-
     if (new Date(formData.end_at) <= new Date(formData.start_at)) {
       setError("End time must be after start time");
       return;
     }
-
     try {
       setSaving(true);
       setError(null);
-
       const { error: updateError } = await supabase
         .from("schedules")
         .update({
@@ -1083,19 +1166,20 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
           start_at: formData.start_at,
           end_at: formData.end_at,
           status: formData.status,
+          required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
         })
         .eq("id", schedule.id);
-
       if (updateError) throw updateError;
-
       onSuccess();
     } catch (err) {
-      console.error("Error updating schedule:", err);
       setError(err.message || "Failed to update schedule");
     } finally {
       setSaving(false);
     }
   };
+
+  const inputClass =
+    "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors";
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1112,10 +1196,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
 
         {loadingData ? (
           <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading data...</p>
-            </div>
+            <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -1129,8 +1210,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
-                placeholder="e.g., Morning Rounds, Medication Administration"
+                className={inputClass}
                 required
               />
             </div>
@@ -1145,18 +1225,17 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   onChange={(e) =>
                     setFormData({ ...formData, patient_id: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 >
                   <option value="">Select a patient</option>
-                  {patients.map((patient) => (
-                    <option key={patient.id} value={patient.id}>
-                      {patient.full_name} - Room {patient.room}
+                  {patients.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.full_name} - Room {p.room}
                     </option>
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Carer *
@@ -1166,13 +1245,13 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   onChange={(e) =>
                     setFormData({ ...formData, carer_id: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 >
                   <option value="">Select a carer</option>
-                  {carers.map((carer) => (
-                    <option key={carer.id} value={carer.id}>
-                      {carer.full_name}
+                  {carers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.full_name}
                     </option>
                   ))}
                 </select>
@@ -1190,11 +1269,10 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   onChange={(e) =>
                     setFormData({ ...formData, start_at: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   End Time *
@@ -1205,7 +1283,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   onChange={(e) =>
                     setFormData({ ...formData, end_at: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   required
                 />
               </div>
@@ -1220,13 +1298,67 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
               >
                 <option value="scheduled">Scheduled</option>
-                <option value="in_progress">In Progress</option>
+                <option value="in progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+            </div>
+
+            {/* Required Tasks */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Required Tasks
+                <span className="ml-2 text-xs text-muted-foreground font-normal">
+                  (press Enter or + to add)
+                </span>
+              </label>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={taskInput}
+                  onChange={(e) => setTaskInput(e.target.value)}
+                  onKeyDown={handleTaskKeyDown}
+                  className={`${inputClass} flex-1`}
+                  placeholder="e.g. Morning Medication"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddTask}
+                  disabled={!taskInput.trim()}
+                  className="px-4 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  +
+                </button>
+              </div>
+              {tasks.length > 0 ? (
+                <div className="space-y-2">
+                  {tasks.map((task, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-4 h-4 rounded border border-white/20 flex-shrink-0" />
+                        <span className="text-sm text-foreground">{task}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTask(index)}
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">
+                  No tasks added yet
+                </p>
+              )}
             </div>
 
             {error && (
@@ -1247,7 +1379,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>

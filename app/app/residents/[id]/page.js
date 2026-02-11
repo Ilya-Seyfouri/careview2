@@ -5,7 +5,6 @@ export default function Home({ params }) {
   return (
     <>
       <div className="flex h-screen">
-        <ManagerSidebar />
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <ResidentSpecific params={params} />
         </main>

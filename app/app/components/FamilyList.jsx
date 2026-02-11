@@ -280,15 +280,41 @@ function FamilyMemberRow({ family }) {
 
 function AddFamilyMemberModal({ onClose, onSuccess }) {
   const supabase = createClient();
+  const [step, setStep] = useState(1); // Step 1: Create profile, Step 2: Link to patient
+  const [createdFamilyId, setCreatedFamilyId] = useState(null);
+  const [patients, setPatients] = useState([]);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
+    patient_id: "",
+    relationship: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
+  // Fetch all patients for linking
+  useEffect(() => {
+    if (step === 2) {
+      fetchPatients();
+    }
+  }, [step]);
+
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("patients")
+        .select("id, full_name, room")
+        .order("full_name", { ascending: true });
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+    }
+  };
+
+  const handleStep1Submit = async (e) => {
     e.preventDefault();
 
     if (!formData.full_name || !formData.email || !formData.phone) {
@@ -300,6 +326,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
       setSaving(true);
       setError(null);
 
+      // Create family member profile
       const { data, error: insertError } = await supabase
         .from("profiles")
         .insert([
@@ -311,11 +338,13 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
             created_at: new Date().toISOString(),
           },
         ])
-        .select();
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      onSuccess();
+      setCreatedFamilyId(data.id);
+      setStep(2); // Move to linking step
     } catch (err) {
       console.error("Error adding family member:", err);
       setError(err.message || "Failed to add family member");
@@ -324,14 +353,61 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
     }
   };
 
+  const handleStep2Submit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.patient_id || !formData.relationship) {
+      setError("Please select a resident and relationship");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      // Create patient-family link
+      const { error: linkError } = await supabase
+        .from("patient_family")
+        .insert([
+          {
+            patient_id: formData.patient_id,
+            family_id: createdFamilyId,
+            relationship: formData.relationship,
+            linked_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (linkError) throw linkError;
+
+      onSuccess();
+    } catch (err) {
+      console.error("Error linking family member:", err);
+      setError(err.message || "Failed to link family member");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSkipLinking = () => {
+    // Allow creating family member without linking to a patient
+    onSuccess();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white/10 border-2 border-white/20 rounded-2xl backdrop-blur-xl max-w-2xl w-full p-8 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-foreground">
-            Add New Family Member
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {step === 1 ? "Add New Family Member" : "Link to Resident"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {step === 1
+                ? "Step 1 of 2: Enter family member details"
+                : "Step 2 of 2: Link to a resident (optional)"}
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -340,86 +416,174 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              value={formData.full_name}
-              onChange={(e) =>
-                setFormData({ ...formData, full_name: e.target.value })
-              }
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
-              placeholder="Enter full name"
-              required
-            />
-          </div>
-
-          {/* Email and Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Step 1: Create Family Member */}
+        {step === 1 && (
+          <form onSubmit={handleStep1Submit} className="space-y-6">
+            {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Email *
+                Full Name *
               </label>
               <input
-                type="email"
-                value={formData.email}
+                type="text"
+                value={formData.full_name}
                 onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
+                  setFormData({ ...formData, full_name: e.target.value })
                 }
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
-                placeholder="email@example.com"
+                placeholder="Enter full name"
                 required
               />
             </div>
 
+            {/* Email and Phone */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="email@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  placeholder="e.g., +44 123 456 7890"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Creating..." : "Next: Link to Resident"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Step 2: Link to Patient */}
+        {step === 2 && (
+          <form onSubmit={handleStep2Submit} className="space-y-6">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+              <p className="text-sm text-green-400">
+                ✓ Family member "{formData.full_name}" created successfully!
+              </p>
+            </div>
+
+            {/* Select Resident */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Phone Number *
+                Select Resident
               </label>
-              <input
-                type="tel"
-                value={formData.phone}
+              <select
+                value={formData.patient_id}
                 onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
+                  setFormData({ ...formData, patient_id: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
-                placeholder="e.g., +44 123 456 7890"
-                required
-              />
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+              >
+                <option value="">-- Select a resident --</option>
+                {patients.map((patient) => (
+                  <option key={patient.id} value={patient.id}>
+                    {patient.full_name}{" "}
+                    {patient.room ? `(Room ${patient.room})` : ""}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-              <p className="text-sm text-red-400">{error}</p>
+            {/* Relationship */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Relationship
+              </label>
+              <select
+                value={formData.relationship}
+                onChange={(e) =>
+                  setFormData({ ...formData, relationship: e.target.value })
+                }
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+              >
+                <option value="">-- Select relationship --</option>
+                <option value="Son">Son</option>
+                <option value="Daughter">Daughter</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Parent">Parent</option>
+                <option value="Grandchild">Grandchild</option>
+                <option value="Other Family">Other Family</option>
+                <option value="Friend">Friend</option>
+                <option value="Legal Guardian">Legal Guardian</option>
+              </select>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
-              disabled={saving}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? "Adding..." : "Add Family Member"}
-            </button>
-          </div>
-        </form>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleSkipLinking}
+                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                disabled={saving}
+              >
+                Skip for Now
+              </button>
+              <button
+                type="submit"
+                disabled={
+                  saving || !formData.patient_id || !formData.relationship
+                }
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Linking..." : "Complete"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
