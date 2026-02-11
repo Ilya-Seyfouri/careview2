@@ -106,6 +106,14 @@ export default function CarerDashboard() {
         .update({ status: "in progress" })
         .eq("id", schedule.id);
 
+      // Audit log: schedule started
+      await supabase.from("audit_logs").insert({
+        action_type: "schedule_started",
+        actor_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        related_to: schedule.patient?.id,
+        created_at: new Date().toISOString(),
+      });
+
       setSchedules((prev) =>
         prev.map((s) =>
           s.id === schedule.id ? { ...s, status: "in progress" } : s,
@@ -142,6 +150,14 @@ export default function CarerDashboard() {
       .update({ status: "completed" })
       .eq("id", activeVisit.id);
     if (scheduleError) throw scheduleError;
+
+    // Audit log: schedule completed
+    await supabase.from("audit_logs").insert({
+      action_type: "schedule_completed",
+      actor_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      related_to: activeVisit.patient?.id,
+      created_at: new Date().toISOString(),
+    });
 
     setSchedules((prev) =>
       prev.map((s) =>

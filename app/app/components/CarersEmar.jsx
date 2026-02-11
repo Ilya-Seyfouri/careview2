@@ -104,11 +104,24 @@ export default function Emar() {
     e.stopPropagation();
     try {
       setAdministeringId(entry.id);
+
       const { error } = await supabase
         .from("emar")
         .update({ status: "given" })
         .eq("id", entry.id);
+
       if (error) throw error;
+
+      // Audit log: medication administered
+      const actorId = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+
+      await supabase.from("audit_logs").insert({
+        action_type: "emar_administered",
+        actor_id: actorId,
+        related_to: entry.patient_id,
+        created_at: new Date().toISOString(),
+      });
+
       setEmarData((prev) =>
         prev.map((r) => (r.id === entry.id ? { ...r, status: "given" } : r)),
       );
@@ -118,7 +131,6 @@ export default function Emar() {
       setAdministeringId(null);
     }
   };
-
   const isInRound = (time, round) => {
     const [start, end] = round.range;
     return time >= start && time < end;

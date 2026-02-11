@@ -314,79 +314,93 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
     }
   };
 
-  const handleStep1Submit = async (e) => {
-    e.preventDefault();
+const handleStep1Submit = async (e) => {
+  e.preventDefault();
 
-    if (!formData.full_name || !formData.email || !formData.phone) {
-      setError("Please fill in all required fields");
-      return;
-    }
+  if (!formData.full_name || !formData.email || !formData.phone) {
+    setError("Please fill in all required fields");
+    return;
+  }
 
-    try {
-      setSaving(true);
-      setError(null);
+  try {
+    setSaving(true);
+    setError(null);
 
-      // Create family member profile
-      const { data, error: insertError } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            full_name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            role: "family",
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
+    // Create family member profile
+    const { data, error: insertError } = await supabase
+      .from("profiles")
+      .insert([
+        {
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+          role: "family",
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
 
-      if (insertError) throw insertError;
+    if (insertError) throw insertError;
 
-      setCreatedFamilyId(data.id);
-      setStep(2); // Move to linking step
-    } catch (err) {
-      console.error("Error adding family member:", err);
-      setError(err.message || "Failed to add family member");
-    } finally {
-      setSaving(false);
-    }
-  };
+    // Audit log: family member created
+    await supabase.from("audit_logs").insert({
+      action_type: "family_member_created",
+      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      related_to: data.id,
+      created_at: new Date().toISOString(),
+    });
 
-  const handleStep2Submit = async (e) => {
-    e.preventDefault();
+    setCreatedFamilyId(data.id);
+    setStep(2); // Move to linking step
+  } catch (err) {
+    console.error("Error adding family member:", err);
+    setError(err.message || "Failed to add family member");
+  } finally {
+    setSaving(false);
+  }
+};
 
-    if (!formData.patient_id || !formData.relationship) {
-      setError("Please select a resident and relationship");
-      return;
-    }
+const handleStep2Submit = async (e) => {
+  e.preventDefault();
 
-    try {
-      setSaving(true);
-      setError(null);
+  if (!formData.patient_id || !formData.relationship) {
+    setError("Please select a resident and relationship");
+    return;
+  }
 
-      // Create patient-family link
-      const { error: linkError } = await supabase
-        .from("patient_family")
-        .insert([
-          {
-            patient_id: formData.patient_id,
-            family_id: createdFamilyId,
-            relationship: formData.relationship,
-            linked_at: new Date().toISOString(),
-          },
-        ]);
+  try {
+    setSaving(true);
+    setError(null);
 
-      if (linkError) throw linkError;
+    // Create patient-family link
+    const { error: linkError } = await supabase.from("patient_family").insert([
+      {
+        patient_id: formData.patient_id,
+        family_id: createdFamilyId,
+        relationship: formData.relationship,
+        linked_at: new Date().toISOString(),
+      },
+    ]);
 
-      onSuccess();
-    } catch (err) {
-      console.error("Error linking family member:", err);
-      setError(err.message || "Failed to link family member");
-    } finally {
-      setSaving(false);
-    }
-  };
+    if (linkError) throw linkError;
+
+    // Audit log: family member linked to patient
+    await supabase.from("audit_logs").insert({
+      action_type: "family_linked_to_patient",
+      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      related_to: formData.patient_id,
+      created_at: new Date().toISOString(),
+    });
+
+    onSuccess();
+  } catch (err) {
+    console.error("Error linking family member:", err);
+    setError(err.message || "Failed to link family member");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleSkipLinking = () => {
     // Allow creating family member without linking to a patient

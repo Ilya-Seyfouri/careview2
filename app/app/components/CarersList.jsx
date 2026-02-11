@@ -274,9 +274,18 @@ function AddCarerModal({ onClose, onSuccess }) {
             created_at: new Date().toISOString(),
           },
         ])
-        .select();
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Audit log: carer created
+      await supabase.from("audit_logs").insert({
+        action_type: "carer_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: data.id,
+        created_at: new Date().toISOString(),
+      });
 
       onSuccess();
     } catch (err) {

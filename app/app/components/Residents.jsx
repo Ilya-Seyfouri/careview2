@@ -315,18 +315,32 @@ function AddResidentModal({ onClose, onSuccess }) {
     try {
       setSaving(true);
       setError(null);
-      const { error: insertError } = await supabase.from("patients").insert([
-        {
-          full_name: formData.full_name,
-          dob: formData.dob,
-          room: formData.room,
-          status: formData.status,
-          wing: formData.wing,
-          key_health_indicator: formData.key_health_indicator,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const { data: newPatient, error: insertError } = await supabase
+        .from("patients")
+        .insert([
+          {
+            full_name: formData.full_name,
+            dob: formData.dob,
+            room: formData.room,
+            status: formData.status,
+            wing: formData.wing,
+            key_health_indicator: formData.key_health_indicator,
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
       if (insertError) throw insertError;
+
+      // Audit log: patient created
+      await supabase.from("audit_logs").insert({
+        action_type: "patient_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: newPatient.id,
+        created_at: new Date().toISOString(),
+      });
+
       onSuccess();
     } catch (err) {
       setError(err.message || "Failed to add resident");

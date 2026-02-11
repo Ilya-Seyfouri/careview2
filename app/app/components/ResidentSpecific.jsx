@@ -508,19 +508,26 @@ function CareTeamTab({ residentId }) {
     setAvailableFamily(data || []);
   };
 
-  const assignCarer = async (id) => {
-    setActionLoading(`assign-carer-${id}`);
-    await supabase
-      .from("patient_carers")
-      .insert({
-        patient_id: residentId,
-        carer_id: id,
-        assigned_at: new Date().toISOString(),
-      });
-    await fetchCareTeam();
-    await fetchAvailableCarers();
-    setActionLoading(null);
-  };
+ const assignCarer = async (id) => {
+   setActionLoading(`assign-carer-${id}`);
+   await supabase.from("patient_carers").insert({
+     patient_id: residentId,
+     carer_id: id,
+     assigned_at: new Date().toISOString(),
+   });
+
+   // Audit log: carer assigned
+   await supabase.from("audit_logs").insert({
+     action_type: "carer_assigned_to_patient",
+     actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+     related_to: residentId,
+     created_at: new Date().toISOString(),
+   });
+
+   await fetchCareTeam();
+   await fetchAvailableCarers();
+   setActionLoading(null);
+ };
   const removeCarer = async (assignId, carerId) => {
     setActionLoading(`remove-carer-${carerId}`);
     await supabase.from("patient_carers").delete().eq("id", assignId);
@@ -528,20 +535,27 @@ function CareTeamTab({ residentId }) {
     await fetchAvailableCarers();
     setActionLoading(null);
   };
-  const assignFamily = async (id) => {
-    setActionLoading(`assign-family-${id}`);
-    await supabase
-      .from("patient_family")
-      .insert({
-        patient_id: residentId,
-        family_id: id,
-        linked_at: new Date().toISOString(),
-        relationship: "Family Member",
-      });
-    await fetchCareTeam();
-    await fetchAvailableFamily();
-    setActionLoading(null);
-  };
+ const assignFamily = async (id) => {
+   setActionLoading(`assign-family-${id}`);
+   await supabase.from("patient_family").insert({
+     patient_id: residentId,
+     family_id: id,
+     linked_at: new Date().toISOString(),
+     relationship: "Family Member",
+   });
+
+   // Audit log: family member linked
+   await supabase.from("audit_logs").insert({
+     action_type: "family_linked_to_patient",
+     actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+     related_to: residentId,
+     created_at: new Date().toISOString(),
+   });
+
+   await fetchCareTeam();
+   await fetchAvailableFamily();
+   setActionLoading(null);
+ };
   const removeFamily = async (assignId, famId) => {
     setActionLoading(`remove-family-${famId}`);
     await supabase.from("patient_family").delete().eq("id", assignId);

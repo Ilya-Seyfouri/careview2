@@ -58,11 +58,23 @@ export default function Emar() {
     e.stopPropagation();
     try {
       setAdministeringId(entry.id);
+
       const { error } = await supabase
         .from("emar")
         .update({ status: "given" })
         .eq("id", entry.id);
+
       if (error) throw error;
+
+      // Audit log: medication administered
+      // Note: Using manager ID as placeholder - in production, this would use the actual logged-in user's ID
+      await supabase.from("audit_logs").insert({
+        action_type: "emar_administered",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // Replace with actual user ID in production
+        related_to: entry.patient_id,
+        created_at: new Date().toISOString(),
+      });
+
       setEmarData((prev) =>
         prev.map((r) => (r.id === entry.id ? { ...r, status: "given" } : r)),
       );
@@ -72,7 +84,6 @@ export default function Emar() {
       setAdministeringId(null);
     }
   };
-
   const isInRound = (time, round) => {
     const [start, end] = round.range;
     return time >= start && time < end;
@@ -431,16 +442,31 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
     try {
       setSaving(true);
       setError(null);
-      const { error: insertError } = await supabase.from("emar").insert([
-        {
-          patient_id: formData.patient_id,
-          medication_name: formData.medication_name,
-          medication_mg: parseInt(formData.medication_mg),
-          time_to_take: formData.time_to_take,
-          status: formData.status,
-        },
-      ]);
+
+      const { data: newEmar, error: insertError } = await supabase
+        .from("emar")
+        .insert([
+          {
+            patient_id: formData.patient_id,
+            medication_name: formData.medication_name,
+            medication_mg: parseInt(formData.medication_mg),
+            time_to_take: formData.time_to_take,
+            status: formData.status,
+          },
+        ])
+        .select()
+        .single();
+
       if (insertError) throw insertError;
+
+      // Audit log: eMAR record created
+      await supabase.from("audit_logs").insert({
+        action_type: "emar_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: formData.patient_id,
+        created_at: new Date().toISOString(),
+      });
+
       setSuccess(true);
       setTimeout(() => onSuccess(), 800);
     } catch (err) {

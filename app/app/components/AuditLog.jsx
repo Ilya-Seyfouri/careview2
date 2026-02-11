@@ -30,10 +30,10 @@ export default function AuditLog() {
     try {
       setLoading(true);
 
-      // Fetch audit logs
+      // Fetch audit logs - FIXED: using correct column names
       const { data: logsData, error: logsError } = await supabase
         .from("audit_logs")
-        .select("id, actor_id, action, entity_type, entity_id, created_at")
+        .select("id, actor_id, action_type, related_to, created_at")
         .order("created_at", { ascending: false });
 
       if (logsError) throw logsError;
@@ -55,10 +55,22 @@ export default function AuditLog() {
 
       if (actorsError) throw actorsError;
 
-      // Combine logs with actor data
+      // Get unique related_to IDs to fetch patient names
+      const relatedIds = [
+        ...new Set(logsData.map((log) => log.related_to).filter(Boolean)),
+      ];
+
+      // Fetch patient details
+      const { data: patientsData } = await supabase
+        .from("patients")
+        .select("id, full_name")
+        .in("id", relatedIds);
+
+      // Combine logs with actor and patient data
       const logsWithDetails = logsData.map((log) => ({
         ...log,
         actor: actorsData?.find((a) => a.id === log.actor_id) || null,
+        patient: patientsData?.find((p) => p.id === log.related_to) || null,
       }));
 
       setLogs(logsWithDetails);
@@ -70,51 +82,57 @@ export default function AuditLog() {
     }
   };
 
-  const getEventTypeInfo = (entityType) => {
-    switch (entityType?.toLowerCase()) {
-      case "system":
-        return {
-          label: "SYSTEM",
-          color: "text-blue-600",
-          bgColor: "bg-blue-50",
-          icon: <FileText size={16} />,
-        };
-      case "task":
-        return {
-          label: "TASK",
-          color: "text-green-600",
-          bgColor: "bg-green-50",
-          icon: <ClipboardList size={16} />,
-        };
-      case "security":
-        return {
-          label: "SECURITY",
-          color: "text-purple-600",
-          bgColor: "bg-purple-50",
-          icon: <Shield size={16} />,
-        };
-      case "access":
-        return {
-          label: "ACCESS",
-          color: "text-blue-500",
-          bgColor: "bg-blue-50",
-          icon: <UserCheck size={16} />,
-        };
-      case "alert":
-        return {
-          label: "ALERT",
-          color: "text-red-600",
-          bgColor: "bg-red-50",
-          icon: <AlertTriangle size={16} />,
-        };
-      default:
-        return {
-          label: entityType?.toUpperCase() || "UNKNOWN",
-          color: "text-gray-600",
-          bgColor: "bg-gray-50",
-          icon: <FileText size={16} />,
-        };
+  const getActionTypeInfo = (actionType) => {
+    // Group action types by category
+    const action = actionType?.toLowerCase() || "";
+
+    if (action.includes("patient") || action.includes("resident")) {
+      return {
+        label: "PATIENT",
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        icon: <UserCheck size={16} />,
+      };
     }
+    if (action.includes("carer") || action.includes("family")) {
+      return {
+        label: "STAFF",
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+        icon: <UserCheck size={16} />,
+      };
+    }
+    if (action.includes("schedule") || action.includes("shift")) {
+      return {
+        label: "SCHEDULE",
+        color: "text-purple-600",
+        bgColor: "bg-purple-50",
+        icon: <ClipboardList size={16} />,
+      };
+    }
+    if (action.includes("emar") || action.includes("medication")) {
+      return {
+        label: "MEDICATION",
+        color: "text-orange-600",
+        bgColor: "bg-orange-50",
+        icon: <FileText size={16} />,
+      };
+    }
+    if (action.includes("report") || action.includes("handover")) {
+      return {
+        label: "REPORT",
+        color: "text-cyan-600",
+        bgColor: "bg-cyan-50",
+        icon: <FileText size={16} />,
+      };
+    }
+
+    return {
+      label: "SYSTEM",
+      color: "text-gray-600",
+      bgColor: "bg-gray-50",
+      icon: <Shield size={16} />,
+    };
   };
 
   const formatTimestamp = (dateString) => {
@@ -129,16 +147,27 @@ export default function AuditLog() {
     });
   };
 
+  const formatActionType = (actionType) => {
+    if (!actionType) return "Unknown Action";
+
+    // Convert snake_case to Title Case
+    return actionType
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   const filteredLogs = logs.filter((log) => {
     const matchesSearch =
       searchQuery === "" ||
-      log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.action_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.actor?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.entity_type?.toLowerCase().includes(searchQuery.toLowerCase());
+      log.patient?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesFilter =
       filterType === "all" ||
-      log.entity_type?.toLowerCase() === filterType.toLowerCase();
+      getActionTypeInfo(log.action_type).label.toLowerCase() ===
+        filterType.toLowerCase();
 
     return matchesSearch && matchesFilter;
   });
@@ -183,10 +212,13 @@ export default function AuditLog() {
       <div className="container mx-auto px-6 lg:px-10 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-6">Audit Log</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Audit Log</h1>
+          <p className="text-sm text-muted-foreground">
+            Complete system activity tracking and compliance monitoring
+          </p>
 
           {/* Filters and Search */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 mt-6">
             {/* Search */}
             <div className="relative flex-1">
               <Search
@@ -209,11 +241,12 @@ export default function AuditLog() {
               className="px-4 py-2 bg-white/5 border-2 border-white/10 rounded-lg focus:outline-none focus:border-cyan-500 text-foreground"
             >
               <option value="all">All Types</option>
+              <option value="patient">Patient</option>
+              <option value="staff">Staff</option>
+              <option value="schedule">Schedule</option>
+              <option value="medication">Medication</option>
+              <option value="report">Report</option>
               <option value="system">System</option>
-              <option value="task">Task</option>
-              <option value="security">Security</option>
-              <option value="access">Access</option>
-              <option value="alert">Alert</option>
             </select>
           </div>
         </div>
@@ -234,7 +267,7 @@ export default function AuditLog() {
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 font-semibold text-sm text-gray-600 uppercase tracking-wider">
-                <div className="col-span-2">Event Type</div>
+                <div className="col-span-2">Category</div>
                 <div className="col-span-2">Timestamp</div>
                 <div className="col-span-2">User</div>
                 <div className="col-span-3">Action</div>
@@ -244,24 +277,24 @@ export default function AuditLog() {
               {/* Table Body */}
               <div className="divide-y divide-gray-200">
                 {currentLogs.map((log) => {
-                  const eventInfo = getEventTypeInfo(log.entity_type);
+                  const actionInfo = getActionTypeInfo(log.action_type);
                   return (
                     <div
                       key={log.id}
                       className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
                     >
-                      {/* Event Type */}
+                      {/* Category */}
                       <div className="col-span-2 flex items-center gap-2">
                         <div
-                          className={`flex items-center gap-2 px-3 py-1 rounded-md ${eventInfo.bgColor}`}
+                          className={`flex items-center gap-2 px-3 py-1 rounded-md ${actionInfo.bgColor}`}
                         >
-                          <span className={eventInfo.color}>
-                            {eventInfo.icon}
+                          <span className={actionInfo.color}>
+                            {actionInfo.icon}
                           </span>
                           <span
-                            className={`font-semibold text-xs ${eventInfo.color}`}
+                            className={`font-semibold text-xs ${actionInfo.color}`}
                           >
-                            {eventInfo.label}
+                            {actionInfo.label}
                           </span>
                         </div>
                       </div>
@@ -275,22 +308,31 @@ export default function AuditLog() {
 
                       {/* User */}
                       <div className="col-span-2 flex items-center">
-                        <span className="text-sm font-medium text-gray-900">
-                          {log.actor?.full_name || "System"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {log.actor?.full_name || "System"}
+                          </span>
+                          {log.actor?.role && (
+                            <span className="text-xs text-gray-400 capitalize">
+                              ({log.actor.role})
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Action */}
                       <div className="col-span-3 flex items-center">
                         <span className="text-sm text-gray-900">
-                          {log.action || "Unknown Action"}
+                          {formatActionType(log.action_type)}
                         </span>
                       </div>
 
                       {/* Related To */}
                       <div className="col-span-3 flex items-center">
                         <span className="text-sm text-gray-600">
-                          {log.entity_id || "N/A"}
+                          {log.patient?.full_name ||
+                            log.related_to?.substring(0, 8) ||
+                            "N/A"}
                         </span>
                       </div>
                     </div>

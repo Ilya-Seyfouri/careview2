@@ -524,6 +524,14 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
 
       if (insertError) throw insertError;
 
+      // Audit log: patient assigned to carer
+      await supabase.from("audit_logs").insert({
+        action_type: "carer_assigned_to_patient",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: selectedPatient,
+        created_at: new Date().toISOString(),
+      });
+
       onSuccess();
     } catch (err) {
       console.error("Error assigning patient:", err);

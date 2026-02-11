@@ -525,15 +525,30 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
     try {
       setSaving(true);
       setError(null);
-      const { error: insertError } = await supabase.from("reports").insert({
-        patient_id: formData.patient_id,
-        created_by: managerId,
-        title: formData.title.trim(),
-        type: formData.type,
-        content: formData.content.trim(),
+
+      const { data: newReport, error: insertError } = await supabase
+        .from("reports")
+        .insert({
+          patient_id: formData.patient_id,
+          created_by: managerId,
+          title: formData.title.trim(),
+          type: formData.type,
+          content: formData.content.trim(),
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Audit log: report created
+      await supabase.from("audit_logs").insert({
+        action_type: "report_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: formData.patient_id,
         created_at: new Date().toISOString(),
       });
-      if (insertError) throw insertError;
+
       onSuccess();
     } catch (err) {
       setError(err.message || "Failed to save report.");
