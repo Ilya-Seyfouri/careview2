@@ -152,13 +152,12 @@ export default function FamilyList() {
               <UserCheck size={12} />
               Extended Care Network
             </div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
               Family Relations
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
-              Managing communication and portal access for{" "}
+              {familyMembers.length} family members
               <span className="text-slate-900 font-bold">
-                {familyMembers.length} family members
               </span>
             </p>
           </div>
@@ -248,7 +247,6 @@ export default function FamilyList() {
                                 <p className="font-black text-lg text-slate-900 tracking-tight group-hover/row:text-blue-600 transition-colors">
                                   {family.full_name}
                                 </p>
-                               
                               </div>
                             </div>
                           </td>

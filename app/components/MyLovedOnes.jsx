@@ -261,8 +261,7 @@ export default function MyLovedOnes() {
                   />
                   <StatRow label="Wing" value={client.wing || "N/A"} />
                   <StatRow label="Blood Type" value={client.blood || "N/A"} />
-                  <StatRow label="Visit Logs" value={visitLogs.length} />
-                  <StatRow label="Reports" value={reports.length} />
+               
                 </div>
               </div>
 
@@ -385,9 +384,10 @@ export default function MyLovedOnes() {
     </>
   );
 }
-
 /* ─── Overview Tab ───────────────────────────────────────────────── */
 function OverviewTab({ client, assignedCarers, calculateAge }) {
+  const hasVitals = client.pulse || client.bp;
+
   return (
     <div className="space-y-10">
       <section>
@@ -426,7 +426,7 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
             </div>
             Health Summary
           </h4>
-          <div className="p-8 bg-blue-50 rounded-3xl border-2 border-blue-100 border-dashed">
+          <div className="p-6 bg-blue-50 rounded-3xl border-2 border-blue-100 border-dashed">
             <p className="text-base text-slate-700 leading-relaxed font-medium">
               {client.health_summary}
             </p>
@@ -434,76 +434,67 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
         </section>
       )}
 
-      {client.key_health_indicator && (
+      {/* Current Vitals */}
+      {hasVitals && (
         <section>
-          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
-            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
-              <Heart size={20} />
-            </div>
-            Key Health Indicator
+          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+            Current Vitals
           </h4>
-          <div className="inline-flex items-center gap-3 bg-rose-50 border border-rose-200 px-6 py-4 rounded-2xl">
-            <span className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
-            <span className="text-base font-black text-rose-900">
-              {client.key_health_indicator}
-            </span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+            {client.pulse && (
+              <VitalCard
+                label="Pulse"
+                value={String(client.pulse)}
+                unit="bpm"
+                color="blue"
+              />
+            )}
+            {client.bp && (
+              <VitalCard
+                label="Blood Pressure"
+                value={String(client.bp)}
+                unit="mmHg"
+                color="rose"
+              />
+            )}
           </div>
         </section>
       )}
+    </div>
+  );
+}
 
-      {assignedCarers.length > 0 && (
-        <section>
-          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
-            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-              <UserCheck size={20} />
-            </div>
-            Care Team
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {assignedCarers.map((carer) => (
-              <div
-                key={carer.id}
-                className="bg-slate-50 border border-slate-200 rounded-[24px] p-6 space-y-4 hover:shadow-lg transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-lg font-black shadow-sm">
-                    {carer.full_name?.charAt(0) || "C"}
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 tracking-tight">
-                      {carer.full_name}
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium">Carer</p>
-                  </div>
-                </div>
-                {carer.phone && (
-                  <a
-                    href={`tel:${carer.phone}`}
-                    className="flex items-center gap-2 text-sm text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    <Phone size={14} className="text-emerald-500" />{" "}
-                    {carer.phone}
-                  </a>
-                )}
-                {carer.email && (
-                  <a
-                    href={`mailto:${carer.email}`}
-                    className="flex items-center gap-2 text-sm text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                  >
-                    <Mail size={14} className="text-blue-500" /> {carer.email}
-                  </a>
-                )}
-                {carer.assigned_at && (
-                  <p className="text-xs text-slate-400 pt-3 border-t border-slate-200 font-bold">
-                    Assigned:{" "}
-                    {new Date(carer.assigned_at).toLocaleDateString("en-GB")}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+function VitalCard({ label, value, unit, color }) {
+  const colors = {
+    blue: {
+      bg: "bg-blue-50",
+      text: "text-blue-600",
+      ring: "ring-blue-100",
+    },
+    rose: {
+      bg: "bg-rose-50",
+      text: "text-rose-600",
+      ring: "ring-rose-100",
+    },
+    green: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-600",
+      ring: "ring-emerald-100",
+    },
+  };
+  const cfg = colors[color] || colors.blue;
+
+  return (
+    <div
+      className={`${cfg.bg} rounded-[24px] p-4 ring-1 ${cfg.ring} shadow-sm`}
+    >
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+        {label}
+      </p>
+      <p className={`text-3xl font-black ${cfg.text} tracking-tight`}>
+        {value}
+        <span className="text-sm font-bold text-slate-400 ml-2">{unit}</span>
+      </p>
     </div>
   );
 }
@@ -1065,7 +1056,7 @@ function ViewReportModal({ report, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between mb-8">
           <div>
             <div className="flex items-center gap-3 mb-3 flex-wrap">

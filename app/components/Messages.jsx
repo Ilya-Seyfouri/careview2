@@ -237,10 +237,10 @@ export default function Messages() {
   const familyPerson = profiles[FAMILY_ID];
   const headerSubtitle = isCurrentUserCarer
     ? patient
-      ? `${familyPerson?.full_name ?? "Family member"} · Family of ${patient.full_name}`
+      ? `Relative of ${patient.full_name}`
       : "Family member of assigned resident"
     : patient
-      ? `Messaging carer assigned to your relative, ${patient.full_name}`
+      ? `Messaging carer assigned to your relative`
       : "Messaging assigned care staff";
 
   return (
@@ -250,17 +250,7 @@ export default function Messages() {
         <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
           Family Messaging
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          {isLoading
-            ? "Loading..."
-            : isCurrentUserCarer
-              ? patient
-                ? `Messaging ${familyPerson?.full_name ?? "family"} · Family of ${patient.full_name}, Room ${patient.room}`
-                : "Direct line between care staff and family members"
-              : patient
-                ? `Messaging the care team looking after your relative, ${patient.full_name} · Room ${patient.room}`
-                : "Direct line between care staff and family members"}
-        </p>
+        
       </div>
 
       <div className="container mx-auto px-0 lg:px-10 pb-0 lg:pb-10 flex-1 flex flex-col max-w-2xl">

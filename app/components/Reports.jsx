@@ -184,17 +184,13 @@ export default function Analytics() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   Analytics & Reporting
                 </h2>
-                <p className="text-slate-500 text-lg font-medium mt-1">
-                  Key performance indicators and operational summaries
-                </p>
+             
               </div>
               <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 shadow-sm transition-all">
-                  <Download size={16} strokeWidth={3} /> Export Data
-                </button>
+               
                 <button
                   onClick={() => setShowAddReport(true)}
                   className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
@@ -580,7 +576,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-lg w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-8 shadow-2xl border border-slate-100 max-h-95vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">

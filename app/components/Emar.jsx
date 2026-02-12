@@ -144,7 +144,7 @@ export default function Emar() {
             Electronic MAR
           </h2>
           <p className="text-slate-500 text-base font-medium mt-1">
-            Real-time medication administration tracking
+            Medication tracking
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export default function Emar() {
                 onClick={() => setActiveRound(round.label)}
                 className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
                   activeRound === round.label
-                    ? "bg-slate-900 text-white shadow-md"
+                    ? "bg-blue-500 text-white shadow-md"
                     : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
@@ -370,7 +370,7 @@ export default function Emar() {
                                   <button
                                     onClick={(e) => handleAdminister(e, entry)}
                                     disabled={isAdministering}
-                                    className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                                    className="px-4 py-1.5 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
                                   >
                                     {isAdministering ? "..." : "Administer"}
                                   </button>

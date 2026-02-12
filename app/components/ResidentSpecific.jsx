@@ -163,18 +163,17 @@ export default function ResidentSpecific({ params }) {
                   )}
                 </div>
 
-                {resident.key_health_indicator && (
-                  <div className="p-5 bg-rose-50 border border-rose-100 rounded-3xl relative overflow-hidden group/note">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 blur-xl rounded-full"></div>
-                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                      <AlertCircle size={12} />
-                      Critical Care Note
-                    </p>
-                    <p className="text-base font-black text-rose-900 leading-tight">
-                      {resident.key_health_indicator}
-                    </p>
-                  </div>
-                )}
+                <div
+                  className={` py-4 px-4 rounded-[24px] text-center text-xs font-black uppercase tracking-widest ring-1 ${
+                    resident.status?.toLowerCase() === "stable"
+                      ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                      : resident.status?.toLowerCase() === "attention"
+                        ? "bg-amber-50 text-amber-700 ring-amber-100"
+                        : "bg-rose-50 text-rose-700 ring-rose-100"
+                  }`}
+                >
+                  {resident.status || "Unknown"} Status
+                </div>
               </div>
             </div>
 
@@ -185,7 +184,7 @@ export default function ResidentSpecific({ params }) {
               </h3>
               <div className="space-y-4">
                 <DemoRow
-                  label="Age / Gender"
+                  label="Age"
                   value={`${calculateAge(resident.dob)}y${resident.gender ? ` / ${resident.gender}` : ""}`}
                   icon={User}
                 />
@@ -298,29 +297,19 @@ function OverviewTab({ resident }) {
   return (
     <div className="space-y-10">
       {/* Status Badge */}
-      <div
-        className={`w-full py-4 px-6 rounded-[24px] text-center text-xs font-black uppercase tracking-widest ring-1 ${
-          resident.status?.toLowerCase() === "stable"
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-            : resident.status?.toLowerCase() === "attention"
-              ? "bg-amber-50 text-amber-700 ring-amber-100"
-              : "bg-rose-50 text-rose-700 ring-rose-100"
-        }`}
-      >
-        {resident.status || "Unknown"} Status
-      </div>
+      
 
       {/* Executive Clinical Summary */}
       <section>
-        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
           Executive Clinical Summary
         </h4>
-        <div className="p-8 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
+        <div className="p-4 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
           {resident.health_summary ? (
-            <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
+            <p className="text-md text-slate-600 leading-relaxed italic font-medium">
               "{resident.health_summary}"
             </p>
           ) : (
@@ -383,7 +372,7 @@ function VitalCard({ label, value, unit, color }) {
 
   return (
     <div
-      className={`${cfg.bg} rounded-[24px] p-6 ring-1 ${cfg.ring} shadow-sm`}
+      className={`${cfg.bg} rounded-[24px] p-4 ring-1 ${cfg.ring} shadow-sm`}
     >
       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
         {label}
@@ -1160,7 +1149,7 @@ function ReportsTab({ residentId }) {
                 <X size={20} className="text-slate-500" />
               </button>
             </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8">
+            <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-4">
               <p className="text-slate-700 whitespace-pre-wrap leading-relaxed font-medium text-base">
                 {selected.content}
               </p>

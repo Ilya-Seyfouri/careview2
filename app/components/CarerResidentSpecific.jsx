@@ -218,7 +218,7 @@ export default function CarerResidentSpecific() {
                 </h3>
                 <div className="space-y-4">
                   <DemoRow
-                    label="Age / Gender"
+                    label="Age "
                     value={`${calculateAge(client.dob)}y${client.gender ? ` / ${client.gender}` : ""}`}
                     icon={User}
                   />
@@ -247,63 +247,6 @@ export default function CarerResidentSpecific() {
                     last
                   />
                 </div>
-              </div>
-
-              {/* Emergency contacts */}
-              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
-                  Emergency Contacts
-                </h3>
-                {familyMembers.length === 0 ? (
-                  <p className="text-sm text-slate-500 font-medium text-center py-4">
-                    No contacts on record
-                  </p>
-                ) : (
-                  <div className="space-y-5">
-                    {familyMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className="p-4 bg-slate-50/50 rounded-2xl hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white text-sm font-black shadow-sm">
-                            {member.full_name?.charAt(0) || "F"}
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-900 tracking-tight">
-                              {member.full_name}
-                            </p>
-                            {member.relationship && (
-                              <p className="text-xs text-slate-500 font-medium">
-                                {member.relationship}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="space-y-2 pl-13">
-                          {member.phone && (
-                            <a
-                              href={`tel:${member.phone}`}
-                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
-                            >
-                              <Phone size={12} />
-                              {member.phone}
-                            </a>
-                          )}
-                          {member.email && (
-                            <a
-                              href={`mailto:${member.email}`}
-                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
-                            >
-                              <Mail size={12} />
-                              {member.email}
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -374,51 +317,43 @@ export default function CarerResidentSpecific() {
     </>
   );
 }
-
 /* ─── Overview Tab ───────────────────────────────────────────────── */
 function OverviewTab({ client }) {
-  const hasVitals = client.pulse || client.bp;
+  const [familyMembers, setFamilyMembers] = useState([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchFamily = async () => {
+      const { data: familyLinks } = await supabase
+        .from("patient_family")
+        .select(
+          `relationship, profiles:family_id (id, full_name, email, phone, role)`,
+        )
+        .eq("patient_id", client.id);
+
+      const family = (familyLinks || []).map((f) => ({
+        ...f.profiles,
+        relationship: f.relationship,
+      }));
+      setFamilyMembers(family);
+    };
+
+    if (client?.id) fetchFamily();
+  }, [client?.id]);
 
   return (
     <div className="space-y-10">
-      {/* Status banner */}
-      <div
-        className={`w-full py-4 px-6 rounded-[24px] text-center text-xs font-black uppercase tracking-widest ring-1 ${
-          client.status?.toLowerCase() === "stable"
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-            : client.status?.toLowerCase() === "attention"
-              ? "bg-amber-50 text-amber-700 ring-amber-100"
-              : "bg-rose-50 text-rose-700 ring-rose-100"
-        }`}
-      >
-        {client.status || "Unknown"} Status
-      </div>
-
-      {/* Critical Note */}
-      {client.key_health_indicator && (
-        <div className="p-5 bg-rose-50 border border-rose-100 rounded-3xl relative overflow-hidden group/note">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 blur-xl rounded-full"></div>
-          <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-            <AlertCircle size={12} />
-            Critical Care Note
-          </p>
-          <p className="text-base font-black text-rose-900 leading-tight">
-            {client.key_health_indicator}
-          </p>
-        </div>
-      )}
-
       {/* Executive Clinical Summary */}
       <section>
-        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
           Executive Clinical Summary
         </h4>
-        <div className="p-8 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
+        <div className="p-4 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
           {client.health_summary ? (
-            <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
+            <p className="text-md text-slate-600 leading-relaxed italic font-medium">
               "{client.health_summary}"
             </p>
           ) : (
@@ -429,32 +364,65 @@ function OverviewTab({ client }) {
         </div>
       </section>
 
-      {/* Current Vitals */}
-      {hasVitals && (
-        <section>
-          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
-            Current Vitals
-          </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-            {client.pulse && (
-              <VitalCard
-                label="Pulse"
-                value={String(client.pulse)}
-                unit="bpm"
-                color="blue"
-              />
-            )}
-            {client.bp && (
-              <VitalCard
-                label="Blood Pressure"
-                value={String(client.bp)}
-                unit="mmHg"
-                color="rose"
-              />
-            )}
+      {/* Emergency Contacts */}
+      <section>
+        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+          Emergency Contacts
+        </h4>
+        {familyMembers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-300">
+            <User size={60} className="mb-4 opacity-10" />
+            <p className="font-black text-lg text-slate-900 tracking-tight">
+              No contacts on record
+            </p>
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {familyMembers.map((member) => (
+              <div
+                key={member.id}
+                className="bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white text-lg font-black shadow-sm">
+                    {member.full_name?.charAt(0) || "F"}
+                  </div>
+                  <div>
+                    <p className="text-base font-black text-slate-900 tracking-tight">
+                      {member.full_name}
+                    </p>
+                    {member.relationship && (
+                      <p className="text-xs text-slate-500 font-medium">
+                        {member.relationship}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm pt-3 border-t border-slate-100">
+                  {member.phone && (
+                    <a
+                      href={`tel:${member.phone}`}
+                      className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                    >
+                      <Phone size={14} className="text-blue-500" />
+                      {member.phone}
+                    </a>
+                  )}
+                  {member.email && (
+                    <a
+                      href={`mailto:${member.email}`}
+                      className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                    >
+                      <Mail size={14} className="text-blue-500" />
+                      {member.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
@@ -587,17 +555,10 @@ function VisitLogsTab({ visitLogs, onAddLog }) {
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Visit History
         </h4>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mr-4">
           <span className="text-sm text-slate-500 font-bold">
             {visitLogs.length} total
           </span>
-          <button
-            onClick={onAddLog}
-            className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all active:scale-95"
-          >
-            <Plus size={16} strokeWidth={3} />
-            Add Log
-          </button>
         </div>
       </div>
 
@@ -973,7 +934,7 @@ function ViewReportModal({ report, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-8 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between mb-8">
           <div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">

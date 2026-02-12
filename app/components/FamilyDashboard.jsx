@@ -454,7 +454,7 @@ export default function FamilyDashboard() {
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="font-black text-xl text-slate-900 tracking-tight flex items-center gap-2">
                     <Calendar size={20} className="text-blue-600" />
-                    Protocol Schedule
+                    Schedule
                   </h3>
                 </div>
 
@@ -529,43 +529,6 @@ export default function FamilyDashboard() {
                   </button>
                 </div>
               </section>
-
-              {/* Health summary */}
-              {patient.health_summary && (
-                <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                  <h3 className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-widest">
-                    <Heart size={15} className="text-rose-500" />
-                    Health Summary
-                  </h3>
-                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-4">
-                    {patient.health_summary}
-                  </p>
-                  {(patient.pulse || patient.bp) && (
-                    <div className="flex gap-3 pt-4 border-t border-slate-100">
-                      {patient.pulse && (
-                        <div className="flex-1 bg-rose-50 rounded-2xl p-4 text-center">
-                          <p className="text-2xl font-black text-rose-600">
-                            {patient.pulse}
-                          </p>
-                          <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mt-1">
-                            BPM
-                          </p>
-                        </div>
-                      )}
-                      {patient.bp && (
-                        <div className="flex-1 bg-blue-50 rounded-2xl p-4 text-center">
-                          <p className="text-2xl font-black text-blue-600">
-                            {patient.bp}
-                          </p>
-                          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">
-                            BP
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>

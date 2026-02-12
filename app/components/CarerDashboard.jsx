@@ -232,7 +232,7 @@ export default function CarerDashboard() {
       <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
           {/* ── Hero Banner ── */}
-          <div className="relative overflow-hidden rounded-[32px] mb-8 bg-slate-900 p-10 shadow-2xl shadow-slate-200">
+          <div className="relative overflow-hidden rounded-[32px] mb-8 bg-slate-900 p-8 shadow-2xl shadow-slate-200">
             <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[80px] rounded-full"></div>
 
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
@@ -331,7 +331,7 @@ export default function CarerDashboard() {
                       className="bg-white rounded-[32px] border border-slate-100 p-8 flex flex-col md:flex-row items-center gap-8 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all group cursor-default"
                     >
                       <div className="relative">
-                        <div className="w-24 h-24 rounded-[30px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-8 ring-slate-50 transition-transform group-hover:scale-105">
+                        <div className="w-20 h-20 rounded-[30px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-8 ring-slate-50 transition-transform group-hover:scale-105">
                           {schedule.patient?.full_name
                             ?.charAt(0)
                             .toUpperCase() || "?"}
@@ -407,7 +407,7 @@ export default function CarerDashboard() {
                         ) : (
                           <button
                             onClick={() => handleStartVisit(schedule)}
-                            className="w-full md:w-auto bg-slate-900 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
+                            className="w-full md:w-auto bg-slate-900 text-white px-8 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
                           >
                             <Play
                               size={18}

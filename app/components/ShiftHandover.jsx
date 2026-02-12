@@ -176,13 +176,13 @@ export default function ShiftHandover() {
                 Shift Handover
               </h2>
               <p className="text-slate-500 text-base font-medium mt-1">
-                Critical communication between AM and PM shifts
+                Communication between AM and PM shifts
               </p>
             </div>
             <button
               onClick={() => handleSubmit("published")}
               disabled={saving || saved || isLoading}
-              className="bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
+              className="bg-blue-500 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
             >
               <Send size={16} />
               {saving

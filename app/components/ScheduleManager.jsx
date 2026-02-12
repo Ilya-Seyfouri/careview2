@@ -188,13 +188,7 @@ export default function ScheduleManager() {
   };
 
   const handleDeleteSchedule = async (scheduleId) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this schedule? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
+    
 
     try {
       const { error: deleteError } = await supabase
@@ -294,7 +288,7 @@ export default function ScheduleManager() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   Care Schedules
                 </h2>
                 <p className="text-slate-500 text-lg font-medium mt-1">
@@ -363,7 +357,7 @@ export default function ScheduleManager() {
                     <ChevronLeft size={24} className="text-slate-900" />
                   </button>
 
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                  <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
                     {formatDateHeader(selectedDate)}
                   </h2>
 
@@ -888,7 +882,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-md  max-w-2xl w-full p-10 shadow-2xl border border-black border-2 max-h-[95vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
@@ -1245,7 +1239,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-md border-black border-2 max-w-2xl w-full p-10 shadow-2xl  max-h-[95vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">

@@ -110,15 +110,14 @@ export default function CarersList() {
               <UserCheck size={12} />
               Workforce Management
             </div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
               Staff Directory
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
-              Managing{" "}
+              {carers.length}  staff members
               <span className="text-slate-900 font-bold">
-                {carers.length} active staff members
               </span>{" "}
-              across all rotations
+            
             </p>
           </div>
 
@@ -265,11 +264,9 @@ function CarerCard({ carer, gradient, initials, onClick }) {
 
       <div className="pt-4 border-t border-slate-50">
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Email
-            </span>
-            <span className="font-bold text-xs text-slate-600 truncate ml-2">
+          <div className="flex items-center justify-center ">
+            
+            <span className="font-bold text-xs text-slate-600 truncate ">
               {carer.email}
             </span>
           </div>

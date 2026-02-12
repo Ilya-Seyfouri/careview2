@@ -53,9 +53,7 @@ export default function Residents() {
     currentPage * ITEMS_PER_PAGE,
   );
 
-  const activeCount = residentData.filter(
-    (r) => r.status?.toLowerCase() === "stable",
-  ).length;
+  const activeCount = residentData.length;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
@@ -85,7 +83,7 @@ export default function Residents() {
               <Users size={12} />
               Care Delivery Network
             </div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
               Resident Directory
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
@@ -93,9 +91,9 @@ export default function Residents() {
                 "Loading..."
               ) : (
                 <>
-                  Managing high-fidelity clinical records for{" "}
+                  {activeCount} active residents
                   <span className="text-slate-900 font-bold">
-                    {activeCount} stable residents
+                    
                   </span>
                 </>
               )}
