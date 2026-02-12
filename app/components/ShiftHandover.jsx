@@ -11,6 +11,7 @@ import {
   X,
   ChevronRight,
   FileText,
+  Activity,
 } from "lucide-react";
 
 const SHIFT_TYPES = [
@@ -110,8 +111,7 @@ export default function ShiftHandover() {
 
       if (insertError) throw insertError;
 
-      // Audit log: shift handover created (one log per handover created)
-      // Use manager ID (aaa...) if manager, or carer ID (bbb...) if carer
+      // Audit log: shift handover created
       const actorId =
         demoUser.role === "carer"
           ? "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
@@ -165,20 +165,24 @@ export default function ShiftHandover() {
     <section className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-6 lg:px-10 pt-10 pb-16">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-              Shift Handover
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Critical communication between AM and PM shifts
-            </p>
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 ring-1 ring-blue-100">
+            <FileText size={10} />
+            Care Transition
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                Shift Handover
+              </h2>
+              <p className="text-slate-500 text-base font-medium mt-1">
+                Critical communication between AM and PM shifts
+              </p>
+            </div>
             <button
               onClick={() => handleSubmit("published")}
               disabled={saving || saved || isLoading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-cyan-700 transition-all disabled:opacity-50 active:scale-95"
+              className="bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
             >
               <Send size={16} />
               {saving
@@ -191,24 +195,27 @@ export default function ShiftHandover() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-24 text-gray-400 text-sm">
-            Loading...
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+            <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+            <p className="font-black text-xl text-slate-900 tracking-tight">
+              Loading...
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* ── LEFT COLUMN ── */}
             <div className="lg:col-span-2 space-y-6">
               {/* Shift Direction */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 bg-cyan-50 rounded-xl flex items-center justify-center">
-                    <ArrowRight size={18} className="text-cyan-500" />
+              <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <ArrowRight size={18} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-black text-slate-900">
                       Shift Direction
                     </p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
                       Required
                     </p>
                   </div>
@@ -218,17 +225,17 @@ export default function ShiftHandover() {
                     <button
                       key={shift.value}
                       onClick={() => setShiftType(shift.value)}
-                      className={`py-3.5 px-4 rounded-xl text-sm font-semibold border-2 transition-all flex items-center justify-center gap-2 ${
+                      className={`py-3 px-4 rounded-xl text-sm font-black border-2 transition-all flex items-center justify-center gap-2 ${
                         shiftType === shift.value
-                          ? "bg-cyan-50 border-cyan-400 text-cyan-700"
-                          : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                          ? "bg-blue-50 border-blue-400 text-blue-700"
+                          : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
-                      <span className="font-bold">
+                      <span className="font-black">
                         {shift.value === "AM->PM" ? "AM" : "PM"}
                       </span>
                       <ArrowRight size={14} />
-                      <span className="font-bold">
+                      <span className="font-black">
                         {shift.value === "AM->PM" ? "PM" : "AM"}
                       </span>
                     </button>
@@ -237,16 +244,16 @@ export default function ShiftHandover() {
               </div>
 
               {/* General Observations */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
+              <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                    <FileText size={18} className="text-blue-500" />
+                    <FileText size={18} className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-black text-slate-900">
                       General Observations
                     </p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
                       Mandatory Field
                     </p>
                   </div>
@@ -255,22 +262,22 @@ export default function ShiftHandover() {
                   rows={5}
                   value={generalNotes}
                   onChange={(e) => setGeneralNotes(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors text-sm resize-none"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm resize-none"
                   placeholder="Summarise general facility status, maintenance issues, or site-wide events..."
                 />
               </div>
 
               {/* Resident Red Flags */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+              <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
-                    <AlertCircle size={18} className="text-red-400" />
+                    <AlertCircle size={18} className="text-red-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-black text-slate-900">
                       Resident Red Flags
                     </p>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
                       Per-resident concerns
                     </p>
                   </div>
@@ -283,16 +290,16 @@ export default function ShiftHandover() {
                     return (
                       <div
                         key={idx}
-                        className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl group"
+                        className="flex items-start gap-3 p-4 bg-red-50/50 border border-red-100/50 rounded-xl group"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center text-sm font-bold text-red-500 flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-xs font-black text-red-600 flex-shrink-0">
                           {patient?.full_name?.charAt(0) || "?"}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-red-700">
-                            {patient?.full_name} — {patient?.room}
+                          <p className="text-sm font-black text-red-900">
+                            {patient?.full_name} — Room {patient?.room}
                           </p>
-                          <p className="text-sm text-red-600 mt-0.5 leading-relaxed">
+                          <p className="text-xs text-red-700 font-medium mt-1 leading-relaxed">
                             {flag.patient_notes || (
                               <span className="italic text-red-400">
                                 No notes added
@@ -313,9 +320,9 @@ export default function ShiftHandover() {
 
                 {/* Inline add form */}
                 {addingFlag ? (
-                  <div className="border-2 border-dashed border-cyan-200 rounded-xl p-4 bg-cyan-50/30 space-y-3">
+                  <div className="border-2 border-dashed border-blue-200 rounded-xl p-4 bg-blue-50/30 space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                         Select Resident
                       </label>
                       <select
@@ -323,7 +330,7 @@ export default function ShiftHandover() {
                         onChange={(e) =>
                           setNewFlag({ ...newFlag, patient_id: e.target.value })
                         }
-                        className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
+                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 font-medium focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                       >
                         <option value="">Choose a resident...</option>
                         {availablePatients.map((p) => (
@@ -334,7 +341,7 @@ export default function ShiftHandover() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                         Patient Notes
                       </label>
                       <textarea
@@ -346,7 +353,7 @@ export default function ShiftHandover() {
                             patient_notes: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors resize-none"
+                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"
                         placeholder="e.g. Refused morning meds, breathing slightly laboured..."
                       />
                     </div>
@@ -357,7 +364,7 @@ export default function ShiftHandover() {
                           setAddingFlag(false);
                           setNewFlag({ patient_id: "", patient_notes: "" });
                         }}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-all font-medium"
+                        className="px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-700 font-black hover:bg-slate-200 transition-all uppercase tracking-widest"
                       >
                         Cancel
                       </button>
@@ -365,7 +372,7 @@ export default function ShiftHandover() {
                         type="button"
                         onClick={handleAddFlag}
                         disabled={!newFlag.patient_id}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg text-sm font-semibold shadow-md shadow-cyan-500/20 hover:from-cyan-500 hover:to-cyan-700 transition-all disabled:opacity-40"
+                        className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-40 uppercase tracking-widest"
                       >
                         Add Flag
                       </button>
@@ -375,9 +382,9 @@ export default function ShiftHandover() {
                   <button
                     onClick={() => setAddingFlag(true)}
                     disabled={availablePatients.length === 0}
-                    className="w-full py-3.5 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-400 font-medium hover:border-cyan-300 hover:text-cyan-500 hover:bg-cyan-50/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-xs text-slate-400 font-black hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-widest"
                   >
-                    <Plus size={15} />
+                    <Plus size={14} />
                     Add New Flag
                   </button>
                 )}
@@ -385,12 +392,12 @@ export default function ShiftHandover() {
 
               {/* Error */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center gap-3">
                   <AlertCircle
                     size={16}
-                    className="text-red-500 flex-shrink-0"
+                    className="text-rose-500 flex-shrink-0"
                   />
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-rose-600 font-bold">{error}</p>
                 </div>
               )}
             </div>
@@ -398,17 +405,19 @@ export default function ShiftHandover() {
             {/* ── RIGHT SIDEBAR ── */}
             <div className="space-y-5">
               {/* Handover Details — dark card */}
-              <div className="bg-gray-900 rounded-2xl p-6 shadow-xl">
-                <div className="flex items-center gap-2 mb-5">
-                  <Clock size={17} className="text-cyan-400" />
-                  <h3 className="text-base font-bold text-white">
+              <div className="bg-slate-900 rounded-[28px] p-6 shadow-2xl shadow-slate-200">
+                <div className="flex items-center gap-2 mb-6">
+                  <Clock size={16} className="text-blue-400" />
+                  <h3 className="text-base font-black text-white">
                     Handover Details
                   </h3>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Date</span>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Date
+                    </span>
+                    <span className="text-sm font-black text-white">
                       {new Date().toLocaleDateString("en-GB", {
                         day: "numeric",
                         month: "short",
@@ -417,20 +426,26 @@ export default function ShiftHandover() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Shift</span>
-                    <span className="text-sm font-semibold text-cyan-400">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Shift
+                    </span>
+                    <span className="text-sm font-black text-blue-400">
                       {SHIFT_TYPES.find((s) => s.value === shiftType)?.label}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Author</span>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Author
+                    </span>
+                    <span className="text-sm font-black text-white">
                       {demoUser?.full_name || "—"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Flags</span>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Flags
+                    </span>
+                    <span className="text-sm font-black text-white">
                       {redFlags.length} resident
                       {redFlags.length !== 1 ? "s" : ""}
                     </span>
@@ -438,18 +453,18 @@ export default function ShiftHandover() {
                 </div>
 
                 {/* Completion status */}
-                <div className="mt-6 pt-5 border-t border-gray-700/60">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                <div className="mt-6 pt-5 border-t border-slate-700/60">
+                  <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest mb-3">
                     Completion Status
                   </p>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full transition-all duration-500"
+                        className="h-full bg-blue-400 rounded-full transition-all duration-500"
                         style={{ width: `${completionPct}%` }}
                       />
                     </div>
-                    <span className="text-sm font-bold text-white w-9 text-right">
+                    <span className="text-xs font-black text-white w-8 text-right">
                       {completionPct}%
                     </span>
                   </div>
@@ -458,12 +473,12 @@ export default function ShiftHandover() {
                       <div key={label} className="flex items-center gap-2">
                         <div
                           className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
-                            done ? "bg-cyan-400" : "bg-gray-600"
+                            done ? "bg-blue-400" : "bg-slate-600"
                           }`}
                         />
                         <span
-                          className={`text-xs transition-colors ${
-                            done ? "text-gray-300" : "text-gray-500"
+                          className={`text-xs font-medium transition-colors ${
+                            done ? "text-slate-300" : "text-slate-500"
                           }`}
                         >
                           {label}
@@ -475,23 +490,23 @@ export default function ShiftHandover() {
               </div>
 
               {/* Past Handovers */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-800 mb-4">
+              <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                <h3 className="text-sm font-black text-slate-900 mb-5">
                   Past Handovers
                 </h3>
                 {pastHandovers.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-3">
+                  <p className="text-xs text-slate-400 text-center py-3 font-medium">
                     No past handovers found
                   </p>
                 ) : (
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-slate-50">
                     {pastHandovers.map((h) => (
                       <div
                         key={h.id}
-                        className="flex items-center justify-between py-3.5 group cursor-pointer"
+                        className="flex items-center justify-between py-3 group cursor-pointer"
                       >
                         <div>
-                          <p className="text-sm font-semibold text-gray-800">
+                          <p className="text-sm font-black text-slate-900">
                             {new Date(h.created_at).toLocaleDateString(
                               "en-GB",
                               {
@@ -501,15 +516,15 @@ export default function ShiftHandover() {
                               },
                             )}
                           </p>
-                          <p className="text-xs text-gray-400 uppercase tracking-wider mt-0.5">
+                          <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
                             {h.shift_type === "AM->PM"
                               ? "AM Shift"
                               : "PM Shift"}
                           </p>
                         </div>
                         <ChevronRight
-                          size={16}
-                          className="text-gray-300 group-hover:text-cyan-400 transition-colors"
+                          size={14}
+                          className="text-slate-300 group-hover:text-slate-600 transition-colors"
                         />
                       </div>
                     ))}

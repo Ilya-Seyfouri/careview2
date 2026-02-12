@@ -3,15 +3,14 @@ import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import {
   Search,
-  Filter,
   Clock,
-  Calendar,
   AlertTriangle,
   ChevronRight,
   Pill,
   X,
   Plus,
   Check,
+  Activity,
 } from "lucide-react";
 
 const TIME_ROUNDS = [
@@ -66,11 +65,9 @@ export default function Emar() {
 
       if (error) throw error;
 
-      // Audit log: medication administered
-      // Note: Using manager ID as placeholder - in production, this would use the actual logged-in user's ID
       await supabase.from("audit_logs").insert({
         action_type: "emar_administered",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // Replace with actual user ID in production
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         related_to: entry.patient_id,
         created_at: new Date().toISOString(),
       });
@@ -84,6 +81,7 @@ export default function Emar() {
       setAdministeringId(null);
     }
   };
+
   const isInRound = (time, round) => {
     const [start, end] = round.range;
     return time >= start && time < end;
@@ -112,22 +110,22 @@ export default function Emar() {
     switch (status) {
       case "given":
         return {
-          pill: "bg-green-100 text-green-700 border border-green-200",
+          pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
           label: "GIVEN",
         };
       case "due":
         return {
-          pill: "bg-amber-100 text-amber-700 border border-amber-200",
+          pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
           label: "DUE",
         };
       case "missed":
         return {
-          pill: "bg-red-100 text-red-600 border border-red-200",
+          pill: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
           label: "MISSED",
         };
       default:
         return {
-          pill: "bg-gray-100 text-gray-500 border border-gray-200",
+          pill: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
           label: status,
         };
     }
@@ -137,83 +135,81 @@ export default function Emar() {
     <section className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-              Electronic MAR
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Real-time medication administration tracking
-            </p>
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-slate-50 text-slate-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 ring-1 ring-slate-100">
+            <Pill size={10} />
+            Medication Administration
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowAuditModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 text-sm font-medium hover:bg-gray-50 transition-all shadow-sm"
-            >
-              <Clock size={16} />
-              Audit MAR
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg text-sm font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-cyan-700 transition-all">
-              <Calendar size={16} />
-              View Schedule
-            </button>
-          </div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            Electronic MAR
+          </h2>
+          <p className="text-slate-500 text-base font-medium mt-1">
+            Real-time medication administration tracking
+          </p>
         </div>
 
-        {/* Round Tabs */}
-        <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1.5 w-fit mb-8 shadow-sm">
-          {TIME_ROUNDS.map((round) => (
-            <button
-              key={round.label}
-              onClick={() => setActiveRound(round.label)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-                activeRound === round.label
-                  ? "bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-500/30"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {round.label}
-            </button>
-          ))}
+        {/* Round Tabs + Audit Button */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex gap-1 bg-white border border-slate-100 rounded-xl p-1 w-fit shadow-sm">
+            {TIME_ROUNDS.map((round) => (
+              <button
+                key={round.label}
+                onClick={() => setActiveRound(round.label)}
+                className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+                  activeRound === round.label
+                    ? "bg-slate-900 text-white shadow-md"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                }`}
+              >
+                {round.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowAuditModal(true)}
+            className="flex items-center gap-2 px-5 py-2 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+          >
+            <Clock size={14} />
+            Audit MAR
+          </button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0 space-y-4">
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+          <div className="lg:w-72 flex-shrink-0 space-y-5">
+            <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+              <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-5">
                 Round Progress
-              </p>
+              </h3>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-xs font-bold text-slate-700">
                   Administered
                 </span>
-                <span className="text-sm font-bold text-green-600">
+                <span className="text-xs font-black text-emerald-600">
                   {percent}%
                 </span>
               </div>
-              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4">
+              <div className="h-2.5 bg-slate-50 rounded-full overflow-hidden mb-5 ring-1 ring-slate-100">
                 <div
-                  className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full transition-all duration-700"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-700"
                   style={{ width: `${percent}%` }}
                 />
               </div>
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    Scheduled Medications
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Scheduled
                   </span>
-                  <span className="text-sm font-bold text-gray-800">
+                  <span className="text-sm font-black text-slate-900">
                     {total}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    Missed / Refused
+                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Missed
                   </span>
                   <span
-                    className={`text-sm font-bold ${missed > 0 ? "text-red-500" : "text-gray-800"}`}
+                    className={`text-sm font-black ${missed > 0 ? "text-rose-500" : "text-slate-900"}`}
                   >
                     {missed}
                   </span>
@@ -222,12 +218,14 @@ export default function Emar() {
             </div>
 
             {missedEntries.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <div className="bg-amber-50 border border-amber-200 rounded-[28px] p-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle size={16} className="text-amber-500" />
-                  <p className="text-sm font-bold text-amber-700">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
+                    <AlertTriangle size={16} />
+                  </div>
+                  <h3 className="text-xs font-black text-amber-900 uppercase tracking-widest">
                     Critical Warning
-                  </p>
+                  </h3>
                 </div>
                 <div className="space-y-2">
                   {missedEntries.slice(0, 3).map((entry) => {
@@ -235,13 +233,11 @@ export default function Emar() {
                     return (
                       <p
                         key={entry.id}
-                        className="text-xs text-amber-700 leading-relaxed"
+                        className="text-xs text-amber-900 leading-relaxed font-medium"
                       >
-                        <span className="font-semibold">
-                          {patient?.full_name}
-                        </span>{" "}
+                        <span className="font-black">{patient?.full_name}</span>{" "}
                         (Room {patient?.room}) missed{" "}
-                        <span className="font-semibold">
+                        <span className="font-black">
                           {entry.medication_name}
                         </span>{" "}
                         at {entry.time_to_take}.
@@ -249,7 +245,7 @@ export default function Emar() {
                     );
                   })}
                   {missedEntries.length > 3 && (
-                    <p className="text-xs text-amber-600 font-semibold">
+                    <p className="text-[10px] text-amber-700 font-black uppercase tracking-widest">
                       +{missedEntries.length - 3} more missed doses
                     </p>
                   )}
@@ -260,131 +256,136 @@ export default function Emar() {
 
           {/* Main Table */}
           <div className="flex-1">
-            <div className="flex gap-3 mb-4">
-              <div className="relative flex-1">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  placeholder="Search resident or medication..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 shadow-sm"
-                />
+            <div className="bg-white rounded-[28px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
+              {/* Search Bar */}
+              <div className="p-6 border-b border-slate-50 bg-slate-50/20">
+                <div className="relative max-w-md">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={16}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search resident or medication..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-5 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 transition-all shadow-sm"
+                  />
+                </div>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-all shadow-sm font-medium">
-                <Filter size={15} />
-                Filters
-              </button>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
               {loading ? (
-                <div className="flex items-center justify-center py-16 text-gray-400 text-sm">
-                  Loading medications...
+                <div className="flex flex-col items-center justify-center py-16 text-slate-300">
+                  <Activity
+                    size={64}
+                    className="mb-5 opacity-10 animate-pulse"
+                  />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    Loading medications...
+                  </p>
                 </div>
               ) : filteredEntries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16">
-                  <Pill className="text-gray-200 mb-3" size={40} />
-                  <p className="text-gray-400 text-sm">
+                  <Pill className="text-slate-300 mb-3 opacity-20" size={64} />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
                     No medications for this round
+                  </p>
+                  <p className="text-xs font-bold mt-2 text-slate-400 uppercase tracking-widest">
+                    Try a different round or search
                   </p>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-12 px-6 py-3 border-b border-gray-100 bg-gray-50">
-                    <div className="col-span-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      Resident
-                    </div>
-                    <div className="col-span-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      Medication
-                    </div>
-                    <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      Time
-                    </div>
-                    <div className="col-span-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      Status
-                    </div>
-                    <div className="col-span-1 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">
-                      Actions
-                    </div>
-                  </div>
-                  <div className="divide-y divide-gray-50">
-                    {filteredEntries.map((entry) => {
-                      const patient = patients[entry.patient_id];
-                      const { pill, label } = getStatusStyle(entry.status);
-                      const isAdministering = administeringId === entry.id;
-                      return (
-                        <div
-                          key={entry.id}
-                          onClick={() => setSelectedEntry(entry)}
-                          className="grid grid-cols-12 items-center px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
-                        >
-                          <div className="col-span-4 flex items-center gap-3">
-                            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-sm font-bold text-slate-600 flex-shrink-0">
-                              {patient?.room || "?"}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">
-                                {patient?.full_name || "Unknown"}
-                              </p>
-                              <p className="text-xs text-gray-400 uppercase tracking-wide mt-0.5">
-                                {patient?.wing || "—"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="col-span-3 flex items-center gap-2">
-                            <Pill
-                              size={14}
-                              className="text-cyan-400 flex-shrink-0"
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">
-                                {entry.medication_name}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {entry.medication_mg}mg
-                              </p>
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-sm font-semibold text-gray-700">
-                              {entry.time_to_take}
-                            </span>
-                          </div>
-                          <div className="col-span-2">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${pill}`}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                          <th className="px-8 py-4">Resident</th>
+                          <th className="px-8 py-4">Medication</th>
+                          <th className="px-8 py-4">Time</th>
+                          <th className="px-8 py-4">Status</th>
+                          <th className="px-8 py-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {filteredEntries.map((entry) => {
+                          const patient = patients[entry.patient_id];
+                          const { pill, label } = getStatusStyle(entry.status);
+                          const isAdministering = administeringId === entry.id;
+                          return (
+                            <tr
+                              key={entry.id}
+                              onClick={() => setSelectedEntry(entry)}
+                              className="hover:bg-slate-50/50 transition-all cursor-pointer group/row"
                             >
-                              {label}
-                            </span>
-                            {entry.status === "missed" && (
-                              <p className="text-xs text-red-400 mt-1">
-                                Refused
-                              </p>
-                            )}
-                          </div>
-                          <div className="col-span-1 flex justify-end items-center">
-                            {entry.status === "due" ? (
-                              <button
-                                onClick={(e) => handleAdminister(e, entry)}
-                                disabled={isAdministering}
-                                className="px-3 py-1.5 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white text-xs font-bold rounded-lg shadow-md shadow-cyan-500/20 hover:from-cyan-500 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-                              >
-                                {isAdministering ? "..." : "Administer"}
-                              </button>
-                            ) : (
-                              <ChevronRight
-                                size={16}
-                                className="text-gray-300"
-                              />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                              <td className="px-8 py-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xs font-black text-slate-600 flex-shrink-0 border border-slate-100 group-hover/row:scale-105 transition-transform">
+                                    {patient?.room || "?"}
+                                  </div>
+                                  <div>
+                                    <p className="font-black text-base text-slate-900 tracking-tight group-hover/row:text-slate-600 transition-colors">
+                                      {patient?.full_name || "Unknown"}
+                                    </p>
+                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                      {patient?.wing || "—"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-8 py-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                                    <Pill size={14} />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-black text-slate-900">
+                                      {entry.medication_name}
+                                    </p>
+                                    <p className="text-xs text-slate-500 font-bold">
+                                      {entry.medication_mg}mg
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-8 py-4">
+                                <span className="text-sm font-black text-slate-700">
+                                  {entry.time_to_take}
+                                </span>
+                              </td>
+                              <td className="px-8 py-4">
+                                <span
+                                  className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-widest ${pill}`}
+                                >
+                                  {label}
+                                </span>
+                                {entry.status === "missed" && (
+                                  <p className="text-xs text-rose-500 font-bold mt-1">
+                                    Refused
+                                  </p>
+                                )}
+                              </td>
+                              <td className="px-8 py-4 text-right">
+                                {entry.status === "due" ? (
+                                  <button
+                                    onClick={(e) => handleAdminister(e, entry)}
+                                    disabled={isAdministering}
+                                    className="px-4 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                                  >
+                                    {isAdministering ? "..." : "Administer"}
+                                  </button>
+                                ) : (
+                                  <ChevronRight
+                                    size={14}
+                                    className="text-slate-300"
+                                  />
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </>
               )}
@@ -459,7 +460,6 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
 
       if (insertError) throw insertError;
 
-      // Audit log: eMAR record created
       await supabase.from("audit_logs").insert({
         action_type: "emar_created",
         actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -477,7 +477,7 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors text-sm";
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/10 transition-all text-sm shadow-sm";
 
   const sortedPatients = [...patients].sort((a, b) =>
     a.full_name.localeCompare(b.full_name),
@@ -499,28 +499,34 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-xl font-bold text-gray-800">Audit MAR</h3>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-50 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-slate-100">
+              <Pill size={12} />
+              New Medication Record
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              Audit MAR
+            </h3>
+            <p className="text-sm text-slate-500 font-medium mt-1">
               Add a new medication record
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Patient Select */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Resident <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Resident <span className="text-rose-400">*</span>
             </label>
             <select
               value={formData.patient_id}
@@ -541,8 +547,8 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
 
           {/* Medication Name */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Medication Name <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Medication Name <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
@@ -560,8 +566,7 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                 <option key={m} value={m} />
               ))}
             </datalist>
-            {/* Quick pick chips */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-2 mt-3">
               {COMMON_MEDS.slice(0, 5).map((med) => (
                 <button
                   key={med}
@@ -569,10 +574,10 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                   onClick={() =>
                     setFormData({ ...formData, medication_name: med })
                   }
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${
                     formData.medication_name === med
-                      ? "bg-cyan-500 text-white border-cyan-500"
-                      : "bg-gray-50 text-gray-500 border-gray-200 hover:border-cyan-300 hover:text-cyan-600"
+                      ? "bg-slate-900 text-white border-slate-900"
+                      : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400 hover:text-slate-900"
                   }`}
                 >
                   {med}
@@ -582,10 +587,10 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
           </div>
 
           {/* Dosage + Time */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Dosage (mg) <span className="text-red-400">*</span>
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                Dosage (mg) <span className="text-rose-400">*</span>
               </label>
               <input
                 type="number"
@@ -600,8 +605,8 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Time <span className="text-red-400">*</span>
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                Time <span className="text-rose-400">*</span>
               </label>
               <input
                 type="time"
@@ -612,8 +617,7 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                 className={inputClass}
                 required
               />
-              {/* Quick time chips */}
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-2 mt-3">
                 {COMMON_TIMES.map((t) => (
                   <button
                     key={t}
@@ -621,10 +625,10 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                     onClick={() =>
                       setFormData({ ...formData, time_to_take: t })
                     }
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${
                       formData.time_to_take === t
-                        ? "bg-cyan-500 text-white border-cyan-500"
-                        : "bg-gray-50 text-gray-500 border-gray-200 hover:border-cyan-300 hover:text-cyan-600"
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400 hover:text-slate-900"
                     }`}
                   >
                     {t}
@@ -636,10 +640,10 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
               Initial Status
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 { value: "due", label: "Due", color: "amber" },
                 { value: "given", label: "Given", color: "green" },
@@ -649,14 +653,14 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                   key={value}
                   type="button"
                   onClick={() => setFormData({ ...formData, status: value })}
-                  className={`py-2.5 rounded-lg text-sm font-semibold border-2 transition-all ${
+                  className={`py-3 rounded-xl text-sm font-black border-2 transition-all ${
                     formData.status === value
                       ? color === "amber"
                         ? "bg-amber-50 border-amber-400 text-amber-700"
                         : color === "green"
-                          ? "bg-green-50 border-green-400 text-green-700"
-                          : "bg-red-50 border-red-400 text-red-700"
-                      : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                          ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+                          : "bg-rose-50 border-rose-400 text-rose-700"
+                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
                   }`}
                 >
                   {label}
@@ -666,28 +670,28 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+              <p className="text-sm text-rose-600 font-bold">{error}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || success}
-              className={`flex-1 px-6 py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                 success
-                  ? "bg-green-500 text-white"
-                  : "bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-cyan-700 active:scale-95 disabled:opacity-50"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-slate-900 text-white shadow-2xl shadow-slate-200 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
               }`}
             >
               {success ? (
@@ -716,22 +720,22 @@ function EntryDetailModal({ entry, patient, onClose }) {
     switch (entry.status) {
       case "given":
         return {
-          pill: "bg-green-100 text-green-700 border border-green-200",
+          pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
           label: "GIVEN",
         };
       case "due":
         return {
-          pill: "bg-amber-100 text-amber-700 border border-amber-200",
+          pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
           label: "DUE",
         };
       case "missed":
         return {
-          pill: "bg-red-100 text-red-600 border border-red-200",
+          pill: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
           label: "MISSED",
         };
       default:
         return {
-          pill: "bg-gray-100 text-gray-500 border border-gray-200",
+          pill: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
           label: entry.status,
         };
     }
@@ -739,53 +743,63 @@ function EntryDetailModal({ entry, patient, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-800">Medication Detail</h3>
+      <div className="bg-white rounded-[32px] max-w-md w-full p-10 shadow-2xl border border-slate-100">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">
+            Medication Detail
+          </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={18} className="text-gray-500" />
+            <X size={18} className="text-slate-500" />
           </button>
         </div>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-cyan-500/20">
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 p-6 bg-slate-50 rounded-[24px]">
+            <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg">
               {patient?.full_name?.charAt(0) || "?"}
             </div>
             <div>
-              <p className="font-bold text-gray-800">
+              <p className="font-black text-lg text-slate-900 tracking-tight">
                 {patient?.full_name || "Unknown"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500 font-bold">
                 Room {patient?.room} · {patient?.wing}
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-400 mb-1">Medication</p>
-              <p className="text-sm font-semibold text-gray-800">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-5 bg-slate-50 rounded-[20px]">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                Medication
+              </p>
+              <p className="text-sm font-black text-slate-900">
                 {entry.medication_name}
               </p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-400 mb-1">Dosage</p>
-              <p className="text-sm font-semibold text-gray-800">
+            <div className="p-5 bg-slate-50 rounded-[20px]">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                Dosage
+              </p>
+              <p className="text-sm font-black text-slate-900">
                 {entry.medication_mg}mg
               </p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-400 mb-1">Scheduled Time</p>
-              <p className="text-sm font-semibold text-gray-800">
+            <div className="p-5 bg-slate-50 rounded-[20px]">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                Scheduled Time
+              </p>
+              <p className="text-sm font-black text-slate-900">
                 {entry.time_to_take}
               </p>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-400 mb-1">Status</p>
+            <div className="p-5 bg-slate-50 rounded-[20px]">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                Status
+              </p>
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold uppercase ${pill}`}
+                className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest ${pill}`}
               >
                 {label}
               </span>
@@ -794,7 +808,7 @@ function EntryDetailModal({ entry, patient, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-6 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+          className="w-full mt-8 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
         >
           Close
         </button>

@@ -13,9 +13,10 @@ import {
   Calendar,
   ArrowUpRight,
   X,
-  ArrowRight,
   FileText,
-  User,
+  Sparkles,
+  CheckCircle2,
+  History,
 } from "lucide-react";
 
 export default function ManagerDashboard() {
@@ -36,9 +37,9 @@ export default function ManagerDashboard() {
   const [activeAlerts, setActiveAlerts] = useState([]);
 
   // Handover state
-  const [latestHandover, setLatestHandover] = useState(null); // the most recent shift_handover row
-  const [handoverEntries, setHandoverEntries] = useState([]); // all rows from same shift
-  const [handoverPatients, setHandoverPatients] = useState({}); // patient map
+  const [latestHandover, setLatestHandover] = useState(null);
+  const [handoverEntries, setHandoverEntries] = useState([]);
+  const [handoverPatients, setHandoverPatients] = useState({});
   const [handoverAuthor, setHandoverAuthor] = useState(null);
   const [showHandoverModal, setShowHandoverModal] = useState(false);
 
@@ -135,8 +136,7 @@ export default function ManagerDashboard() {
         })),
       );
 
-      // ── Latest Handover ──
-      // 1. Get the most recent handover row
+      // Latest Handover
       const { data: latestRows } = await supabase
         .from("shift_handovers")
         .select("*")
@@ -147,7 +147,6 @@ export default function ManagerDashboard() {
         const latest = latestRows[0];
         setLatestHandover(latest);
 
-        // 2. Get all rows from the same batch (same created_by + shift_type within ~2 min)
         const batchStart = new Date(
           new Date(latest.created_at).getTime() - 2 * 60 * 1000,
         ).toISOString();
@@ -161,7 +160,6 @@ export default function ManagerDashboard() {
 
         setHandoverEntries(batchRows || []);
 
-        // 3. Fetch patients for those entries
         const patIds = [
           ...new Set(
             (batchRows || []).map((r) => r.patient_id).filter(Boolean),
@@ -177,7 +175,6 @@ export default function ManagerDashboard() {
           setHandoverPatients(pm);
         }
 
-        // 4. Fetch author profile
         const { data: authorData } = await supabase
           .from("profiles")
           .select("id, full_name, role")
@@ -203,331 +200,336 @@ export default function ManagerDashboard() {
   const shiftLabel = hour < 14 ? "AM" : hour < 22 ? "PM" : "Night";
 
   return (
-    <section className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Facility Overview
-            </h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Live operational status for Greenview Care Home
-            </p>
+    <>
+      <section className="min-h-screen bg-slate-50">
+        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
+          {/* Header */}
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Sparkles size={12} className="animate-pulse" />
+              Live Facility Feed
+            </div>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+              <div>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                  Facility Overview
+                </h1>
+                <p className="text-slate-500 text-lg font-medium mt-1">
+                  Operational status for{" "}
+                  <span className="text-slate-900 font-bold">
+                    Greenview Care Home
+                  </span>
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <PillStat
+                  icon={<Users size={20} className="text-emerald-600" />}
+                  iconBg="bg-emerald-50"
+                  label="Occupancy"
+                  value={loading ? "—" : `${occupancy}/50`}
+                />
+                <PillStat
+                  icon={<TrendingUp size={20} className="text-blue-600" />}
+                  iconBg="bg-blue-50"
+                  label="Staff Ratio"
+                  value={loading ? "—" : staffRatio}
+                />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <PillStat
-              icon={<Users size={18} className="text-green-600" />}
-              iconBg="bg-green-100"
-              label="Occupancy"
-              value={loading ? "—" : `${occupancy}/50`}
+
+          {/* Alert Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
+            <AlertCard
+              icon={<Clock size={26} className="text-rose-600" />}
+              iconBg="bg-rose-50"
+              severity="CRITICAL"
+              severityColor="text-rose-600"
+              cardBg="bg-white"
+              borderColor="border-rose-100"
+              value={loading ? "—" : overdueTasks}
+              valueColor="text-rose-600"
+              label="Overdue Tasks"
+              cta="View All Tasks"
+              ctaColor="text-rose-600"
+              gradient="from-rose-500 to-red-600"
+              onCta={() => router.push("/schedules")}
             />
-            <PillStat
-              icon={<TrendingUp size={18} className="text-blue-600" />}
-              iconBg="bg-blue-100"
-              label="Staff Ratio"
-              value={loading ? "—" : staffRatio}
+            <AlertCard
+              icon={<AlertCircle size={26} className="text-amber-600" />}
+              iconBg="bg-amber-50"
+              severity="WARNING"
+              severityColor="text-amber-600"
+              cardBg="bg-white"
+              borderColor="border-amber-100"
+              value={loading ? "—" : repeatedIncidents}
+              valueColor="text-amber-600"
+              label="Repeated Incidents"
+              cta="Check Logs"
+              ctaColor="text-amber-600"
+              gradient="from-amber-400 to-orange-500"
+              onCta={() => router.push("/reports")}
+            />
+            <AlertCard
+              icon={<Activity size={26} className="text-blue-600" />}
+              iconBg="bg-blue-50"
+              severity="ATTENTION"
+              severityColor="text-blue-600"
+              cardBg="bg-white"
+              borderColor="border-amber-100"
+              value={loading ? "—" : missingVitals}
+              valueColor="text-blue-600"
+              label="Missing Vitals"
+              cta="Notify Carers"
+              ctaColor="text-blue-600"
+              gradient="from-blue-500 to-indigo-600"
+              onCta={() => router.push("/residents")}
             />
           </div>
-        </div>
 
-        {/* Alert Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-7">
-          <AlertCard
-            icon={<Clock size={22} className="text-red-500" />}
-            iconBg="bg-red-100"
-            severity="HIGH"
-            severityColor="text-red-500"
-            cardBg="bg-red-50 border-red-100"
-            value={loading ? "—" : overdueTasks}
-            valueColor="text-red-600"
-            label="Overdue Tasks"
-            cta="View All Tasks"
-            ctaColor="text-red-500"
-            onCta={() => router.push("/schedules")}
-          />
-          <AlertCard
-            icon={<AlertCircle size={22} className="text-amber-500" />}
-            iconBg="bg-amber-100"
-            severity="MEDIUM"
-            severityColor="text-amber-500"
-            cardBg="bg-amber-50 border-amber-100"
-            value={loading ? "—" : repeatedIncidents}
-            valueColor="text-amber-600"
-            label="Repeated Incidents"
-            cta="Check Logs"
-            ctaColor="text-amber-500"
-            onCta={() => router.push("/reports")}
-          />
-          <AlertCard
-            icon={<Activity size={22} className="text-blue-500" />}
-            iconBg="bg-blue-100"
-            severity="MEDIUM"
-            severityColor="text-blue-500"
-            cardBg="bg-blue-50 border-blue-100"
-            value={loading ? "—" : missingVitals}
-            valueColor="text-blue-600"
-            label="Missing Vitals"
-            cta="Notify Carers"
-            ctaColor="text-blue-500"
-            onCta={() => router.push("/residents")}
-          />
-        </div>
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
+            <div className="lg:col-span-2 bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10 relative overflow-hidden">
+              {/* Subtle Glow */}
+              <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-400/5 blur-[80px] rounded-full pointer-events-none"></div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-base font-bold text-gray-800">
-                Incident Trend — {monthName}
-              </h3>
-              <span className="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1.5 rounded-lg">
-                This Month
-              </span>
-            </div>
-            {loading ? (
-              <div className="flex items-center justify-center h-48">
-                <div className="w-8 h-8 border-4 border-red-400 border-t-transparent rounded-full animate-spin" />
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 relative z-10">
+                <div>
+                  <h3 className="font-black text-2xl text-slate-900 tracking-tight">
+                    System Performance
+                  </h3>
+                  <p className="text-slate-400 font-medium text-sm mt-1">
+                    Incident trends — {monthName}
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-1.5 rounded-2xl ring-1 ring-slate-100 flex gap-1">
+                  <button className="px-5 py-2 bg-white text-slate-900 text-xs font-black uppercase tracking-widest rounded-xl shadow-sm">
+                    Week
+                  </button>
+                  <button className="px-5 py-2 text-slate-400 text-xs font-black uppercase tracking-widest rounded-xl hover:text-slate-600 transition-colors">
+                    Month
+                  </button>
+                </div>
               </div>
-            ) : (
-              <TrendChart data={trendData} />
-            )}
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-            <h3 className="text-base font-bold text-gray-800 mb-6">
-              Staffing Status
-            </h3>
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-10 bg-gray-100 rounded animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-5">
-                <StaffRow
-                  dot="bg-green-500"
-                  label="On Shift"
-                  value={staffStatus.active}
-                />
-                <StaffRow
-                  dot="bg-amber-500"
-                  label="On Break"
-                  value={staffStatus.break}
-                />
-                <StaffRow
-                  dot="bg-blue-500"
-                  label="Next Shift"
-                  value={staffStatus.scheduled}
-                />
-              </div>
-            )}
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Occupancy Rate
-                </p>
-                <p className="text-sm font-bold text-blue-600">
-                  {occupancyPct}%
-                </p>
-              </div>
-              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(occupancyPct, 100)}%` }}
-                />
-              </div>
-              <p className="text-xs text-gray-400 mt-1.5">
-                {bedsAvailable} {bedsAvailable === 1 ? "bed" : "beds"} currently
-                available for admission
-              </p>
-            </div>
-            <div className="mt-6 space-y-2">
-              {[
-                { label: "View Schedules", path: "/schedules" },
-                { label: "Manage Residents", path: "/residents" },
-                { label: "View Reports", path: "/reports" },
-              ].map(({ label, path }) => (
-                <button
-                  key={path}
-                  onClick={() => router.push(path)}
-                  className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 transition-all group"
-                >
-                  {label}
-                  <ChevronRight
-                    size={14}
-                    className="text-gray-400 group-hover:translate-x-0.5 transition-transform"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Active Alerts */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-800">
-                Active Alerts
-              </h3>
-              <button
-                onClick={() => router.push("/residents")}
-                className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                View Audit Log <ChevronRight size={14} />
-              </button>
-            </div>
-            {loading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-14 bg-gray-100 rounded-xl animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : activeAlerts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-14 text-gray-300">
-                <AlertCircle size={36} className="mb-2" />
-                <p className="text-sm text-gray-400 font-medium">
-                  No active alerts
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {activeAlerts.map((alert) => (
-                  <AlertRow key={alert.id} alert={alert} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Latest Handover */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-800">
-                Latest Handover
-              </h3>
-              <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-                Shift: {shiftLabel}
-              </span>
-            </div>
-
-            <div className="p-6">
               {loading ? (
-                <div className="space-y-3">
-                  <div className="h-20 bg-gray-100 rounded-xl animate-pulse" />
-                  <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                <div className="flex flex-col items-center justify-center py-20 relative z-10">
+                  <Activity
+                    size={60}
+                    className="mb-4 opacity-10 animate-pulse"
+                  />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    Loading...
+                  </p>
+                </div>
+              ) : (
+                <div className="relative z-10">
+                  <TrendChart data={trendData} />
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10 flex flex-col">
+              <h3 className="font-black text-2xl text-slate-900 tracking-tight mb-8">
+                Shift Metrics
+              </h3>
+              {loading ? (
+                <div className="space-y-4 flex-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-20 bg-slate-100 rounded-3xl animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6 flex-1">
+                  <StaffRow
+                    dot="bg-emerald-500"
+                    ringColor="ring-emerald-100"
+                    label="On Shift"
+                    sublabel="Active"
+                    value={staffStatus.active}
+                  />
+                  <StaffRow
+                    dot="bg-amber-500"
+                    ringColor="ring-amber-100"
+                    label="On Break"
+                    sublabel="Inactive"
+                    value={staffStatus.break}
+                  />
+                  <StaffRow
+                    dot="bg-slate-400"
+                    ringColor="ring-slate-100"
+                    label="Off Duty"
+                    sublabel="Standby"
+                    value={staffStatus.scheduled}
+                  />
+                </div>
+              )}
+              <div className="mt-10 pt-10 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                    Capacity Load
+                  </p>
+                  <p className="text-sm font-black text-blue-600">
+                    {occupancyPct}%
+                  </p>
+                </div>
+                <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-lg shadow-blue-200/50 transition-all duration-700"
+                    style={{ width: `${Math.min(occupancyPct, 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center gap-2 mt-5 text-emerald-600">
+                  <CheckCircle2 size={14} strokeWidth={3} />
+                  <p className="text-[10px] font-black uppercase tracking-widest">
+                    {bedsAvailable} {bedsAvailable === 1 ? "bed" : "beds"}{" "}
+                    available
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pb-10">
+            {/* Active Alerts */}
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
+              <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/20">
+                <div>
+                  <h3 className="font-black text-2xl tracking-tight text-slate-900">
+                    Critical Alerts
+                  </h3>
+                  <p className="text-slate-400 text-sm font-medium mt-1">
+                    Live updates from care floors
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push("/residents")}
+                  className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:shadow-lg transition-all active:scale-90"
+                >
+                  <History size={20} />
+                </button>
+              </div>
+              {loading ? (
+                <div className="p-10 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-20 bg-slate-100 rounded-[24px] animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : activeAlerts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                  <AlertCircle size={60} className="mb-4 opacity-10" />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    No active alerts
+                  </p>
+                  <p className="text-sm font-medium text-slate-400 mt-1">
+                    All systems running smoothly
+                  </p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {activeAlerts.map((alert) => (
+                    <AlertRow key={alert.id} alert={alert} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Latest Handover */}
+            <div className="bg-slate-900 rounded-[32px] p-10 text-white shadow-2xl shadow-slate-200 flex flex-col justify-between relative overflow-hidden group">
+              {/* Accent Glow */}
+              <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all"></div>
+
+              {loading ? (
+                <div className="space-y-4 relative z-10">
+                  <div className="h-24 bg-white/10 rounded-[24px] animate-pulse" />
+                  <div className="h-32 bg-white/10 rounded-[24px] animate-pulse" />
                 </div>
               ) : !latestHandover ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
-                    <FileText size={22} className="text-gray-300" />
+                <div className="flex flex-col items-center justify-center py-16 text-center relative z-10">
+                  <div className="w-16 h-16 bg-white/10 rounded-[24px] flex items-center justify-center mb-4">
+                    <FileText size={28} className="text-white/30" />
                   </div>
-                  <p className="text-sm font-medium text-gray-500">
+                  <p className="text-lg font-black text-white/60 tracking-tight">
                     No handover notes yet
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Once a handover is submitted it will appear here
+                  <p className="text-sm text-white/40 font-medium mt-2">
+                    Once submitted, it will appear here
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Meta row */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {handoverAuthor?.full_name?.charAt(0) || "?"}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-700">
-                        {handoverAuthor?.full_name || "Unknown"}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {new Date(latestHandover.created_at).toLocaleDateString(
-                          "en-GB",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          },
-                        )}{" "}
-                        ·{" "}
-                        {new Date(latestHandover.created_at).toLocaleTimeString(
-                          "en-GB",
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          },
-                        )}
-                      </p>
-                    </div>
-                    <span className="text-xs font-bold text-cyan-600 bg-cyan-50 border border-cyan-200 px-2.5 py-1 rounded-full flex-shrink-0">
-                      {latestHandover.shift_type}
-                    </span>
-                  </div>
-
-                  {/* General note preview */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar size={12} className="text-gray-400" />
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        General Note
-                      </p>
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 italic">
-                      "
-                      {latestHandover.notes ||
-                        "No general observations recorded."}
-                      "
-                    </p>
-                  </div>
-
-                  {/* Red flags count */}
-                  {handoverEntries.length > 0 && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex -space-x-1.5">
-                        {handoverEntries.slice(0, 3).map((entry, i) => {
-                          const p = handoverPatients[entry.patient_id];
-                          return (
-                            <div
-                              key={i}
-                              className="w-6 h-6 rounded-full bg-red-100 border-2 border-white flex items-center justify-center text-[9px] font-bold text-red-500"
-                            >
-                              {p?.full_name?.charAt(0) || "?"}
-                            </div>
-                          );
-                        })}
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-10">
+                      <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-[24px]">
+                        <Calendar size={28} className="text-blue-400" />
                       </div>
-                      <p className="text-xs text-gray-500">
-                        <span className="font-semibold text-red-500">
-                          {handoverEntries.length}
-                        </span>{" "}
-                        resident{handoverEntries.length !== 1 ? "s" : ""}{" "}
-                        flagged
+                      <div className="px-5 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-500/40">
+                        Current Shift: {shiftLabel}
+                      </div>
+                    </div>
+
+                    <h3 className="text-3xl font-black mb-4 tracking-tight">
+                      Shift Briefing
+                    </h3>
+
+                    <div className="p-8 bg-white/5 backdrop-blur-md rounded-[32px] border border-white/10 relative mb-6">
+                      <div className="absolute -top-3 left-8 px-3 py-1 bg-slate-800 text-[10px] font-black text-blue-400 uppercase tracking-widest rounded-lg border border-white/5">
+                        Critical Directive
+                      </div>
+                      <p className="text-slate-300 text-lg leading-relaxed italic font-medium">
+                        "{latestHandover.notes || "No general observations recorded."}"
                       </p>
                     </div>
-                  )}
 
-                  {/* CTA */}
+                    {handoverEntries.length > 0 && (
+                      <div className="flex items-center gap-3 mb-8">
+                        <div className="flex -space-x-2">
+                          {handoverEntries.slice(0, 3).map((entry, i) => {
+                            const p = handoverPatients[entry.patient_id];
+                            return (
+                              <div
+                                key={i}
+                                className="w-8 h-8 rounded-full bg-rose-500 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-white"
+                              >
+                                {p?.full_name?.charAt(0) || "?"}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-sm text-slate-400 font-medium">
+                          <span className="font-black text-rose-400">
+                            {handoverEntries.length}
+                          </span>{" "}
+                          resident{handoverEntries.length !== 1 ? "s" : ""}{" "}
+                          flagged
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     onClick={() => setShowHandoverModal(true)}
-                    className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors active:scale-95"
+                    className="relative z-10 w-full py-5 bg-white text-slate-900 font-black text-sm uppercase tracking-widest rounded-[24px] shadow-2xl flex items-center justify-center gap-4 transition-all hover:bg-blue-50 active:scale-95"
                   >
-                    Read Full Handover
-                    <ArrowUpRight size={16} />
+                    Review Handover Protocol
+                    <ArrowUpRight
+                      size={22}
+                      strokeWidth={3}
+                      className="text-blue-600"
+                    />
                   </button>
                 </>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Handover Detail Modal */}
       {showHandoverModal && latestHandover && (
@@ -539,7 +541,7 @@ export default function ManagerDashboard() {
           onClose={() => setShowHandoverModal(false)}
         />
       )}
-    </section>
+    </>
   );
 }
 
@@ -548,13 +550,15 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
   const shiftLabel = handover.shift_type === "AM->PM" ? "AM to PM" : "PM to AM";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-7 py-5 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Shift Handover</h3>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              Shift Handover
+            </h3>
+            <p className="text-sm text-slate-500 font-medium mt-1">
               {new Date(handover.created_at).toLocaleDateString("en-GB", {
                 weekday: "long",
                 day: "numeric",
@@ -565,32 +569,32 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1 px-7 py-6 space-y-6">
+        <div className="overflow-y-auto flex-1 px-10 py-8 space-y-8">
           {/* Handover meta */}
-          <div className="flex items-center gap-4 p-4 bg-gray-900 rounded-2xl">
-            <div className="w-11 h-11 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-lg shadow-cyan-500/20 flex-shrink-0">
+          <div className="flex items-center gap-4 p-6 bg-slate-900 rounded-[24px]">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 flex-shrink-0">
               {author?.full_name?.charAt(0) || "?"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white text-sm">
+              <p className="font-black text-white text-base tracking-tight">
                 {author?.full_name || "Unknown"}
               </p>
-              <p className="text-xs text-gray-400 capitalize">
+              <p className="text-sm text-slate-400 capitalize font-medium">
                 {author?.role || "Staff"}
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-xs font-bold text-cyan-400">
+              <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
                 {shiftLabel} Transition
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-1 font-medium">
                 {new Date(handover.created_at).toLocaleTimeString("en-GB", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -601,18 +605,18 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
 
           {/* General Observations */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
-                <FileText size={14} className="text-blue-500" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <FileText size={18} className="text-blue-600" />
               </div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 General Observations
               </p>
             </div>
-            <div className="bg-slate-50 border border-gray-200 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed">
+            <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-6">
+              <p className="text-base text-slate-700 leading-relaxed font-medium">
                 {handover.notes || (
-                  <span className="italic text-gray-400">
+                  <span className="italic text-slate-400">
                     No general observations recorded.
                   </span>
                 )}
@@ -623,47 +627,47 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
           {/* Resident Red Flags */}
           {entries.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center">
-                    <AlertCircle size={14} className="text-red-400" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center">
+                    <AlertCircle size={18} className="text-rose-600" />
                   </div>
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                     Resident Red Flags
                   </p>
                 </div>
-                <span className="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-black text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-full">
                   {entries.length} flagged
                 </span>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {entries.map((entry) => {
                   const patient = patients[entry.patient_id];
                   return (
                     <div
                       key={entry.id}
-                      className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-xl"
+                      className="flex items-start gap-4 p-6 bg-rose-50 border border-rose-200 rounded-[24px]"
                     >
-                      <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center text-sm font-bold text-red-500 flex-shrink-0">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-base font-black text-rose-600 flex-shrink-0">
                         {patient?.full_name?.charAt(0) || "?"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-bold text-red-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="text-base font-black text-rose-700 tracking-tight">
                             {patient?.full_name || "Unknown Resident"}
                           </p>
-                          <span className="text-xs text-red-400 bg-red-100 px-2 py-0.5 rounded-full font-medium">
+                          <span className="text-xs text-rose-500 bg-rose-100 px-2.5 py-1 rounded-full font-bold">
                             Room {patient?.room || "—"}
                           </span>
                           {patient?.wing && (
-                            <span className="text-xs text-gray-400 uppercase tracking-wide">
+                            <span className="text-xs text-slate-500 uppercase tracking-wide font-bold">
                               {patient.wing}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-red-600 leading-relaxed">
+                        <p className="text-sm text-rose-700 leading-relaxed font-medium">
                           {entry.patient_notes || (
-                            <span className="italic text-red-400">
+                            <span className="italic text-rose-400">
                               No specific notes
                             </span>
                           )}
@@ -678,10 +682,10 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-7 py-5 border-t border-gray-100 flex-shrink-0">
+        <div className="px-10 py-8 border-t border-slate-100 flex-shrink-0">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+            className="w-full py-4 bg-slate-100 text-slate-700 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-colors"
           >
             Close
           </button>
@@ -696,22 +700,22 @@ function AlertRow({ alert }) {
   const statusConfig = {
     in_progress: {
       label: "IN PROGRESS",
-      color: "bg-amber-100 text-amber-700 border-amber-200",
+      color: "bg-amber-50 text-amber-700 border-amber-200",
     },
     resolved: {
       label: "RESOLVED",
-      color: "bg-green-100 text-green-700 border-green-200",
+      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
     },
     review_needed: {
       label: "REVIEW NEEDED",
-      color: "bg-orange-100 text-orange-700 border-orange-200",
+      color: "bg-orange-50 text-orange-700 border-orange-200",
     },
   };
   const cfg = statusConfig[alert.status] || statusConfig.review_needed;
   const avatarColors = [
-    "bg-red-500",
+    "bg-rose-500",
     "bg-amber-500",
-    "bg-green-500",
+    "bg-emerald-500",
     "bg-blue-500",
     "bg-violet-500",
     "bg-pink-500",
@@ -721,23 +725,27 @@ function AlertRow({ alert }) {
     avatarColors.length;
 
   return (
-    <div className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors">
+    <div className="flex items-center gap-6 px-8 py-6 hover:bg-slate-50 transition-all group cursor-pointer">
       <div
-        className={`w-10 h-10 rounded-full ${avatarColors[colorIdx]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
+        className={`w-16 h-16 rounded-[24px] ${avatarColors[colorIdx]} flex items-center justify-center text-white text-base font-black flex-shrink-0 shadow-sm ring-4 ring-white group-hover:scale-105 transition-transform`}
       >
         {alert.initials}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-800 truncate">{alert.name}</p>
-        <p className="text-xs text-gray-400">{alert.subtitle}</p>
+        <p className="text-xl font-black text-slate-900 truncate tracking-tight">
+          {alert.name}
+        </p>
+        <p className="text-sm text-slate-400 font-medium mt-0.5">
+          {alert.subtitle}
+        </p>
       </div>
       <span
-        className={`text-[10px] font-black px-2.5 py-1 rounded-full border flex-shrink-0 ${cfg.color}`}
+        className={`text-[10px] font-black px-4 py-2 rounded-full border-2 flex-shrink-0 uppercase tracking-widest ${cfg.color}`}
       >
         {cfg.label}
       </span>
-      <button className="p-1 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
-        <MoreVertical size={16} className="text-gray-400" />
+      <button className="p-2 hover:bg-white hover:shadow-md rounded-xl text-slate-300 group-hover:text-slate-900 transition-all flex-shrink-0">
+        <MoreVertical size={20} />
       </button>
     </div>
   );
@@ -746,17 +754,19 @@ function AlertRow({ alert }) {
 /* ─── Pill Stat ──────────────────────────────────────────────────── */
 function PillStat({ icon, iconBg, label, value }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl px-5 py-3 shadow-sm flex items-center gap-3">
+    <div className="bg-white px-5 py-4 rounded-[32px] border border-slate-100 flex items-center gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
       <div
-        className={`w-9 h-9 rounded-xl flex items-center justify-center ${iconBg}`}
+        className={`w-12 h-12 rounded-2xl flex items-center justify-center ${iconBg} shadow-inner`}
       >
         {icon}
       </div>
       <div>
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
           {label}
         </p>
-        <p className="text-lg font-bold text-gray-900">{value}</p>
+        <p className="text-xl font-black text-slate-900 tracking-tight">
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -769,49 +779,79 @@ function AlertCard({
   severity,
   severityColor,
   cardBg,
+  borderColor,
   value,
   valueColor,
   label,
   cta,
   ctaColor,
+  gradient,
   onCta,
 }) {
   return (
-    <div className={`rounded-2xl border p-6 ${cardBg}`}>
-      <div className="flex items-start justify-between mb-4">
+    <div
+      className={`group p-8 rounded-[32px] border shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all relative overflow-hidden ${cardBg} ${borderColor} hover:scale-[1.02]`}
+    >
+      {/* Background Gradient Accent */}
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity blur-2xl rounded-full -mr-16 -mt-16`}
+      ></div>
+
+      <div className="flex justify-between items-start mb-8 relative z-10">
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}
+          className={`p-4 ${iconBg} rounded-2xl shadow-sm ring-1 ring-white`}
         >
           {icon}
         </div>
         <span
-          className={`text-xs font-black uppercase tracking-widest ${severityColor}`}
+          className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${iconBg} ${severityColor} ring-1 ring-white/20`}
         >
           {severity}
         </span>
       </div>
-      <p className={`text-5xl font-black mb-1 ${valueColor}`}>{value}</p>
-      <p className="text-sm text-gray-600 font-medium mb-5">{label}</p>
-      <button
-        onClick={onCta}
-        className="w-full py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 hover:shadow-sm transition-all"
-      >
-        <span className={ctaColor}>{cta}</span>
-        <ChevronRight size={14} className={ctaColor} />
-      </button>
+
+      <div className="relative z-10">
+        <h3
+          className={`text-6xl font-black mb-2 tracking-tighter ${valueColor}`}
+        >
+          {value}
+        </h3>
+        <p className="text-slate-600 font-bold text-lg mb-8 tracking-tight">
+          {label}
+        </p>
+
+        <button
+          onClick={onCta}
+          className="w-full py-4 bg-slate-900 text-white hover:bg-slate-800 text-sm font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest"
+        >
+          {cta}
+          <ArrowUpRight size={18} strokeWidth={3} />
+        </button>
+      </div>
     </div>
   );
 }
 
 /* ─── Staff Row ──────────────────────────────────────────────────── */
-function StaffRow({ dot, label, value }) {
+function StaffRow({ dot, ringColor, label, sublabel, value }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className={`w-2.5 h-2.5 rounded-full ${dot}`} />
-        <span className="text-sm text-gray-600">{label}</span>
+    <div className="group p-5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100/50 rounded-3xl transition-all cursor-default">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className={`w-3 h-3 rounded-full ${dot} ring-4 ${ringColor}`} />
+          <div>
+            <p className="font-black text-sm text-slate-900 uppercase tracking-tight">
+              {label}
+            </p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {sublabel}
+            </p>
+          </div>
+        </div>
+        <span className="text-2xl font-black text-slate-900 tracking-tight">
+          {value}
+        </span>
       </div>
-      <span className="text-sm font-bold text-gray-800">{value}</span>
     </div>
   );
 }
@@ -820,18 +860,24 @@ function StaffRow({ dot, label, value }) {
 function TrendChart({ data }) {
   if (!data || data.length < 2) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-300">
-        <p className="text-sm">Not enough data yet this month</p>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+        <Activity size={60} className="mb-4 opacity-10" />
+        <p className="font-black text-lg text-slate-900 tracking-tight">
+          Not enough data yet
+        </p>
+        <p className="text-sm font-medium text-slate-400 mt-1">
+          Check back after more activity
+        </p>
       </div>
     );
   }
 
   const W = 600,
-    H = 200,
-    padL = 32,
-    padR = 16,
-    padT = 16,
-    padB = 28;
+    H = 240,
+    padL = 40,
+    padR = 20,
+    padT = 20,
+    padB = 40;
   const maxVal = Math.max(...data.map((d) => d.count), 1);
   const xScale = (i) => padL + (i / (data.length - 1)) * (W - padL - padR);
   const yScale = (v) => padT + ((maxVal - v) / maxVal) * (H - padT - padB);
@@ -857,8 +903,14 @@ function TrendChart({ data }) {
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
-        style={{ minWidth: "280px", height: "200px" }}
+        style={{ minWidth: "320px", height: "240px" }}
       >
+        <defs>
+          <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+          </linearGradient>
+        </defs>
         {yLabels.map((v) => (
           <g key={v}>
             <line
@@ -867,25 +919,26 @@ function TrendChart({ data }) {
               x2={W - padR}
               y2={yScale(v)}
               stroke="#f1f5f9"
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
             <text
-              x={padL - 6}
+              x={padL - 8}
               y={yScale(v) + 4}
               textAnchor="end"
-              fontSize="10"
+              fontSize="11"
               fill="#94a3b8"
+              fontWeight="700"
             >
               {v}
             </text>
           </g>
         ))}
-        <path d={fillD} fill="rgba(239,68,68,0.08)" />
+        <path d={fillD} fill="url(#blueGradient)" />
         <path
           d={pathD}
           fill="none"
-          stroke="#ef4444"
-          strokeWidth="2.5"
+          stroke="#3b82f6"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -893,10 +946,11 @@ function TrendChart({ data }) {
           <text
             key={i}
             x={xScale(data.indexOf(d))}
-            y={H - 6}
+            y={H - 12}
             textAnchor="middle"
-            fontSize="10"
+            fontSize="11"
             fill="#94a3b8"
+            fontWeight="700"
           >
             {d.day}
           </text>
@@ -906,10 +960,10 @@ function TrendChart({ data }) {
             key={i}
             cx={p.x}
             cy={p.y}
-            r="3"
+            r="4"
             fill="white"
-            stroke="#ef4444"
-            strokeWidth="2"
+            stroke="#3b82f6"
+            strokeWidth="3"
           />
         ))}
       </svg>

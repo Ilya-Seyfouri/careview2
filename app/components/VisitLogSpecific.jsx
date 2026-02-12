@@ -18,9 +18,10 @@ import {
   Download,
   Share2,
   CheckSquare,
-  Square,
   Utensils,
   Smile,
+  MapPin,
+  UserCheck,
 } from "lucide-react";
 
 export default function VisitLogDetail({ params }) {
@@ -114,31 +115,31 @@ export default function VisitLogDetail({ params }) {
         return {
           emoji: "😊",
           label: "Happy",
-          color: "bg-green-500/15 text-green-400 border-green-500/25",
+          color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
         };
       case "calm":
         return {
           emoji: "😌",
           label: "Calm",
-          color: "bg-blue-500/15 text-blue-400 border-blue-500/25",
+          color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
         };
       case "anxious":
         return {
           emoji: "😰",
           label: "Anxious",
-          color: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+          color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
         };
       case "irritable":
         return {
           emoji: "😤",
           label: "Irritable",
-          color: "bg-red-500/15 text-red-400 border-red-500/25",
+          color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
         };
       default:
         return {
           emoji: "😐",
           label: mood || "Unknown",
-          color: "bg-white/10 text-muted-foreground border-white/10",
+          color: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
         };
     }
   };
@@ -148,36 +149,38 @@ export default function VisitLogDetail({ params }) {
       case "great":
         return {
           label: "Great",
-          dot: "bg-green-400",
-          color: "bg-green-500/15 text-green-400 border-green-500/25",
+          dot: "bg-emerald-500",
+          color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
         };
       case "normal":
         return {
           label: "Normal",
-          dot: "bg-amber-400",
-          color: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+          dot: "bg-amber-500",
+          color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
         };
       case "poor":
         return {
           label: "Poor",
-          dot: "bg-red-400",
-          color: "bg-red-500/15 text-red-400 border-red-500/25",
+          dot: "bg-rose-500",
+          color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
         };
       default:
         return {
           label: appetite || "Unknown",
-          dot: "bg-gray-400",
-          color: "bg-white/10 text-muted-foreground border-white/10",
+          dot: "bg-slate-400",
+          color: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
         };
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading visit log...</p>
+          <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+          <p className="font-black text-xl text-slate-900 tracking-tight">
+            Loading visit log...
+          </p>
         </div>
       </div>
     );
@@ -185,15 +188,15 @@ export default function VisitLogDetail({ params }) {
 
   if (error || !visitLog) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <AlertCircle className="w-20 h-20 text-rose-400 mx-auto mb-6 opacity-20" />
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
             {error || "Visit Log Not Found"}
           </h1>
           <button
             onClick={() => router.push(`/residents/${residentId}`)}
-            className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold"
+            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to Resident
           </button>
@@ -206,29 +209,29 @@ export default function VisitLogDetail({ params }) {
   const appetiteConfig = getAppetiteConfig(visitLog.appetite);
 
   return (
-    <section className="min-h-screen bg-white/50">
+    <section className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-6 lg:px-10 py-10">
         {/* Back */}
         <button
           onClick={() => router.push(`/residents/${residentId}`)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={20} strokeWidth={2.5} />
           <span>Back to {resident?.full_name || "Resident"}</span>
         </button>
 
         {/* Header */}
-        <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-8 mb-8">
+        <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10 mb-10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-violet-400 to-violet-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <FileText size={32} className="text-white" />
+            <div className="flex items-start gap-5">
+              <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-violet-600 rounded-[24px] flex items-center justify-center shadow-2xl flex-shrink-0">
+                <FileText size={36} className="text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">
                   Visit Log
                 </h1>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 font-medium">
                   <span className="flex items-center gap-2">
                     <Calendar size={16} />
                     {formatDate(visitLog.created_at)}
@@ -248,40 +251,48 @@ export default function VisitLogDetail({ params }) {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground hover:bg-white/10 transition-all flex items-center gap-2">
-                <Download size={18} />
-                <span className="hidden sm:inline">Export</span>
+              <button className="px-5 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm font-bold">
+                <Download size={18} strokeWidth={2.5} />
+                <span className="hidden sm:inline text-xs uppercase tracking-widest">
+                  Export
+                </span>
               </button>
-              <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground hover:bg-white/10 transition-all flex items-center gap-2">
-                <Share2 size={18} />
-                <span className="hidden sm:inline">Share</span>
+              <button className="px-5 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm font-bold">
+                <Share2 size={18} strokeWidth={2.5} />
+                <span className="hidden sm:inline text-xs uppercase tracking-widest">
+                  Share
+                </span>
               </button>
-              <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground hover:bg-white/10 transition-all flex items-center gap-2">
-                <Edit size={18} />
-                <span className="hidden sm:inline">Edit</span>
+              <button className="px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg font-bold">
+                <Edit size={18} strokeWidth={2.5} />
+                <span className="hidden sm:inline text-xs uppercase tracking-widest">
+                  Edit
+                </span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* ── Main Content ── */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* Mood + Appetite summary cards */}
             {(visitLog.mood || visitLog.appetite) && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 {visitLog.mood && (
-                  <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Smile size={16} className="text-cyan-500" />
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <Smile size={18} className="text-blue-600" />
+                      </div>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                         Mood
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">{moodConfig.emoji}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-5xl">{moodConfig.emoji}</span>
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${moodConfig.color}`}
+                        className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest ${moodConfig.color}`}
                       >
                         {moodConfig.label}
                       </span>
@@ -290,19 +301,21 @@ export default function VisitLogDetail({ params }) {
                 )}
 
                 {visitLog.appetite && (
-                  <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Utensils size={16} className="text-cyan-500" />
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center">
+                        <Utensils size={18} className="text-amber-600" />
+                      </div>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                         Appetite
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <div
-                        className={`w-4 h-4 rounded-full flex-shrink-0 ${appetiteConfig.dot}`}
+                        className={`w-6 h-6 rounded-full flex-shrink-0 ${appetiteConfig.dot} shadow-md`}
                       />
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold border ${appetiteConfig.color}`}
+                        className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-black uppercase tracking-widest ${appetiteConfig.color}`}
                       >
                         {appetiteConfig.label}
                       </span>
@@ -313,36 +326,47 @@ export default function VisitLogDetail({ params }) {
             )}
 
             {/* Visit Notes / Observations */}
-            <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                <FileText size={20} className="text-cyan-500" />
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10">
+              <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <FileText size={20} className="text-blue-600" />
+                </div>
                 Observations
               </h3>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
-                  {visitLog.notes || "No notes recorded for this visit."}
+              <div className="p-8 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-base font-medium">
+                  {visitLog.notes || (
+                    <span className="italic text-slate-400">
+                      No notes recorded for this visit.
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
 
             {/* Required Tasks */}
             {parsedTasks.length > 0 && (
-              <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <CheckSquare size={20} className="text-cyan-500" />
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10">
+                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                    <CheckSquare size={20} className="text-emerald-600" />
+                  </div>
                   Required Tasks
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {parsedTasks.map((task, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 px-4 py-3 bg-white/5 border border-white/10 rounded-xl"
+                      className="flex items-center gap-4 px-6 py-4 bg-emerald-50 border border-emerald-200 rounded-[20px]"
                     >
                       <CheckSquare
-                        size={16}
-                        className="text-green-400 flex-shrink-0"
+                        size={20}
+                        className="text-emerald-600 flex-shrink-0"
+                        strokeWidth={2.5}
                       />
-                      <span className="text-sm text-foreground">{task}</span>
+                      <span className="text-base text-slate-900 font-medium">
+                        {task}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -354,19 +378,23 @@ export default function VisitLogDetail({ params }) {
               visitLog.temperature ||
               visitLog.heart_rate ||
               visitLog.oxygen_level) && (
-              <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-                <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Activity size={20} className="text-cyan-500" />
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10">
+                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+                    <Activity size={20} className="text-rose-600" />
+                  </div>
                   Vital Signs
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {visitLog.blood_pressure && (
                     <VitalCard
                       icon={Heart}
                       label="Blood Pressure"
                       value={visitLog.blood_pressure}
                       unit="mmHg"
-                      color="text-red-400"
+                      color="text-rose-600"
+                      bgColor="bg-rose-50"
+                      ringColor="ring-rose-100"
                     />
                   )}
                   {visitLog.temperature && (
@@ -375,7 +403,9 @@ export default function VisitLogDetail({ params }) {
                       label="Temperature"
                       value={visitLog.temperature}
                       unit="°C"
-                      color="text-orange-400"
+                      color="text-orange-600"
+                      bgColor="bg-orange-50"
+                      ringColor="ring-orange-100"
                     />
                   )}
                   {visitLog.heart_rate && (
@@ -384,7 +414,9 @@ export default function VisitLogDetail({ params }) {
                       label="Heart Rate"
                       value={visitLog.heart_rate}
                       unit="bpm"
-                      color="text-pink-400"
+                      color="text-pink-600"
+                      bgColor="bg-pink-50"
+                      ringColor="ring-pink-100"
                     />
                   )}
                   {visitLog.oxygen_level && (
@@ -393,7 +425,9 @@ export default function VisitLogDetail({ params }) {
                       label="Oxygen Level"
                       value={visitLog.oxygen_level}
                       unit="%"
-                      color="text-blue-400"
+                      color="text-blue-600"
+                      bgColor="bg-blue-50"
+                      ringColor="ring-blue-100"
                     />
                   )}
                 </div>
@@ -402,32 +436,41 @@ export default function VisitLogDetail({ params }) {
           </div>
 
           {/* ── Sidebar ── */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Visit Information */}
-            <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                 Visit Information
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <MetadataRow
                   label="Date"
                   value={formatDate(visitLog.created_at)}
+                  icon={Calendar}
                 />
                 <MetadataRow
                   label="Time"
                   value={formatTime(visitLog.created_at)}
+                  icon={Clock}
                 />
-                {carer && <MetadataRow label="Carer" value={carer.full_name} />}
+                {carer && (
+                  <MetadataRow
+                    label="Carer"
+                    value={carer.full_name}
+                    icon={UserCheck}
+                  />
+                )}
                 {visitLog.mood && (
                   <MetadataRow
                     label="Mood"
                     value={
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${moodConfig.color}`}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${moodConfig.color}`}
                       >
                         {moodConfig.emoji} {moodConfig.label}
                       </span>
                     }
+                    icon={Smile}
                   />
                 )}
                 {visitLog.appetite && (
@@ -435,14 +478,15 @@ export default function VisitLogDetail({ params }) {
                     label="Appetite"
                     value={
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${appetiteConfig.color}`}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${appetiteConfig.color}`}
                       >
                         <span
-                          className={`w-2 h-2 rounded-full ${appetiteConfig.dot}`}
+                          className={`w-2.5 h-2.5 rounded-full ${appetiteConfig.dot}`}
                         />
                         {appetiteConfig.label}
                       </span>
                     }
+                    icon={Utensils}
                   />
                 )}
               </div>
@@ -450,26 +494,27 @@ export default function VisitLogDetail({ params }) {
 
             {/* Resident Quick Info */}
             {resident && (
-              <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                   Resident
                 </h3>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-cyan-500/30">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[20px] flex items-center justify-center text-white text-2xl font-black shadow-lg">
                     {resident.full_name?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground">
+                    <p className="font-black text-lg text-slate-900 tracking-tight">
                       {resident.full_name}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5 mt-1">
+                      <MapPin size={14} />
                       Room {resident.room || "N/A"}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => router.push(`/residents/${residentId}`)}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
+                  className="w-full px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
                 >
                   View Full Profile
                 </button>
@@ -477,22 +522,28 @@ export default function VisitLogDetail({ params }) {
             )}
 
             {/* Actions */}
-            <div className="bg-white/5 border-2 border-white/10 rounded-2xl backdrop-blur-xl p-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                 Actions
               </h3>
-              <div className="space-y-2">
-                <button className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground hover:bg-white/10 transition-all text-left flex items-center gap-3">
-                  <Edit size={18} className="text-cyan-500" />
-                  <span>Edit Visit Log</span>
+              <div className="space-y-3">
+                <button className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 hover:bg-slate-100 transition-all text-left flex items-center gap-3 font-bold">
+                  <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <Edit size={16} className="text-blue-600" />
+                  </div>
+                  <span className="text-sm">Edit Visit Log</span>
                 </button>
-                <button className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-foreground hover:bg-white/10 transition-all text-left flex items-center gap-3">
-                  <Download size={18} className="text-cyan-500" />
-                  <span>Download PDF</span>
+                <button className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 hover:bg-slate-100 transition-all text-left flex items-center gap-3 font-bold">
+                  <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+                    <Download size={16} className="text-emerald-600" />
+                  </div>
+                  <span className="text-sm">Download PDF</span>
                 </button>
-                <button className="w-full px-4 py-2 bg-white/5 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/10 transition-all text-left flex items-center gap-3">
-                  <Trash2 size={18} />
-                  <span>Delete Log</span>
+                <button className="w-full px-5 py-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 hover:bg-rose-100 transition-all text-left flex items-center gap-3 font-bold">
+                  <div className="w-8 h-8 bg-rose-100 rounded-xl flex items-center justify-center">
+                    <Trash2 size={16} className="text-rose-600" />
+                  </div>
+                  <span className="text-sm">Delete Log</span>
                 </button>
               </div>
             </div>
@@ -503,26 +554,43 @@ export default function VisitLogDetail({ params }) {
   );
 }
 
-function VitalCard({ icon: Icon, label, value, unit, color }) {
+function VitalCard({
+  icon: Icon,
+  label,
+  value,
+  unit,
+  color,
+  bgColor,
+  ringColor,
+}) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon size={18} className={color} />
-        <span className="text-sm text-muted-foreground">{label}</span>
+    <div
+      className={`${bgColor} rounded-[24px] p-6 ring-1 ${ringColor} shadow-sm`}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Icon size={20} className={color} strokeWidth={2.5} />
+        <span className="text-xs text-slate-600 font-bold uppercase tracking-widest">
+          {label}
+        </span>
       </div>
-      <p className="text-2xl font-bold text-foreground">
+      <p className={`text-3xl font-black ${color} tracking-tight`}>
         {value}
-        <span className="text-lg text-muted-foreground ml-1">{unit}</span>
+        <span className="text-lg text-slate-500 font-bold ml-2">{unit}</span>
       </p>
     </div>
   );
 }
 
-function MetadataRow({ label, value }) {
+function MetadataRow({ label, value, icon: Icon }) {
   return (
-    <div>
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-medium text-foreground">{value}</div>
+    <div className="p-4 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+      <div className="flex items-center gap-2 mb-2">
+        {Icon && <Icon size={12} className="text-blue-500" />}
+        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+          {label}
+        </p>
+      </div>
+      <div className="text-sm font-black text-slate-900">{value}</div>
     </div>
   );
 }

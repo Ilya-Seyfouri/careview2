@@ -1,7 +1,21 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Heart, Search, X } from "lucide-react";
+import {
+  User,
+  Mail,
+  Phone,
+  Heart,
+  Search,
+  X,
+  Plus,
+  UserCheck,
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+const ITEMS_PER_PAGE = 4;
 
 export default function FamilyList() {
   const supabase = createClient();
@@ -10,6 +24,7 @@ export default function FamilyList() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchFamilyMembers();
@@ -83,15 +98,30 @@ export default function FamilyList() {
     family.full_name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const totalPages = Math.ceil(filteredFamilyMembers.length / ITEMS_PER_PAGE);
+  const paginatedFamilyMembers = filteredFamilyMembers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
   if (loading) {
     return (
-      <section className="min-h-screen bg-white/50">
+      <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 py-10">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading family members...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+            <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+            <p className="font-black text-xl text-slate-900 tracking-tight">
+              Loading family members...
+            </p>
           </div>
         </div>
       </section>
@@ -100,11 +130,11 @@ export default function FamilyList() {
 
   if (error) {
     return (
-      <section className="min-h-screen bg-white/50">
+      <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 py-10">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <p className="text-lg text-red-500">Error: {error}</p>
+              <p className="text-lg font-bold text-red-600">Error: {error}</p>
             </div>
           </div>
         </div>
@@ -114,75 +144,200 @@ export default function FamilyList() {
 
   return (
     <>
-      <section className="min-h-screen bg-white/50">
-        <div className="container mx-auto">
-          <div className="px-6 lg:px-10 pt-10 pb-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-                  Family Members
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {familyMembers.length} family members active
-                </p>
-              </div>
-
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
-                type="button"
-              >
-                <span>Add Family Member</span>
-              </button>
+      <section className="min-h-screen bg-slate-50">
+        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-6">
+          {/* Header */}
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <UserCheck size={12} />
+              Extended Care Network
             </div>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+              Family Relations
+            </h2>
+            <p className="text-slate-500 text-lg font-medium mt-1">
+              Managing communication and portal access for{" "}
+              <span className="text-slate-900 font-bold">
+                {familyMembers.length} family members
+              </span>
+            </p>
+          </div>
 
+          {/* Table Container */}
+          <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
             {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <div className="relative flex-1">
+            <div className="p-8 border-b border-slate-50 flex flex-wrap gap-6 items-center justify-between bg-slate-50/20">
+              <div className="relative max-w-sm w-full">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                   size={18}
                 />
                 <input
                   type="text"
-                  placeholder="Search family members..."
+                  placeholder="Search family member..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm"
                 />
               </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                type="button"
+              >
+                <Plus
+                  size={20}
+                  strokeWidth={3}
+                  className="group-hover:rotate-90 transition-transform"
+                />
+                Invite Member
+              </button>
             </div>
 
-            {/* Family Members Table */}
-            {filteredFamilyMembers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                <User size={48} className="mb-4 opacity-20" />
-                <p className="text-lg font-medium">No family members found</p>
-                <p className="text-sm mt-2">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+                <p className="font-black text-xl text-slate-900 tracking-tight">
+                  Loading family members...
+                </p>
+              </div>
+            ) : filteredFamilyMembers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <User className="text-slate-300 mb-4 opacity-20" size={80} />
+                <p className="font-black text-xl text-slate-900 tracking-tight">
+                  No family members found
+                </p>
+                <p className="text-sm font-bold mt-2 text-slate-400 uppercase tracking-widest">
                   {searchQuery
                     ? `No family members match "${searchQuery}"`
                     : "Family members will appear here once they are added"}
                 </p>
               </div>
             ) : (
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl">
-                {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-white/5 border-b border-white/10 font-semibold text-sm text-muted-foreground uppercase tracking-wider">
-                  <div className="col-span-3">Family Member</div>
-                  <div className="col-span-2">Relationship</div>
-                  <div className="col-span-3">Assigned Residents</div>
-                  <div className="col-span-2">Email</div>
-                  <div className="col-span-2">Phone</div>
+              <>
+                {/* Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                        <th className="px-10 py-6">Family Member Identity</th>
+                        <th className="px-10 py-6">Primary Relation</th>
+                        <th className="px-10 py-6">Linked Residents</th>
+                        <th className="px-10 py-6">Email</th>
+                        <th className="px-10 py-6">Phone</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {paginatedFamilyMembers.map((family) => (
+                        <tr
+                          key={family.id}
+                          className="hover:bg-slate-50/50 transition-all cursor-pointer group/row"
+                        >
+                          {/* Family Member Identity */}
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-5">
+                              <div className="relative">
+                                <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-black text-xl shadow-md group-hover/row:scale-105 transition-transform duration-300 ring-4 ring-white">
+                                  {getInitials(family.full_name)}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="font-black text-lg text-slate-900 tracking-tight group-hover/row:text-blue-600 transition-colors">
+                                  {family.full_name}
+                                </p>
+                               
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Primary Relation */}
+                          <td className="px-10 py-6">
+                            <span className="inline-flex items-center px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600 group-hover/row:bg-blue-50 group-hover/row:text-blue-600 transition-colors">
+                              {family.assignedPatients.length > 0
+                                ? family.assignedPatients[0].relationship
+                                : "N/A"}
+                            </span>
+                          </td>
+
+                          {/* Linked Residents */}
+                          <td className="px-10 py-6">
+                            {family.assignedPatients.length === 0 ? (
+                              <span className="text-sm text-slate-400 font-bold">
+                                No residents
+                              </span>
+                            ) : family.assignedPatients.length === 1 ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] px-3 py-1.5 bg-blue-50 text-blue-700 rounded-xl font-black uppercase tracking-widest flex items-center gap-2 ring-1 ring-blue-100">
+                                  <Heart size={12} fill="currentColor" />
+                                  {family.assignedPatients[0].full_name}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                <span className="text-[10px] px-3 py-1.5 bg-blue-50 text-blue-700 rounded-xl font-black uppercase tracking-widest flex items-center gap-2 ring-1 ring-blue-100">
+                                  <Heart size={12} fill="currentColor" />
+                                  {family.assignedPatients[0].full_name}
+                                </span>
+                                <span className="text-xs text-slate-400 font-bold flex items-center">
+                                  +{family.assignedPatients.length - 1} more
+                                </span>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Email */}
+                          <td className="px-10 py-6 text-sm text-slate-500 font-bold">
+                            {family.email || "Not provided"}
+                          </td>
+
+                          {/* Phone */}
+                          <td className="px-10 py-6 text-sm text-slate-500 font-bold">
+                            {family.phone || "Not provided"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* Table Body */}
-                <div className="divide-y divide-white/10">
-                  {filteredFamilyMembers.map((family) => (
-                    <FamilyMemberRow key={family.id} family={family} />
-                  ))}
+                {/* Pagination */}
+                <div className="p-8 bg-slate-50/20 border-t border-slate-50 flex justify-between items-center">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                    Showing{" "}
+                    {Math.min(
+                      (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                      filteredFamilyMembers.length,
+                    )}
+                    –
+                    {Math.min(
+                      currentPage * ITEMS_PER_PAGE,
+                      filteredFamilyMembers.length,
+                    )}{" "}
+                    of {filteredFamilyMembers.length} family members
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-6 py-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Next Page
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -202,85 +357,9 @@ export default function FamilyList() {
   );
 }
 
-function FamilyMemberRow({ family }) {
-  const getInitials = (name) => {
-    if (!name) return "?";
-    const parts = name.split(" ");
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
-  // Get primary relationship (from first assigned patient)
-  const primaryRelationship =
-    family.assignedPatients.length > 0
-      ? family.assignedPatients[0].relationship
-      : "N/A";
-
-  return (
-    <div className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-white/5 transition-colors">
-      {/* Family Member Info */}
-      <div className="col-span-3 flex items-center gap-3">
-        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg flex-shrink-0">
-          {getInitials(family.full_name)}
-        </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-foreground truncate">
-            {family.full_name}
-          </p>
-        </div>
-      </div>
-
-      {/* Relationship */}
-      <div className="col-span-2 flex items-center">
-        <span className="text-sm text-foreground">{primaryRelationship}</span>
-      </div>
-
-      {/* Assigned Residents */}
-      <div className="col-span-3 flex items-center">
-        {family.assignedPatients.length === 0 ? (
-          <span className="text-sm text-muted-foreground">No residents</span>
-        ) : family.assignedPatients.length === 1 ? (
-          <div className="flex items-center gap-2">
-            <Heart size={14} className="text-cyan-500" />
-            <span className="text-sm text-cyan-500">
-              {family.assignedPatients[0].full_name}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Heart size={14} className="text-cyan-500" />
-            <span className="text-sm text-cyan-500">
-              {family.assignedPatients[0].full_name}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              +{family.assignedPatients.length - 1} more
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Email */}
-      <div className="col-span-2 flex items-center">
-        <span className="text-sm text-muted-foreground truncate">
-          {family.email || "Not provided"}
-        </span>
-      </div>
-
-      {/* Phone */}
-      <div className="col-span-2 flex items-center">
-        <span className="text-sm text-muted-foreground">
-          {family.phone || "Not provided"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function AddFamilyMemberModal({ onClose, onSuccess }) {
   const supabase = createClient();
-  const [step, setStep] = useState(1); // Step 1: Create profile, Step 2: Link to patient
+  const [step, setStep] = useState(1);
   const [createdFamilyId, setCreatedFamilyId] = useState(null);
   const [patients, setPatients] = useState([]);
   const [formData, setFormData] = useState({
@@ -293,7 +372,6 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch all patients for linking
   useEffect(() => {
     if (step === 2) {
       fetchPatients();
@@ -314,109 +392,113 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
     }
   };
 
-const handleStep1Submit = async (e) => {
-  e.preventDefault();
+  const handleStep1Submit = async (e) => {
+    e.preventDefault();
 
-  if (!formData.full_name || !formData.email || !formData.phone) {
-    setError("Please fill in all required fields");
-    return;
-  }
+    if (!formData.full_name || !formData.email || !formData.phone) {
+      setError("Please fill in all required fields");
+      return;
+    }
 
-  try {
-    setSaving(true);
-    setError(null);
+    try {
+      setSaving(true);
+      setError(null);
 
-    // Create family member profile
-    const { data, error: insertError } = await supabase
-      .from("profiles")
-      .insert([
-        {
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          role: "family",
-          created_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
+      const { data, error: insertError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            role: "family",
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
 
-    if (insertError) throw insertError;
+      if (insertError) throw insertError;
 
-    // Audit log: family member created
-    await supabase.from("audit_logs").insert({
-      action_type: "family_member_created",
-      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-      related_to: data.id,
-      created_at: new Date().toISOString(),
-    });
+      await supabase.from("audit_logs").insert({
+        action_type: "family_member_created",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: data.id,
+        created_at: new Date().toISOString(),
+      });
 
-    setCreatedFamilyId(data.id);
-    setStep(2); // Move to linking step
-  } catch (err) {
-    console.error("Error adding family member:", err);
-    setError(err.message || "Failed to add family member");
-  } finally {
-    setSaving(false);
-  }
-};
+      setCreatedFamilyId(data.id);
+      setStep(2);
+    } catch (err) {
+      console.error("Error adding family member:", err);
+      setError(err.message || "Failed to add family member");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-const handleStep2Submit = async (e) => {
-  e.preventDefault();
+  const handleStep2Submit = async (e) => {
+    e.preventDefault();
 
-  if (!formData.patient_id || !formData.relationship) {
-    setError("Please select a resident and relationship");
-    return;
-  }
+    if (!formData.patient_id || !formData.relationship) {
+      setError("Please select a resident and relationship");
+      return;
+    }
 
-  try {
-    setSaving(true);
-    setError(null);
+    try {
+      setSaving(true);
+      setError(null);
 
-    // Create patient-family link
-    const { error: linkError } = await supabase.from("patient_family").insert([
-      {
-        patient_id: formData.patient_id,
-        family_id: createdFamilyId,
-        relationship: formData.relationship,
-        linked_at: new Date().toISOString(),
-      },
-    ]);
+      const { error: linkError } = await supabase
+        .from("patient_family")
+        .insert([
+          {
+            patient_id: formData.patient_id,
+            family_id: createdFamilyId,
+            relationship: formData.relationship,
+            linked_at: new Date().toISOString(),
+          },
+        ]);
 
-    if (linkError) throw linkError;
+      if (linkError) throw linkError;
 
-    // Audit log: family member linked to patient
-    await supabase.from("audit_logs").insert({
-      action_type: "family_linked_to_patient",
-      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-      related_to: formData.patient_id,
-      created_at: new Date().toISOString(),
-    });
+      await supabase.from("audit_logs").insert({
+        action_type: "family_linked_to_patient",
+        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        related_to: formData.patient_id,
+        created_at: new Date().toISOString(),
+      });
 
-    onSuccess();
-  } catch (err) {
-    console.error("Error linking family member:", err);
-    setError(err.message || "Failed to link family member");
-  } finally {
-    setSaving(false);
-  }
-};
+      onSuccess();
+    } catch (err) {
+      console.error("Error linking family member:", err);
+      setError(err.message || "Failed to link family member");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSkipLinking = () => {
-    // Allow creating family member without linking to a patient
     onSuccess();
   };
 
+  const inputClass =
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 border-2 border-white/20 rounded-2xl backdrop-blur-xl max-w-2xl w-full p-8 shadow-2xl">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <UserCheck size={12} />
+              {step === 1 ? "New Family Member" : "Link to Resident"}
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
               {step === 1 ? "Add New Family Member" : "Link to Resident"}
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-slate-500 font-medium mt-1">
               {step === 1
                 ? "Step 1 of 2: Enter family member details"
                 : "Step 2 of 2: Link to a resident (optional)"}
@@ -424,18 +506,17 @@ const handleStep2Submit = async (e) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={24} className="text-muted-foreground" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
         {/* Step 1: Create Family Member */}
         {step === 1 && (
           <form onSubmit={handleStep1Submit} className="space-y-6">
-            {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Full Name *
               </label>
               <input
@@ -444,16 +525,15 @@ const handleStep2Submit = async (e) => {
                 onChange={(e) =>
                   setFormData({ ...formData, full_name: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
                 placeholder="Enter full name"
                 required
               />
             </div>
 
-            {/* Email and Phone */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Email *
                 </label>
                 <input
@@ -462,14 +542,14 @@ const handleStep2Submit = async (e) => {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   placeholder="email@example.com"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Phone Number *
                 </label>
                 <input
@@ -478,26 +558,24 @@ const handleStep2Submit = async (e) => {
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                  className={inputClass}
                   placeholder="e.g., +44 123 456 7890"
                   required
                 />
               </div>
             </div>
 
-            {/* Error Message */}
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                <p className="text-sm text-rose-600 font-bold">{error}</p>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
@@ -505,7 +583,7 @@ const handleStep2Submit = async (e) => {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Creating..." : "Next: Link to Resident"}
               </button>
@@ -516,15 +594,14 @@ const handleStep2Submit = async (e) => {
         {/* Step 2: Link to Patient */}
         {step === 2 && (
           <form onSubmit={handleStep2Submit} className="space-y-6">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
-              <p className="text-sm text-green-400">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-4">
+              <p className="text-sm text-emerald-600 font-bold">
                 ✓ Family member "{formData.full_name}" created successfully!
               </p>
             </div>
 
-            {/* Select Resident */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Select Resident
               </label>
               <select
@@ -532,7 +609,7 @@ const handleStep2Submit = async (e) => {
                 onChange={(e) =>
                   setFormData({ ...formData, patient_id: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
               >
                 <option value="">-- Select a resident --</option>
                 {patients.map((patient) => (
@@ -544,9 +621,8 @@ const handleStep2Submit = async (e) => {
               </select>
             </div>
 
-            {/* Relationship */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Relationship
               </label>
               <select
@@ -554,7 +630,7 @@ const handleStep2Submit = async (e) => {
                 onChange={(e) =>
                   setFormData({ ...formData, relationship: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className={inputClass}
               >
                 <option value="">-- Select relationship --</option>
                 <option value="Son">Son</option>
@@ -569,19 +645,17 @@ const handleStep2Submit = async (e) => {
               </select>
             </div>
 
-            {/* Error Message */}
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                <p className="text-sm text-rose-600 font-bold">{error}</p>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={handleSkipLinking}
-                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Skip for Now
@@ -591,7 +665,7 @@ const handleStep2Submit = async (e) => {
                 disabled={
                   saving || !formData.patient_id || !formData.relationship
                 }
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Linking..." : "Complete"}
               </button>

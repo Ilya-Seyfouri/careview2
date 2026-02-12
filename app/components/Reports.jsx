@@ -1,6 +1,6 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Activity,
   Users,
@@ -23,9 +23,9 @@ export default function Analytics() {
   const [totalVisits, setTotalVisits] = useState(0);
   const [totalReports, setTotalReports] = useState(0);
   const [reportsByType, setReportsByType] = useState([]);
-  const [staffVisitCounts, setStaffVisitCounts] = useState([]); // ← new
+  const [staffVisitCounts, setStaffVisitCounts] = useState([]);
   const [showAddReport, setShowAddReport] = useState(false);
-  const [tooltip, setTooltip] = useState(null); // ← new
+  const [tooltip, setTooltip] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -87,8 +87,7 @@ export default function Analytics() {
         },
       ]);
 
-      // ── Staff visit counts ──────────────────────────────────────
-      // Get all completed schedules with carer_id
+      // Staff visit counts
       const { data: schedulesData } = await supabase
         .from("schedules")
         .select("carer_id")
@@ -141,8 +140,8 @@ export default function Analytics() {
       delta: "+12%",
       positive: true,
       icon: Activity,
-      iconColor: "text-cyan-500",
-      iconBg: "bg-cyan-500/10",
+      iconColor: "text-blue-600",
+      iconBg: "bg-blue-50",
     },
     {
       label: "Avg Care Rating",
@@ -150,8 +149,8 @@ export default function Analytics() {
       delta: "+2%",
       positive: true,
       icon: Users,
-      iconColor: "text-green-500",
-      iconBg: "bg-green-500/10",
+      iconColor: "text-green-600",
+      iconBg: "bg-green-50",
     },
     {
       label: "Incidents Reported",
@@ -159,8 +158,8 @@ export default function Analytics() {
       delta: "-5%",
       positive: false,
       icon: AlertCircle,
-      iconColor: "text-red-500",
-      iconBg: "bg-red-500/10",
+      iconColor: "text-red-600",
+      iconBg: "bg-red-50",
     },
     {
       label: "Compliance Score",
@@ -168,8 +167,8 @@ export default function Analytics() {
       delta: "Stable",
       positive: null,
       icon: ShieldCheck,
-      iconColor: "text-violet-500",
-      iconBg: "bg-violet-500/10",
+      iconColor: "text-purple-600",
+      iconBg: "bg-purple-50",
     },
   ];
 
@@ -178,62 +177,75 @@ export default function Analytics() {
       <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
           {/* Header */}
-          <div className="flex items-start justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900">
-                Analytics & Reporting
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Key performance indicators and operational summaries
-              </p>
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Activity size={12} />
+              Performance Insights
             </div>
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-all">
-                <Download size={16} /> Export Data
-              </button>
-              <button
-                onClick={() => setShowAddReport(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
-              >
-                <Plus size={16} /> Add Report
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                  Analytics & Reporting
+                </h2>
+                <p className="text-slate-500 text-lg font-medium mt-1">
+                  Key performance indicators and operational summaries
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-100 rounded-xl text-xs font-black uppercase tracking-widest text-slate-700 hover:bg-slate-50 shadow-sm transition-all">
+                  <Download size={16} strokeWidth={3} /> Export Data
+                </button>
+                <button
+                  onClick={() => setShowAddReport(true)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                >
+                  <Plus
+                    size={20}
+                    strokeWidth={3}
+                    className="group-hover:rotate-90 transition-transform"
+                  />
+                  Add Report
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {statCards.map((card) => (
               <StatCard key={card.label} {...card} loading={loading} />
             ))}
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* ── Staff Utilisation Bar Chart ── */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-bold text-gray-800">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Staff Utilisation Bar Chart */}
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
                   Staff Utilisation
                 </h3>
-                <span className="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1.5 rounded-lg">
+                <span className="text-[10px] text-slate-400 font-black bg-slate-50 px-3 py-1.5 rounded-lg uppercase tracking-widest">
                   Completed Visits
                 </span>
               </div>
 
               {loading ? (
-                <div className="flex items-end justify-center gap-4 h-48 pb-6">
+                <div className="flex items-end justify-center gap-4 h-64 pb-6">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className="flex-1 bg-gray-100 rounded-t-lg animate-pulse"
+                      className="flex-1 bg-slate-100 rounded-t-xl animate-pulse"
                       style={{ height: `${40 + Math.random() * 60}%` }}
                     />
                   ))}
                 </div>
               ) : staffVisitCounts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                  <AlertCircle size={32} className="mb-2 opacity-30" />
-                  <p className="text-sm">No completed visits yet</p>
+                <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                  <AlertCircle size={60} className="mb-4 opacity-10" />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    No completed visits yet
+                  </p>
                 </div>
               ) : (
                 <StaffBarChart
@@ -245,48 +257,56 @@ export default function Analytics() {
             </div>
 
             {/* Incident Distribution Donut */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-bold text-gray-800">
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
                   Incident Distribution
                 </h3>
-                <span className="text-xs text-gray-400 font-medium">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
                   By type
                 </span>
               </div>
 
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                <div className="flex flex-col items-center justify-center py-20">
+                  <Activity
+                    size={60}
+                    className="mb-4 opacity-10 animate-pulse"
+                  />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    Loading...
+                  </p>
                 </div>
               ) : totalReports === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                  <AlertCircle size={32} className="mb-2 opacity-30" />
-                  <p className="text-sm">No incidents recorded yet</p>
+                <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                  <AlertCircle size={60} className="mb-4 opacity-10" />
+                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                    No incidents recorded yet
+                  </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-8">
                   <DonutChart segments={reportsByType} total={totalReports} />
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-4">
                     {reportsByType.map((seg) => (
                       <div
                         key={seg.key}
                         className="flex items-center justify-between"
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           <div
                             className="w-3 h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: seg.color }}
                           />
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-slate-600 font-bold">
                             {seg.label}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-800">
+                          <span className="text-sm font-black text-slate-900">
                             {seg.pct}%
                           </span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-slate-400 font-bold">
                             ({seg.count})
                           </span>
                         </div>
@@ -299,37 +319,37 @@ export default function Analytics() {
           </div>
 
           {/* Report Type Breakdown */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mt-6">
-            <h3 className="text-base font-bold text-gray-800 mb-5">
+          <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+            <h3 className="text-xl font-black text-slate-900 tracking-tight mb-6">
               Report Type Breakdown
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
               {reportsByType.map((seg) => (
                 <div
                   key={seg.key}
-                  className="rounded-xl p-4 border"
+                  className="rounded-[24px] p-6 border-2"
                   style={{
-                    backgroundColor: `${seg.color}10`,
-                    borderColor: `${seg.color}30`,
+                    backgroundColor: `${seg.color}08`,
+                    borderColor: `${seg.color}20`,
                   }}
                 >
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
-                    style={{ backgroundColor: `${seg.color}20` }}
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-sm"
+                    style={{ backgroundColor: `${seg.color}15` }}
                   >
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: seg.color }}
                     />
                   </div>
-                  <p className="text-2xl font-bold text-gray-800 mb-0.5">
+                  <p className="text-3xl font-black text-slate-900 mb-1 tracking-tight">
                     {seg.count}
                   </p>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                     {seg.label}
                   </p>
                   <p
-                    className="text-xs font-bold mt-1"
+                    className="text-xs font-black"
                     style={{ color: seg.color }}
                   >
                     {seg.pct}% of total
@@ -358,19 +378,18 @@ export default function Analytics() {
 /* ─── Staff Bar Chart ────────────────────────────────────────────── */
 function StaffBarChart({ data, tooltip, setTooltip }) {
   const maxVisits = Math.max(...data.map((d) => d.visits), 1);
-  // Y axis labels: 0, half, max rounded up to nice number
   const yMax = Math.ceil(maxVisits / 4) * 4 || 4;
   const yLabels = [yMax, Math.ceil(yMax / 2), 0];
 
   return (
     <div className="relative">
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         {/* Y axis */}
-        <div className="flex flex-col justify-between pb-7 text-right w-6 flex-shrink-0">
+        <div className="flex flex-col justify-between pb-8 text-right w-8 flex-shrink-0">
           {yLabels.map((v) => (
             <span
               key={v}
-              className="text-[11px] text-gray-400 font-medium leading-none"
+              className="text-[10px] text-slate-400 font-black leading-none uppercase tracking-widest"
             >
               {v}
             </span>
@@ -380,26 +399,25 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
         {/* Bars + x labels */}
         <div className="flex-1">
           {/* Grid lines */}
-          <div className="relative h-44 mb-2">
+          <div className="relative h-52 mb-3">
             {yLabels.map((_, i) => (
               <div
                 key={i}
-                className="absolute w-full border-t border-gray-100"
+                className="absolute w-full border-t border-slate-100"
                 style={{ top: `${(i / (yLabels.length - 1)) * 100}%` }}
               />
             ))}
 
             {/* Bars */}
-            <div className="absolute inset-0 flex items-end justify-around px-2 gap-3">
-              {data.map((staff, i) => {
+            <div className="absolute inset-0 flex items-end justify-around px-2 gap-4">
+              {data.map((staff) => {
                 const heightPct = (staff.visits / yMax) * 100;
                 const isHovered = tooltip?.id === staff.id;
                 return (
                   <div
                     key={staff.id}
                     className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer"
-                    onMouseEnter={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
+                    onMouseEnter={() => {
                       setTooltip({
                         id: staff.id,
                         name: staff.shortName,
@@ -412,28 +430,28 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
                       {/* Tooltip */}
                       {isHovered && (
                         <div
-                          className="absolute bottom-full mb-2 bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 z-10 whitespace-nowrap pointer-events-none"
+                          className="absolute bottom-full mb-3 bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 z-10 whitespace-nowrap pointer-events-none"
                           style={{ left: "50%", transform: "translateX(-50%)" }}
                         >
-                          <p className="text-xs font-bold text-gray-800">
+                          <p className="text-xs font-black text-white tracking-tight">
                             {staff.shortName}
                           </p>
-                          <p className="text-xs font-bold text-blue-500">
-                            visits : {staff.visits}
+                          <p className="text-xs font-bold text-blue-400 mt-0.5">
+                            {staff.visits} visits
                           </p>
                         </div>
                       )}
 
                       {/* Bar */}
                       <div
-                        className={`w-full rounded-t-lg transition-all duration-300 ${
+                        className={`w-full rounded-t-2xl transition-all duration-300 shadow-lg ${
                           isHovered
-                            ? "bg-blue-400"
-                            : "bg-blue-500 group-hover:bg-blue-400"
+                            ? "bg-blue-500 scale-105"
+                            : "bg-blue-600 group-hover:bg-blue-500"
                         }`}
                         style={{
                           height: `${Math.max(heightPct, 4)}%`,
-                          maxHeight: "176px",
+                          maxHeight: "208px",
                         }}
                       />
                     </div>
@@ -444,10 +462,10 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
           </div>
 
           {/* X labels */}
-          <div className="flex justify-around px-2 gap-3">
+          <div className="flex justify-around px-2 gap-4">
             {data.map((staff) => (
               <div key={staff.id} className="flex-1 text-center">
-                <span className="text-[11px] text-gray-400 font-medium truncate block">
+                <span className="text-[10px] text-slate-400 font-black truncate block uppercase tracking-widest">
                   {staff.shortName}
                 </span>
               </div>
@@ -558,35 +576,36 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-white transition-colors text-sm";
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
-              <FileText size={20} className="text-white" />
+      <div className="bg-white rounded-[32px] max-w-lg w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <FileText size={12} />
+              New Report
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">New Report</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
-                Log an incident or observation
-              </p>
-            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Create Report
+            </h2>
+            <p className="text-sm text-slate-500 font-medium mt-1">
+              Log an incident or observation
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-gray-400" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Resident <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Resident <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.patient_id}
@@ -608,8 +627,8 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Title <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -624,22 +643,22 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Report Type <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Report Type <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-3">
               {Object.entries(typeConfig).map(([key, cfg]) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setFormData({ ...formData, type: key })}
-                  className={`py-2.5 px-2 rounded-xl border text-xs font-bold capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-sm` : "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100"}`}
+                  className={`py-3 px-2 rounded-2xl border-2 text-xs font-black capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-md` : "bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100"}`}
                 >
                   <div
-                    className="w-2 h-2 rounded-full mx-auto mb-1.5"
+                    className="w-3 h-3 rounded-full mx-auto mb-2"
                     style={{
                       backgroundColor:
-                        formData.type === key ? cfg.color : "#d1d5db",
+                        formData.type === key ? cfg.color : "#cbd5e1",
                     }}
                   />
                   {key}
@@ -649,8 +668,8 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Details <span className="text-red-400">*</span>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Details <span className="text-red-500">*</span>
             </label>
             <textarea
               value={formData.content}
@@ -662,24 +681,23 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
               className={`${inputClass} resize-none leading-relaxed`}
               required
             />
-            <p className="text-xs text-gray-400 mt-1 text-right">
+            <p className="text-xs text-slate-400 font-medium mt-2 text-right">
               {formData.content.length} characters
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
-              <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-              <p className="text-sm text-red-500">{error}</p>
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+              <p className="text-sm text-rose-600 font-bold">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-3 pt-1">
+          <div className="flex gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-all font-semibold text-sm disabled:opacity-50"
+              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest disabled:opacity-50"
             >
               Cancel
             </button>
@@ -691,9 +709,9 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
                 !formData.title.trim() ||
                 !formData.content.trim()
               }
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-xl font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
             >
-              <FileText size={14} />
+              <FileText size={16} strokeWidth={3} />
               {saving ? "Saving..." : "Save Report"}
             </button>
           </div>
@@ -715,30 +733,30 @@ function StatCard({
   loading,
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-      <div className="flex items-start justify-between mb-4">
+    <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+      <div className="flex items-start justify-between mb-6">
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center ${iconBg} shadow-sm`}
         >
-          <Icon size={20} className={iconColor} />
+          <Icon size={24} className={iconColor} strokeWidth={2.5} />
         </div>
         <div
-          className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${positive === true ? "bg-green-50 text-green-600" : positive === false ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"}`}
+          className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${positive === true ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100" : positive === false ? "bg-rose-50 text-rose-600 ring-1 ring-rose-100" : "bg-slate-50 text-slate-600 ring-1 ring-slate-100"}`}
         >
-          {positive === true && <TrendingUp size={11} />}
-          {positive === false && <TrendingDown size={11} />}
-          {positive === null && <Minus size={11} />}
+          {positive === true && <TrendingUp size={12} strokeWidth={3} />}
+          {positive === false && <TrendingDown size={12} strokeWidth={3} />}
+          {positive === null && <Minus size={12} strokeWidth={3} />}
           {delta}
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-900 mb-1">
+      <p className="text-3xl font-black text-slate-900 mb-2 tracking-tight">
         {loading && value === "—" ? (
-          <span className="inline-block w-16 h-7 bg-gray-100 rounded animate-pulse" />
+          <span className="inline-block w-20 h-8 bg-slate-100 rounded-xl animate-pulse" />
         ) : (
           value
         )}
       </p>
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
         {label}
       </p>
     </div>
@@ -747,8 +765,8 @@ function StatCard({
 
 /* ─── Donut Chart ────────────────────────────────────────────────── */
 function DonutChart({ segments, total }) {
-  const size = 160;
-  const strokeWidth = 28;
+  const size = 180;
+  const strokeWidth = 32;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const cx = size / 2;
@@ -785,7 +803,7 @@ function DonutChart({ segments, total }) {
             strokeWidth={strokeWidth}
             strokeDasharray={`${arc.dash} ${arc.gap}`}
             strokeDashoffset={-arc.offset}
-            strokeLinecap="butt"
+            strokeLinecap="round"
             style={{ transition: "stroke-dasharray 0.6s ease" }}
           />
         ))}

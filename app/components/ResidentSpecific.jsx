@@ -18,6 +18,9 @@ import {
   ChevronRight,
   UserCheck,
   UserCircle,
+  Activity,
+  MapPin,
+  X,
 } from "lucide-react";
 
 export default function ResidentSpecific({ params }) {
@@ -77,10 +80,13 @@ export default function ResidentSpecific({ params }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">
+          <Activity
+            size={80}
+            className="mb-6 opacity-10 animate-pulse mx-auto"
+          />
+          <p className="font-black text-xl text-slate-900 tracking-tight">
             Loading resident information...
           </p>
         </div>
@@ -90,15 +96,15 @@ export default function ResidentSpecific({ params }) {
 
   if (error || !resident) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <AlertCircle className="w-20 h-20 text-rose-400 mx-auto mb-6 opacity-20" />
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
             {error || "Resident Not Found"}
           </h1>
           <button
             onClick={() => router.push("/residents")}
-            className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-cyan-700 transition-all active:scale-95"
+            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to Residents
           </button>
@@ -108,47 +114,80 @@ export default function ResidentSpecific({ params }) {
   }
 
   return (
-    <section className="min-h-screen bg-white/50">
+    <section className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-6 lg:px-10 py-10">
         <button
           onClick={() => router.push("/residents")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={20} strokeWidth={2.5} />
           <span>Back to Residents</span>
         </button>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-10">
           {/* ── Left Sidebar ── */}
-          <div className="lg:w-80 space-y-6">
+          <div className="lg:w-80 space-y-8">
             {/* Profile Card */}
-            <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-6 text-center">
-              <div className="w-24 h-24 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-cyan-500/30 mx-auto mb-4">
-                {resident.full_name?.charAt(0).toUpperCase() || "?"}
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-1">
-                {resident.full_name || "N/A"}
-              </h2>
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-2">
-                <span>Room {resident.room || "N/A"}</span>
-                {resident.wing && (
-                  <>
-                    <span>•</span>
-                    <span>{resident.wing}</span>
-                  </>
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden p-10 text-center relative">
+              {/* Header Gradient */}
+              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-slate-900 to-slate-800 -z-0"></div>
+
+              <div className="relative z-10 pt-4">
+                <div className="relative inline-block mb-6">
+                  <div className="w-32 h-32 rounded-[28px] bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-5xl font-black shadow-2xl ring-[12px] ring-white mx-auto">
+                    {resident.full_name?.charAt(0).toUpperCase() || "?"}
+                  </div>
+                  <div
+                    className={`absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-white ${
+                      resident.status?.toLowerCase() === "stable"
+                        ? "bg-emerald-500"
+                        : resident.status?.toLowerCase() === "attention"
+                          ? "bg-amber-500"
+                          : "bg-rose-500"
+                    }`}
+                  ></div>
+                </div>
+
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-3">
+                  {resident.full_name || "N/A"}
+                </h2>
+                <div className="flex items-center justify-center gap-3 mb-8">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full text-xs font-bold text-slate-600">
+                    <MapPin size={14} className="text-blue-500" /> Room{" "}
+                    {resident.room || "N/A"}
+                  </div>
+                  {resident.wing && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full text-xs font-bold text-slate-600">
+                      {resident.wing}
+                    </div>
+                  )}
+                </div>
+
+                {resident.key_health_indicator && (
+                  <div className="p-5 bg-rose-50 border border-rose-100 rounded-3xl relative overflow-hidden group/note">
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 blur-xl rounded-full"></div>
+                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                      <AlertCircle size={12} />
+                      Critical Care Note
+                    </p>
+                    <p className="text-base font-black text-rose-900 leading-tight">
+                      {resident.key_health_indicator}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Demographics Card */}
-            <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-6">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5">
-                Demographics
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
+                Key Demographics
               </h3>
-              <div>
+              <div className="space-y-4">
                 <DemoRow
-                  label="Age / Sex"
+                  label="Age / Gender"
                   value={`${calculateAge(resident.dob)}y${resident.gender ? ` / ${resident.gender}` : ""}`}
+                  icon={User}
                 />
                 <DemoRow
                   label="Admission"
@@ -156,19 +195,22 @@ export default function ResidentSpecific({ params }) {
                     resident.created_at
                       ? new Date(resident.created_at).toLocaleDateString(
                           "en-GB",
-                          { year: "numeric", month: "2-digit", day: "2-digit" },
+                          { year: "numeric", month: "short", day: "numeric" },
                         )
                       : "N/A"
                   }
+                  icon={Calendar}
                 />
                 <DemoRow
                   label="Primary Language"
-                  value={resident.language || "Not recorded"}
+                  value={resident.language || "English"}
+                  icon={Activity}
                 />
                 <DemoRow
                   label="Blood Type"
                   value={resident.blood || "Not recorded"}
-                  red
+                  icon={Heart}
+                  color="text-rose-500"
                   last
                 />
               </div>
@@ -177,9 +219,9 @@ export default function ResidentSpecific({ params }) {
 
           {/* ── Main Content ── */}
           <div className="flex-1">
-            <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl">
+            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden min-h-[600px] flex flex-col">
               {/* Tabs */}
-              <div className="flex border-b border-white/10 px-6 overflow-x-auto">
+              <div className="flex border-b border-slate-50 px-8 bg-slate-50/20 pt-4">
                 {[
                   "Overview",
                   "Visit Logs",
@@ -192,19 +234,22 @@ export default function ResidentSpecific({ params }) {
                     onClick={() =>
                       setActiveTab(tab.toLowerCase().replace(" ", "-"))
                     }
-                    className={`px-4 py-4 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap ${
+                    className={`px-6 py-5 text-xs font-black uppercase tracking-widest transition-all relative ${
                       activeTab === tab.toLowerCase().replace(" ", "-")
-                        ? "border-cyan-500 text-cyan-500"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
+                        ? "text-blue-600"
+                        : "text-slate-400 hover:text-slate-900"
                     }`}
                   >
                     {tab}
+                    {activeTab === tab.toLowerCase().replace(" ", "-") && (
+                      <div className="absolute bottom-0 left-6 right-6 h-1 bg-blue-600 rounded-t-full" />
+                    )}
                   </button>
                 ))}
               </div>
 
               {/* Tab Content */}
-              <div className="p-8">
+              <div className="p-10 flex-1">
                 {activeTab === "overview" && (
                   <OverviewTab resident={resident} />
                 )}
@@ -230,19 +275,16 @@ export default function ResidentSpecific({ params }) {
 }
 
 // ─── Demographics Row ─────────────────────────────────────────────────────────
-function DemoRow({ label, value, red, last }) {
+function DemoRow({ label, value, icon: Icon, color, last }) {
   return (
     <div
-      className={`flex items-center justify-between py-3.5 ${!last ? "border-b border-white/5" : ""}`}
+      className={`flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors ${!last ? "" : ""}`}
     >
-      <span
-        className={`text-xs font-semibold uppercase tracking-wider ${red ? "text-red-400" : "text-muted-foreground"}`}
-      >
+      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+        <Icon size={12} className={color || "text-slate-400"} />
         {label}
       </span>
-      <span
-        className={`text-sm font-bold ${red ? "text-red-400" : "text-foreground"}`}
-      >
+      <span className={`font-black text-sm ${color || "text-slate-900"}`}>
         {value}
       </span>
     </div>
@@ -254,50 +296,35 @@ function OverviewTab({ resident }) {
   const hasVitals = resident.pulse || resident.bp;
 
   return (
-    <div className="space-y-8">
-      {/* Status + Critical Note */}
-      <div className="space-y-3">
-        <div
-          className={`w-full py-3 px-5 rounded-xl text-center text-xs font-bold uppercase tracking-widest border ${
-            resident.status === "Stable"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : resident.status === "Attention"
-                ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400"
-                : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}
-        >
-          {resident.status || "Unknown"} Status
-        </div>
-
-        {resident.key_health_indicator && (
-          <div className="w-full py-3.5 px-5 rounded-xl border bg-red-500/5 border-red-500/20">
-            <p className="text-xs font-bold uppercase tracking-widest text-red-400 mb-1">
-              Critical Note
-            </p>
-            <p className="text-sm font-bold text-red-300">
-              {resident.key_health_indicator}
-            </p>
-          </div>
-        )}
+    <div className="space-y-10">
+      {/* Status Badge */}
+      <div
+        className={`w-full py-4 px-6 rounded-[24px] text-center text-xs font-black uppercase tracking-widest ring-1 ${
+          resident.status?.toLowerCase() === "stable"
+            ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+            : resident.status?.toLowerCase() === "attention"
+              ? "bg-amber-50 text-amber-700 ring-amber-100"
+              : "bg-rose-50 text-rose-700 ring-rose-100"
+        }`}
+      >
+        {resident.status || "Unknown"} Status
       </div>
 
       {/* Executive Clinical Summary */}
       <section>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <FileText size={15} className="text-blue-400" />
+        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+            <FileText size={20} />
           </div>
-          <h4 className="font-bold text-foreground text-base">
-            Executive Clinical Summary
-          </h4>
-        </div>
-        <div className="bg-white/5 border border-white/10 rounded-xl px-6 py-5">
+          Executive Clinical Summary
+        </h4>
+        <div className="p-8 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
           {resident.health_summary ? (
-            <p className="text-sm text-muted-foreground leading-relaxed italic">
+            <p className="text-lg text-slate-600 leading-relaxed italic font-medium">
               "{resident.health_summary}"
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-lg text-slate-400 italic font-medium">
               No health summary on record.
             </p>
           )}
@@ -307,16 +334,16 @@ function OverviewTab({ resident }) {
       {/* Vitals */}
       {hasVitals && (
         <section>
-          <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
             Current Vitals
           </h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
             {resident.pulse && (
               <VitalCard
                 label="Pulse"
                 value={String(resident.pulse)}
                 unit="bpm"
-                color="cyan"
+                color="blue"
               />
             )}
             {resident.bp && (
@@ -324,7 +351,7 @@ function OverviewTab({ resident }) {
                 label="Blood Pressure"
                 value={String(resident.bp)}
                 unit="mmHg"
-                color="blue"
+                color="rose"
               />
             )}
           </div>
@@ -336,20 +363,34 @@ function OverviewTab({ resident }) {
 
 function VitalCard({ label, value, unit, color }) {
   const colors = {
-    cyan: "from-cyan-400/10 to-cyan-500/5 border-cyan-500/20",
-    blue: "from-blue-400/10 to-blue-500/5 border-blue-500/20",
-    green: "from-green-400/10 to-green-500/5 border-green-500/20",
+    blue: {
+      bg: "bg-blue-50",
+      text: "text-blue-600",
+      ring: "ring-blue-100",
+    },
+    rose: {
+      bg: "bg-rose-50",
+      text: "text-rose-600",
+      ring: "ring-rose-100",
+    },
+    green: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-600",
+      ring: "ring-emerald-100",
+    },
   };
+  const cfg = colors[color] || colors.blue;
+
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-4`}>
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+    <div
+      className={`${cfg.bg} rounded-[24px] p-6 ring-1 ${cfg.ring} shadow-sm`}
+    >
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
         {label}
       </p>
-      <p className="text-2xl font-bold text-foreground">
+      <p className={`text-3xl font-black ${cfg.text} tracking-tight`}>
         {value}
-        <span className="text-xs font-normal text-muted-foreground ml-1">
-          {unit}
-        </span>
+        <span className="text-sm font-bold text-slate-400 ml-2">{unit}</span>
       </p>
     </div>
   );
@@ -374,7 +415,7 @@ function VisitLogsTab({ visitLogs, residentId }) {
   if (visitLogs.length === 0) {
     return (
       <EmptyState
-        icon={<ClipboardList size={48} />}
+        icon={<ClipboardList size={80} />}
         label="No visit logs found"
         sublabel="Visit logs will appear here once they are created"
       />
@@ -382,10 +423,12 @@ function VisitLogsTab({ visitLogs, residentId }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h4 className="font-bold text-foreground">Visit History</h4>
-        <span className="text-sm text-muted-foreground">
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Visit History
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
           {visitLogs.length} total visits
         </span>
       </div>
@@ -393,24 +436,24 @@ function VisitLogsTab({ visitLogs, residentId }) {
         <button
           key={log.id}
           onClick={() => router.push(`/residents/${residentId}/${log.id}`)}
-          className="w-full bg-white/5 border border-white/10 p-6 rounded-lg hover:bg-white/10 transition-all text-left group"
+          className="w-full bg-white border border-slate-100 p-8 rounded-[24px] hover:shadow-lg transition-all text-left group"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <FileText size={20} className="text-white" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <FileText size={22} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">
+                  <h3 className="font-black text-lg text-slate-900 tracking-tight">
                     Visit Log #{log.id.substring(0, 8)}
                   </h3>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
+                  <div className="flex items-center gap-4 text-sm text-slate-500 mt-1.5 font-medium">
+                    <span className="flex items-center gap-1.5">
                       <Calendar size={14} />
                       {fmtDate(log.created_at)}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
                       <Clock size={14} />
                       {fmtTime(log.created_at)}
                     </span>
@@ -418,13 +461,13 @@ function VisitLogsTab({ visitLogs, residentId }) {
                 </div>
               </div>
               {log.notes && (
-                <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                <p className="text-sm text-slate-600 font-medium line-clamp-2 leading-relaxed">
                   {log.notes}
                 </p>
               )}
             </div>
-            <div className="text-cyan-500 group-hover:translate-x-1 transition-transform">
-              <ChevronRight size={20} />
+            <div className="text-blue-500 group-hover:translate-x-1 transition-transform">
+              <ChevronRight size={24} strokeWidth={2.5} />
             </div>
           </div>
         </button>
@@ -508,26 +551,26 @@ function CareTeamTab({ residentId }) {
     setAvailableFamily(data || []);
   };
 
- const assignCarer = async (id) => {
-   setActionLoading(`assign-carer-${id}`);
-   await supabase.from("patient_carers").insert({
-     patient_id: residentId,
-     carer_id: id,
-     assigned_at: new Date().toISOString(),
-   });
+  const assignCarer = async (id) => {
+    setActionLoading(`assign-carer-${id}`);
+    await supabase.from("patient_carers").insert({
+      patient_id: residentId,
+      carer_id: id,
+      assigned_at: new Date().toISOString(),
+    });
 
-   // Audit log: carer assigned
-   await supabase.from("audit_logs").insert({
-     action_type: "carer_assigned_to_patient",
-     actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-     related_to: residentId,
-     created_at: new Date().toISOString(),
-   });
+    await supabase.from("audit_logs").insert({
+      action_type: "carer_assigned_to_patient",
+      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      related_to: residentId,
+      created_at: new Date().toISOString(),
+    });
 
-   await fetchCareTeam();
-   await fetchAvailableCarers();
-   setActionLoading(null);
- };
+    await fetchCareTeam();
+    await fetchAvailableCarers();
+    setActionLoading(null);
+  };
+
   const removeCarer = async (assignId, carerId) => {
     setActionLoading(`remove-carer-${carerId}`);
     await supabase.from("patient_carers").delete().eq("id", assignId);
@@ -535,27 +578,28 @@ function CareTeamTab({ residentId }) {
     await fetchAvailableCarers();
     setActionLoading(null);
   };
- const assignFamily = async (id) => {
-   setActionLoading(`assign-family-${id}`);
-   await supabase.from("patient_family").insert({
-     patient_id: residentId,
-     family_id: id,
-     linked_at: new Date().toISOString(),
-     relationship: "Family Member",
-   });
 
-   // Audit log: family member linked
-   await supabase.from("audit_logs").insert({
-     action_type: "family_linked_to_patient",
-     actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-     related_to: residentId,
-     created_at: new Date().toISOString(),
-   });
+  const assignFamily = async (id) => {
+    setActionLoading(`assign-family-${id}`);
+    await supabase.from("patient_family").insert({
+      patient_id: residentId,
+      family_id: id,
+      linked_at: new Date().toISOString(),
+      relationship: "Family Member",
+    });
 
-   await fetchCareTeam();
-   await fetchAvailableFamily();
-   setActionLoading(null);
- };
+    await supabase.from("audit_logs").insert({
+      action_type: "family_linked_to_patient",
+      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      related_to: residentId,
+      created_at: new Date().toISOString(),
+    });
+
+    await fetchCareTeam();
+    await fetchAvailableFamily();
+    setActionLoading(null);
+  };
+
   const removeFamily = async (assignId, famId) => {
     setActionLoading(`remove-family-${famId}`);
     await supabase.from("patient_family").delete().eq("id", assignId);
@@ -568,17 +612,19 @@ function CareTeamTab({ residentId }) {
   if (error) return <ErrorState message={error} />;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Carers */}
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-bold flex items-center gap-2 text-foreground">
-            <UserCheck size={18} className="text-cyan-500" />
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="font-black text-xl flex items-center gap-3 text-slate-900 tracking-tight">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+              <UserCheck size={20} />
+            </div>
             Assigned Carers
           </h4>
           <button
             onClick={() => setShowAvailableCarers(!showAvailableCarers)}
-            className="text-sm text-cyan-500 hover:text-cyan-400 transition-colors font-medium"
+            className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableCarers ? "Hide" : "View"} Available (
             {availableCarers.length})
@@ -586,11 +632,11 @@ function CareTeamTab({ residentId }) {
         </div>
         {careTeam.carers.length === 0 ? (
           <EmptyState
-            icon={<Users size={40} />}
+            icon={<Users size={60} />}
             label="No carers assigned yet"
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {careTeam.carers.map((a, i) => (
               <CarerCard
                 key={i}
@@ -602,13 +648,13 @@ function CareTeamTab({ residentId }) {
           </div>
         )}
         {showAvailableCarers && (
-          <div className="mt-4 bg-white/5 border border-cyan-500/30 rounded-lg p-6">
-            <h5 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Users size={16} className="text-cyan-500" />
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-[24px] p-8">
+            <h5 className="font-black text-lg text-slate-900 mb-6 flex items-center gap-2 tracking-tight">
+              <Users size={18} className="text-blue-600" />
               Available Carers
             </h5>
             {availableCarers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-sm text-slate-500 text-center py-8 font-medium">
                 No available carers
               </p>
             ) : (
@@ -629,14 +675,16 @@ function CareTeamTab({ residentId }) {
 
       {/* Family */}
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-bold flex items-center gap-2 text-foreground">
-            <Heart size={18} className="text-cyan-500" />
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="font-black text-xl flex items-center gap-3 text-slate-900 tracking-tight">
+            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+              <Heart size={20} />
+            </div>
             Family Members
           </h4>
           <button
             onClick={() => setShowAvailableFamily(!showAvailableFamily)}
-            className="text-sm text-cyan-500 hover:text-cyan-400 transition-colors font-medium"
+            className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableFamily ? "Hide" : "View"} Available (
             {availableFamily.length})
@@ -644,11 +692,11 @@ function CareTeamTab({ residentId }) {
         </div>
         {careTeam.family.length === 0 ? (
           <EmptyState
-            icon={<UserCircle size={40} />}
+            icon={<UserCircle size={60} />}
             label="No family members linked yet"
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {careTeam.family.map((m, i) => (
               <FamilyCard
                 key={i}
@@ -660,13 +708,13 @@ function CareTeamTab({ residentId }) {
           </div>
         )}
         {showAvailableFamily && (
-          <div className="mt-4 bg-white/5 border border-cyan-500/30 rounded-lg p-6">
-            <h5 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <UserCircle size={16} className="text-cyan-500" />
+          <div className="mt-6 bg-rose-50 border border-rose-200 rounded-[24px] p-8">
+            <h5 className="font-black text-lg text-slate-900 mb-6 flex items-center gap-2 tracking-tight">
+              <UserCircle size={18} className="text-rose-600" />
               Available Family Members
             </h5>
             {availableFamily.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-sm text-slate-500 text-center py-8 font-medium">
                 No available family members
               </p>
             ) : (
@@ -691,33 +739,33 @@ function CareTeamTab({ residentId }) {
 function CarerCard({ assignment, onRemove, isLoading }) {
   const p = assignment.profiles;
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-5 hover:bg-white/10 transition-all">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-semibold text-foreground">
+    <div className="bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-black text-slate-900 tracking-tight">
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-medium px-2.5 py-1 rounded-full">
+          <span className="bg-blue-50 text-blue-700 ring-1 ring-blue-100 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
             Carer
           </span>
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
-      <div className="space-y-2 text-sm">
+      <div className="space-y-3 text-sm">
         {p.email && (
           <div className="flex items-center gap-2">
-            <Mail size={14} className="text-cyan-500" />
-            <span className="text-foreground text-sm">{p.email}</span>
+            <Mail size={16} className="text-blue-500" />
+            <span className="text-slate-700 font-medium">{p.email}</span>
           </div>
         )}
         {p.phone && (
           <div className="flex items-center gap-2">
-            <Phone size={14} className="text-cyan-500" />
-            <span className="text-foreground text-sm">{p.phone}</span>
+            <Phone size={16} className="text-blue-500" />
+            <span className="text-slate-700 font-medium">{p.phone}</span>
           </div>
         )}
         {assignment.assigned_at && (
-          <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-white/10 flex items-center gap-1">
+          <p className="text-xs text-slate-400 mt-4 pt-4 border-t border-slate-100 flex items-center gap-1.5 font-bold">
             <Clock size={12} />
             Assigned: {new Date(assignment.assigned_at).toLocaleDateString()}
           </p>
@@ -730,41 +778,43 @@ function CarerCard({ assignment, onRemove, isLoading }) {
 function FamilyCard({ member, onRemove, isLoading }) {
   const p = member.profiles;
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-5 hover:bg-white/10 transition-all">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-semibold text-foreground">
+    <div className="bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-black text-slate-900 tracking-tight">
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-medium px-2.5 py-1 rounded-full">
+          <span className="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
             Family
           </span>
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
       {member.relationship && (
-        <p className="text-sm mb-3 pb-3 border-b border-white/10">
-          <span className="text-muted-foreground text-xs">Relationship: </span>
-          <span className="font-medium text-foreground">
+        <p className="text-sm mb-4 pb-4 border-b border-slate-100">
+          <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+            Relationship:{" "}
+          </span>
+          <span className="font-black text-slate-900">
             {member.relationship}
           </span>
         </p>
       )}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-3 text-sm">
         {p.email && (
           <div className="flex items-center gap-2">
-            <Mail size={14} className="text-cyan-500" />
-            <span className="text-foreground text-sm">{p.email}</span>
+            <Mail size={16} className="text-rose-500" />
+            <span className="text-slate-700 font-medium">{p.email}</span>
           </div>
         )}
         {p.phone && (
           <div className="flex items-center gap-2">
-            <Phone size={14} className="text-cyan-500" />
-            <span className="text-foreground text-sm">{p.phone}</span>
+            <Phone size={16} className="text-rose-500" />
+            <span className="text-slate-700 font-medium">{p.phone}</span>
           </div>
         )}
         {member.linked_at && (
-          <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-white/10 flex items-center gap-1">
+          <p className="text-xs text-slate-400 mt-4 pt-4 border-t border-slate-100 flex items-center gap-1.5 font-bold">
             <Clock size={12} />
             Linked: {new Date(member.linked_at).toLocaleDateString()}
           </p>
@@ -776,24 +826,28 @@ function FamilyCard({ member, onRemove, isLoading }) {
 
 function AvailableCard({ person, onAssign, isLoading }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition-all">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-foreground">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-md transition-all">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-black text-slate-900 tracking-tight">
           {person.full_name}
         </h3>
         <AssignButton onAssign={onAssign} isLoading={isLoading} />
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         {person.email && (
           <div className="flex items-center gap-2">
-            <Mail size={12} className="text-cyan-500" />
-            <span className="text-foreground text-xs">{person.email}</span>
+            <Mail size={14} className="text-blue-500" />
+            <span className="text-slate-600 text-xs font-medium">
+              {person.email}
+            </span>
           </div>
         )}
         {person.phone && (
           <div className="flex items-center gap-2">
-            <Phone size={12} className="text-cyan-500" />
-            <span className="text-foreground text-xs">{person.phone}</span>
+            <Phone size={14} className="text-blue-500" />
+            <span className="text-slate-600 text-xs font-medium">
+              {person.phone}
+            </span>
           </div>
         )}
       </div>
@@ -841,20 +895,32 @@ function ScheduleTab({ residentId }) {
           hour12: true,
         })
       : "N/A";
-  const statusColor = (s) =>
-    ({
-      completed: "bg-green-500/20 text-green-400 border-green-500/30",
-      pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-      cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
-      "in progress": "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    })[s?.toLowerCase()] || "bg-gray-500/20 text-gray-400 border-gray-500/30";
+
+  const statusConfig = {
+    completed: {
+      label: "Completed",
+      color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+    },
+    pending: {
+      label: "Pending",
+      color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+    },
+    cancelled: {
+      label: "Cancelled",
+      color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+    },
+    "in progress": {
+      label: "In Progress",
+      color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+    },
+  };
 
   if (loading) return <LoadingSpinner label="Loading schedules..." />;
   if (error) return <ErrorState message={error} />;
   if (schedules.length === 0)
     return (
       <EmptyState
-        icon={<CalendarDays size={48} />}
+        icon={<CalendarDays size={80} />}
         label="No schedules found"
         sublabel="Schedules will appear here once created"
       />
@@ -863,82 +929,87 @@ function ScheduleTab({ residentId }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h4 className="font-bold text-foreground">Patient Schedules</h4>
-        <span className="text-sm text-muted-foreground">
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Patient Schedules
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
           {schedules.length} total
         </span>
       </div>
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
+        const cfg =
+          statusConfig[s.status?.toLowerCase()] || statusConfig.pending;
+
         return (
           <div
             key={s.id}
-            className={`bg-white/5 border rounded-lg p-6 hover:bg-white/10 transition-all ${upcoming ? "border-cyan-500/30" : "border-white/10"}`}
+            className={`bg-white border rounded-[24px] p-8 hover:shadow-lg transition-all ${upcoming ? "border-blue-200 ring-2 ring-blue-50" : "border-slate-100"}`}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-r from-cyan-400 to-cyan-600" : "bg-gradient-to-r from-gray-400 to-gray-600"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
               >
-                <CalendarDays size={22} className="text-white" />
+                <CalendarDays size={26} className="text-white" />
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">
+              <div className="flex-1">
+                <h3 className="font-black text-lg text-slate-900 tracking-tight">
                   Schedule #{s.id.substring(0, 8)}
                 </h3>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-2">
                   <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusColor(s.status)}`}
+                    className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${cfg.color}`}
                   >
-                    {s.status || "Unknown"}
+                    {cfg.label}
                   </span>
                   {upcoming && (
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Clock size={12} className="text-cyan-500" />
-                  Start
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Clock size={12} className="text-blue-500" />
+                  Start Time
                 </p>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-black text-slate-900">
                   {fmt(s.start_at)}
                 </p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Clock size={12} className="text-cyan-500" />
-                  End
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Clock size={12} className="text-blue-500" />
+                  End Time
                 </p>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-black text-slate-900">
                   {fmt(s.end_at)}
                 </p>
               </div>
             </div>
             {(s.carer || s.created_by_profile) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                 {s.carer && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <UserCheck size={12} className="text-cyan-500" />
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
                     </p>
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-base font-black text-slate-900 tracking-tight">
                       {s.carer.full_name}
                     </p>
                   </div>
                 )}
                 {s.created_by_profile && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                      <User size={12} className="text-cyan-500" />
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <User size={12} className="text-blue-500" />
                       Created By
                     </p>
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-base font-black text-slate-900 tracking-tight">
                       {s.created_by_profile.full_name}
                     </p>
                   </div>
@@ -998,14 +1069,16 @@ function ReportsTab({ residentId }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h4 className="font-bold text-foreground">Patient Reports</h4>
-        <span className="text-sm text-muted-foreground">
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Patient Reports
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
           {reports.length} total
         </span>
       </div>
       {reports.length === 0 ? (
         <EmptyState
-          icon={<FileText size={48} />}
+          icon={<FileText size={80} />}
           label="No reports found"
           sublabel="Reports will appear here once created"
         />
@@ -1014,41 +1087,41 @@ function ReportsTab({ residentId }) {
           <button
             key={r.id}
             onClick={() => setSelected(r)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-all text-left group"
+            className="w-full bg-white border border-slate-100 rounded-[24px] p-8 hover:shadow-lg transition-all text-left group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-purple-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <FileText size={20} className="text-white" />
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <FileText size={22} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground text-lg">
+                    <h3 className="font-black text-lg text-slate-900 tracking-tight">
                       {r.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-slate-400 mt-1 font-bold">
                       Report #{r.id.substring(0, 8)}
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                <p className="text-sm text-slate-600 mb-4 line-clamp-2 font-medium leading-relaxed">
                   {r.content || "No content available"}
                 </p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
                   {r.created_by_profile && (
-                    <span className="flex items-center gap-1">
-                      <User size={12} className="text-cyan-500" />
+                    <span className="flex items-center gap-1.5">
+                      <User size={12} className="text-blue-500" />
                       Created by {r.created_by_profile.full_name}
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} className="text-cyan-500" />
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={12} className="text-blue-500" />
                     {fmt(r.created_at)}
                   </span>
                 </div>
               </div>
-              <div className="text-cyan-500 group-hover:translate-x-1 transition-transform">
-                <ChevronRight size={20} />
+              <div className="text-blue-500 group-hover:translate-x-1 transition-transform">
+                <ChevronRight size={24} strokeWidth={2.5} />
               </div>
             </div>
           </button>
@@ -1056,22 +1129,22 @@ function ReportsTab({ residentId }) {
       )}
 
       {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/10 border-2 border-white/20 rounded-lg backdrop-blur-xl max-w-3xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between mb-6">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[32px] max-w-3xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-8">
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-3">
                   {selected.title}
                 </h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
                   {selected.created_by_profile && (
-                    <span className="flex items-center gap-1">
-                      <User size={14} className="text-cyan-500" />
+                    <span className="flex items-center gap-1.5">
+                      <User size={14} className="text-blue-500" />
                       Created by {selected.created_by_profile.full_name}
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Calendar size={14} className="text-cyan-500" />
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={14} className="text-blue-500" />
                     {new Date(selected.created_at).toLocaleDateString("en-US", {
                       month: "long",
                       day: "numeric",
@@ -1082,33 +1155,20 @@ function ReportsTab({ residentId }) {
               </div>
               <button
                 onClick={() => setSelected(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
-                </svg>
+                <X size={20} className="text-slate-500" />
               </button>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+            <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8">
+              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed font-medium text-base">
                 {selected.content}
               </p>
             </div>
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-6">
               <button
                 onClick={() => setSelected(null)}
-                className="px-6 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:to-cyan-700 transition-all active:scale-95"
+                className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
               >
                 Close
               </button>
@@ -1126,19 +1186,19 @@ function RemoveButton({ onRemove, isLoading }) {
     <button
       onClick={onRemove}
       disabled={isLoading}
-      className="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50"
+      className="text-rose-500 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-50"
     >
       {isLoading ? (
-        <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
       ) : (
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -1156,10 +1216,10 @@ function AssignButton({ onAssign, isLoading }) {
     <button
       onClick={onAssign}
       disabled={isLoading}
-      className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30 text-xs font-medium px-3 py-1.5 rounded transition-all disabled:opacity-50"
+      className="bg-blue-50 text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100 text-[10px] font-black px-4 py-2 rounded-xl transition-all disabled:opacity-50 uppercase tracking-widest"
     >
       {isLoading ? (
-        <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       ) : (
         "Assign"
       )}
@@ -1170,28 +1230,36 @@ function AssignButton({ onAssign, isLoading }) {
 function LoadingSpinner({ label }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-      <p className="text-muted-foreground">{label}</p>
+      <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+      <p className="font-black text-xl text-slate-900 tracking-tight">
+        {label}
+      </p>
     </div>
   );
 }
 
 function ErrorState({ message }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-      <AlertCircle size={48} className="mb-4 text-red-400" />
-      <p className="text-lg font-medium">Something went wrong</p>
-      <p className="text-sm mt-2">{message}</p>
+    <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+      <AlertCircle size={80} className="mb-6 opacity-10" />
+      <p className="font-black text-xl text-slate-900 tracking-tight">
+        Something went wrong
+      </p>
+      <p className="text-sm font-medium text-slate-500 mt-2">{message}</p>
     </div>
   );
 }
 
 function EmptyState({ icon, label, sublabel }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-      <div className="opacity-20 mb-4">{icon}</div>
-      <p className="text-lg font-medium">{label}</p>
-      {sublabel && <p className="text-sm mt-2">{sublabel}</p>}
+    <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+      <div className="opacity-10 mb-6">{icon}</div>
+      <p className="font-black text-xl text-slate-900 tracking-tight">
+        {label}
+      </p>
+      {sublabel && (
+        <p className="text-sm font-medium text-slate-500 mt-2">{sublabel}</p>
+      )}
     </div>
   );
 }

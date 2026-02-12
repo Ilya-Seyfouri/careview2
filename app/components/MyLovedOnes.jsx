@@ -16,10 +16,10 @@ import {
   ChevronRight,
   History,
   X,
-  Utensils,
   MapPin,
   CalendarDays,
   UserCheck,
+  Activity,
 } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
 
@@ -146,8 +146,10 @@ export default function MyLovedOnes() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Loading...</p>
+          <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+          <p className="font-black text-xl text-slate-900 tracking-tight">
+            Loading...
+          </p>
         </div>
       </div>
     );
@@ -157,13 +159,13 @@ export default function MyLovedOnes() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <AlertCircle className="w-20 h-20 text-rose-400 mx-auto mb-6 opacity-20" />
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
             {error || "Resident not found"}
           </h1>
           <button
             onClick={() => router.push("/family")}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all active:scale-95"
+            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to Dashboard
           </button>
@@ -174,16 +176,16 @@ export default function MyLovedOnes() {
 
   const statusConfig = {
     stable: {
-      badge: "bg-green-100 text-green-700 border-green-200",
-      dot: "bg-green-500",
+      badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+      dot: "bg-emerald-500",
     },
     attention: {
-      badge: "bg-amber-100 text-amber-700 border-amber-200",
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
     critical: {
-      badge: "bg-red-100 text-red-700 border-red-200",
-      dot: "bg-red-500",
+      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+      dot: "bg-rose-500 animate-pulse",
     },
   };
   const statusCfg =
@@ -197,48 +199,57 @@ export default function MyLovedOnes() {
           {/* Back */}
           <button
             onClick={() => router.push("/family")}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors mb-6"
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} strokeWidth={2.5} />
             <span>Back to Dashboard</span>
           </button>
 
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-10">
             {/* ── Left Sidebar ── */}
-            <div className="lg:w-80 space-y-5">
+            <div className="lg:w-80 space-y-8">
               {/* Profile card */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-blue-500/20 mx-auto mb-4">
-                  {client.full_name?.charAt(0).toUpperCase() || "?"}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                  {client.full_name}
-                </h2>
-                {relationship && (
-                  <p className="text-xs font-semibold text-blue-500 uppercase tracking-wider mb-2">
-                    Your {relationship}
-                  </p>
-                )}
-                <p className="text-sm text-gray-400 mb-4 flex items-center justify-center gap-1.5">
-                  <MapPin size={13} className="text-blue-400" />
-                  Room {client.room || "N/A"}
-                </p>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusCfg.badge}`}
-                >
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden p-10 text-center relative">
+                {/* Header Gradient */}
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-slate-900 to-slate-800 -z-0"></div>
+
+                <div className="relative z-10 pt-4">
+                  <div className="relative inline-block mb-6">
+                    <div className="w-32 h-32 rounded-[28px] bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-5xl font-black shadow-2xl ring-[12px] ring-white mx-auto">
+                      {client.full_name?.charAt(0).toUpperCase() || "?"}
+                    </div>
+                    <div
+                      className={`absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-white ${statusCfg.dot}`}
+                    ></div>
+                  </div>
+
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                    {client.full_name}
+                  </h2>
+                  {relationship && (
+                    <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-3 px-4 py-1.5 bg-blue-50 rounded-full inline-block">
+                      Your {relationship}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full text-xs font-bold text-slate-600 mb-4 mt-3 mx-auto w-fit">
+                    <MapPin size={14} className="text-blue-500" />
+                    Room {client.room || "N/A"}
+                  </div>
                   <span
-                    className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}
-                  />
-                  {client.status || "Unknown"}
-                </span>
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${statusCfg.badge}`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${statusCfg.dot}`} />
+                    {client.status || "Unknown"}
+                  </span>
+                </div>
               </div>
 
               {/* Quick stats */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                   Quick Info
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <StatRow label="Age" value={calculateAge(client.dob)} />
                   <StatRow
                     label="Date of Birth"
@@ -256,43 +267,52 @@ export default function MyLovedOnes() {
               </div>
 
               {/* Care Team */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                   Care Team
                 </h3>
                 {assignedCarers.length === 0 ? (
-                  <p className="text-sm text-gray-400">No assigned carers</p>
+                  <p className="text-sm text-slate-500 font-medium text-center py-4">
+                    No assigned carers
+                  </p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {assignedCarers.map((carer) => (
-                      <div key={carer.id} className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-xs font-bold">
+                      <div
+                        key={carer.id}
+                        className="p-4 bg-slate-50/50 rounded-2xl hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-sm font-black shadow-sm">
                             {carer.full_name?.charAt(0) || "C"}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-700">
+                            <p className="text-sm font-black text-slate-900 tracking-tight">
                               {carer.full_name}
                             </p>
-                            <p className="text-xs text-gray-400">Carer</p>
+                            <p className="text-xs text-slate-500 font-medium">
+                              Carer
+                            </p>
                           </div>
                         </div>
-                        {carer.phone && (
-                          <a
-                            href={`tel:${carer.phone}`}
-                            className="flex items-center gap-2 text-xs text-gray-400 hover:text-blue-500 transition-colors pl-9"
-                          >
-                            <Phone size={11} /> {carer.phone}
-                          </a>
-                        )}
-                        {carer.email && (
-                          <a
-                            href={`mailto:${carer.email}`}
-                            className="flex items-center gap-2 text-xs text-gray-400 hover:text-blue-500 transition-colors pl-9"
-                          >
-                            <Mail size={11} /> {carer.email}
-                          </a>
-                        )}
+                        <div className="space-y-2 pl-13">
+                          {carer.phone && (
+                            <a
+                              href={`tel:${carer.phone}`}
+                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                            >
+                              <Phone size={12} /> {carer.phone}
+                            </a>
+                          )}
+                          {carer.email && (
+                            <a
+                              href={`mailto:${carer.email}`}
+                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                            >
+                              <Mail size={12} /> {carer.email}
+                            </a>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -302,28 +322,31 @@ export default function MyLovedOnes() {
 
             {/* ── Main Content ── */}
             <div className="flex-1">
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden min-h-[600px] flex flex-col">
                 {/* Tab nav */}
-                <div className="flex border-b border-gray-100 px-6 overflow-x-auto">
+                <div className="flex border-b border-slate-50 px-8 bg-slate-50/20 pt-4">
                   {tabs.map((tab) => {
                     const key = tab.toLowerCase().replace(" ", "-");
                     return (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(key)}
-                        className={`px-4 py-4 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap ${
+                        className={`px-6 py-5 text-xs font-black uppercase tracking-widest transition-all relative ${
                           activeTab === key
-                            ? "border-blue-500 text-blue-600"
-                            : "border-transparent text-gray-400 hover:text-gray-700"
+                            ? "text-blue-600"
+                            : "text-slate-400 hover:text-slate-900"
                         }`}
                       >
                         {tab}
+                        {activeTab === key && (
+                          <div className="absolute bottom-0 left-6 right-6 h-1 bg-blue-600 rounded-t-full" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                <div className="p-8">
+                <div className="p-10 flex-1">
                   {activeTab === "overview" && (
                     <OverviewTab
                       client={client}
@@ -366,10 +389,13 @@ export default function MyLovedOnes() {
 /* ─── Overview Tab ───────────────────────────────────────────────── */
 function OverviewTab({ client, assignedCarers, calculateAge }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <section>
-        <h4 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-          <User size={18} className="text-blue-500" /> Personal Information
+        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+            <User size={20} />
+          </div>
+          Personal Information
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InfoField label="Full Name" value={client.full_name} />
@@ -394,11 +420,14 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
       {client.health_summary && (
         <section>
-          <h4 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-            <History size={18} className="text-blue-500" /> Health Summary
+          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+              <History size={20} />
+            </div>
+            Health Summary
           </h4>
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
-            <p className="text-sm text-gray-600 leading-relaxed">
+          <div className="p-8 bg-blue-50 rounded-3xl border-2 border-blue-100 border-dashed">
+            <p className="text-base text-slate-700 leading-relaxed font-medium">
               {client.health_summary}
             </p>
           </div>
@@ -407,12 +436,15 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
       {client.key_health_indicator && (
         <section>
-          <h4 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-            <Heart size={18} className="text-blue-500" /> Key Health Indicator
+          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
+              <Heart size={20} />
+            </div>
+            Key Health Indicator
           </h4>
-          <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-xl">
-            <span className="w-2 h-2 rounded-full bg-red-400" />
-            <span className="text-sm font-semibold text-red-700">
+          <div className="inline-flex items-center gap-3 bg-rose-50 border border-rose-200 px-6 py-4 rounded-2xl">
+            <span className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
+            <span className="text-base font-black text-rose-900">
               {client.key_health_indicator}
             </span>
           </div>
@@ -421,44 +453,48 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
       {assignedCarers.length > 0 && (
         <section>
-          <h4 className="font-bold mb-4 flex items-center gap-2 text-gray-800">
-            <UserCheck size={18} className="text-blue-500" /> Care Team
+          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+              <UserCheck size={20} />
+            </div>
+            Care Team
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {assignedCarers.map((carer) => (
               <div
                 key={carer.id}
-                className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2"
+                className="bg-slate-50 border border-slate-200 rounded-[24px] p-6 space-y-4 hover:shadow-lg transition-all"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-sm font-bold">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-lg font-black shadow-sm">
                     {carer.full_name?.charAt(0) || "C"}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-black text-slate-900 tracking-tight">
                       {carer.full_name}
                     </p>
-                    <p className="text-xs text-gray-400">Carer</p>
+                    <p className="text-xs text-slate-500 font-medium">Carer</p>
                   </div>
                 </div>
                 {carer.phone && (
                   <a
                     href={`tel:${carer.phone}`}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-500 transition-colors"
+                    className="flex items-center gap-2 text-sm text-slate-700 hover:text-blue-600 transition-colors font-medium"
                   >
-                    <Phone size={13} className="text-green-500" /> {carer.phone}
+                    <Phone size={14} className="text-emerald-500" />{" "}
+                    {carer.phone}
                   </a>
                 )}
                 {carer.email && (
                   <a
                     href={`mailto:${carer.email}`}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-500 transition-colors"
+                    className="flex items-center gap-2 text-sm text-slate-700 hover:text-blue-600 transition-colors font-medium"
                   >
-                    <Mail size={13} className="text-blue-500" /> {carer.email}
+                    <Mail size={14} className="text-blue-500" /> {carer.email}
                   </a>
                 )}
                 {carer.assigned_at && (
-                  <p className="text-xs text-gray-400 pt-2 border-t border-gray-200">
+                  <p className="text-xs text-slate-400 pt-3 border-t border-slate-200 font-bold">
                     Assigned:{" "}
                     {new Date(carer.assigned_at).toLocaleDateString("en-GB")}
                   </p>
@@ -492,25 +528,25 @@ function VisitLogsTab({ visitLogs, carerNames }) {
         return {
           emoji: "😊",
           label: "Happy",
-          color: "bg-green-100 text-green-700 border-green-200",
+          color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
         };
       case "calm":
         return {
           emoji: "😌",
           label: "Calm",
-          color: "bg-blue-100 text-blue-700 border-blue-200",
+          color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
         };
       case "anxious":
         return {
           emoji: "😰",
           label: "Anxious",
-          color: "bg-amber-100 text-amber-700 border-amber-200",
+          color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
         };
       case "irritable":
         return {
           emoji: "😤",
           label: "Irritable",
-          color: "bg-red-100 text-red-700 border-red-200",
+          color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
         };
       default:
         return null;
@@ -522,20 +558,20 @@ function VisitLogsTab({ visitLogs, carerNames }) {
       case "great":
         return {
           label: "Great",
-          dot: "bg-green-500",
-          color: "bg-green-100 text-green-700 border-green-200",
+          dot: "bg-emerald-500",
+          color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
         };
       case "normal":
         return {
           label: "Normal",
           dot: "bg-amber-500",
-          color: "bg-amber-100 text-amber-700 border-amber-200",
+          color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
         };
       case "poor":
         return {
           label: "Poor",
-          dot: "bg-red-500",
-          color: "bg-red-100 text-red-700 border-red-200",
+          dot: "bg-rose-500",
+          color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
         };
       default:
         return null;
@@ -543,19 +579,25 @@ function VisitLogsTab({ visitLogs, carerNames }) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="font-bold text-gray-800">Visit History</h4>
-        <span className="text-sm text-gray-400">{visitLogs.length} total</span>
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Visit History
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
+          {visitLogs.length} total
+        </span>
       </div>
 
       {visitLogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-          <ClipboardList size={48} className="mb-4" />
-          <p className="font-medium text-gray-400">No visit logs yet</p>
+        <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+          <ClipboardList size={80} className="mb-6 opacity-10" />
+          <p className="font-black text-xl text-slate-900 tracking-tight">
+            No visit logs yet
+          </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {visitLogs.map((log) => {
             const moodConfig = getMoodConfig(log.mood);
             const appetiteConfig = getAppetiteConfig(log.appetite);
@@ -580,21 +622,25 @@ function VisitLogsTab({ visitLogs, carerNames }) {
             return (
               <div
                 key={log.id}
-                className="bg-gray-50 border border-gray-200 rounded-xl p-5"
+                className="bg-slate-50 border border-slate-200 rounded-[24px] p-6 hover:shadow-lg transition-all"
               >
                 {/* Header */}
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="flex items-start gap-4 mb-5">
+                  <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl flex items-center justify-center text-white text-sm font-black flex-shrink-0 shadow-sm">
                     {initials}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <p className="font-semibold text-gray-800 text-sm">
+                    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                      <p className="font-black text-base text-slate-900 tracking-tight">
                         {carerName || "Care Team"}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <Calendar size={11} /> {fmt(log.created_at)}
-                        <Clock size={11} /> {fmtTime(log.created_at)}
+                      <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={12} /> {fmt(log.created_at)}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={12} /> {fmtTime(log.created_at)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -602,20 +648,20 @@ function VisitLogsTab({ visitLogs, carerNames }) {
 
                 {/* Mood + Appetite */}
                 {(moodConfig || appetiteConfig) && (
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <div className="flex flex-wrap gap-2 mb-5">
                     {moodConfig && (
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${moodConfig.color}`}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${moodConfig.color}`}
                       >
                         {moodConfig.emoji} {moodConfig.label}
                       </span>
                     )}
                     {appetiteConfig && (
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${appetiteConfig.color}`}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${appetiteConfig.color}`}
                       >
                         <span
-                          className={`w-2 h-2 rounded-full ${appetiteConfig.dot}`}
+                          className={`w-2.5 h-2.5 rounded-full ${appetiteConfig.dot}`}
                         />
                         Appetite: {appetiteConfig.label}
                       </span>
@@ -625,11 +671,11 @@ function VisitLogsTab({ visitLogs, carerNames }) {
 
                 {/* Notes */}
                 {log.notes && (
-                  <div className="bg-white border border-gray-200 rounded-lg px-4 py-3 mb-3">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                  <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                       Observations
                     </p>
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
                       {log.notes}
                     </p>
                   </div>
@@ -638,29 +684,34 @@ function VisitLogsTab({ visitLogs, carerNames }) {
                 {/* Tasks */}
                 {tasks.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
                       Tasks Completed
                     </p>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {tasks.map((task, index) => (
-                        <div key={index} className="flex items-center gap-2.5">
-                          <div className="w-4 h-4 rounded bg-green-100 border border-green-200 flex items-center justify-center flex-shrink-0">
+                        <div
+                          key={index}
+                          className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl"
+                        >
+                          <div className="w-5 h-5 rounded bg-emerald-500 flex items-center justify-center flex-shrink-0">
                             <svg
-                              width="8"
-                              height="7"
+                              width="10"
+                              height="8"
                               viewBox="0 0 10 8"
                               fill="none"
                             >
                               <path
                                 d="M1 4L3.5 6.5L9 1"
-                                stroke="#16a34a"
+                                stroke="white"
                                 strokeWidth="2"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                               />
                             </svg>
                           </div>
-                          <span className="text-sm text-gray-600">{task}</span>
+                          <span className="text-sm text-slate-900 font-medium">
+                            {task}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -686,90 +737,97 @@ function ReportsTab({ reports, onViewReport }) {
 
   const typeConfig = {
     falls: {
-      color: "bg-red-100 text-red-700 border-red-200",
-      dot: "bg-red-500",
+      color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+      dot: "bg-rose-500",
     },
     medication: {
-      color: "bg-amber-100 text-amber-700 border-amber-200",
+      color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
     nutrition: {
-      color: "bg-blue-100 text-blue-700 border-blue-200",
+      color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
       dot: "bg-blue-500",
     },
     other: {
-      color: "bg-gray-100 text-gray-600 border-gray-200",
-      dot: "bg-gray-400",
+      color: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
+      dot: "bg-slate-400",
     },
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h4 className="font-bold text-gray-800">Reports</h4>
-        <span className="text-sm text-gray-400">{reports.length} total</span>
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Reports
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
+          {reports.length} total
+        </span>
       </div>
 
       {reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-          <FileText size={48} className="mb-4" />
-          <p className="font-medium text-gray-400">No reports yet</p>
-          <p className="text-sm mt-1 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+          <FileText size={80} className="mb-6 opacity-10" />
+          <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
+            No reports yet
+          </p>
+          <p className="text-sm text-slate-500 font-medium">
             Reports from the care team will appear here
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {reports.map((report) => {
             const typeCfg = typeConfig[report.type] || typeConfig.other;
             return (
               <button
                 key={report.id}
                 onClick={() => onViewReport(report)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-5 hover:bg-white hover:shadow-sm transition-all text-left group"
+                className="w-full bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all text-left group"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform">
-                      <FileText size={18} className="text-white" />
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <FileText size={22} className="text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <p className="font-semibold text-gray-800 truncate">
+                        <p className="font-black text-lg text-slate-900 truncate tracking-tight">
                           {report.title}
                         </p>
                         {report.type && (
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0 ${typeCfg.color}`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex-shrink-0 ${typeCfg.color}`}
                           >
                             <span
-                              className={`w-1.5 h-1.5 rounded-full ${typeCfg.dot}`}
+                              className={`w-2 h-2 rounded-full ${typeCfg.dot}`}
                             />
                             {report.type.charAt(0).toUpperCase() +
                               report.type.slice(1)}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400 line-clamp-2">
+                      <p className="text-sm text-slate-600 line-clamp-2 font-medium">
                         {report.content || "No content"}
                       </p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 font-medium">
                         {report.created_by_profile && (
-                          <span className="flex items-center gap-1">
-                            <User size={10} className="text-blue-400" />
+                          <span className="flex items-center gap-1.5">
+                            <User size={12} className="text-blue-500" />
                             {report.created_by_profile.full_name}
                           </span>
                         )}
-                        <span className="flex items-center gap-1">
-                          <Calendar size={10} className="text-blue-400" />
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={12} className="text-blue-500" />
                           {fmt(report.created_at)}
                         </span>
                       </div>
                     </div>
                   </div>
                   <ChevronRight
-                    size={18}
-                    className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-1 transition-all flex-shrink-0 mt-1"
+                    size={24}
+                    className="text-blue-500 group-hover:translate-x-1 transition-transform flex-shrink-0 mt-1"
+                    strokeWidth={2.5}
                   />
                 </div>
               </button>
@@ -821,39 +879,56 @@ function SchedulesTab({ patientId }) {
         })
       : "N/A";
 
-  const statusColor = (s) =>
-    ({
-      completed: "bg-green-100 text-green-700 border-green-200",
-      pending: "bg-amber-100 text-amber-700 border-amber-200",
-      cancelled: "bg-red-100 text-red-700 border-red-200",
-      "in progress": "bg-blue-100 text-blue-700 border-blue-200",
-    })[s?.toLowerCase()] || "bg-gray-100 text-gray-600 border-gray-200";
+  const statusConfig = {
+    completed: {
+      label: "Completed",
+      color: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
+    },
+    pending: {
+      label: "Pending",
+      color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
+    },
+    cancelled: {
+      label: "Cancelled",
+      color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+    },
+    "in progress": {
+      label: "In Progress",
+      color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
+    },
+  };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-400">Loading schedules...</p>
+        <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+        <p className="font-black text-xl text-slate-900 tracking-tight">
+          Loading schedules...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-        <AlertCircle size={48} className="mb-4 text-red-400" />
-        <p className="text-lg font-medium">Something went wrong</p>
-        <p className="text-sm mt-2">{error}</p>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+        <AlertCircle size={80} className="mb-6 opacity-10" />
+        <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
+          Something went wrong
+        </p>
+        <p className="text-sm text-slate-500 font-medium">{error}</p>
       </div>
     );
   }
 
   if (schedules.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-        <CalendarDays size={48} className="mb-4" />
-        <p className="text-lg font-medium text-gray-400">No schedules found</p>
-        <p className="text-sm mt-2 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+        <CalendarDays size={80} className="mb-6 opacity-10" />
+        <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
+          No schedules found
+        </p>
+        <p className="text-sm text-slate-500 font-medium">
           Scheduled visits will appear here once created
         </p>
       </div>
@@ -863,80 +938,87 @@ function SchedulesTab({ patientId }) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h4 className="font-bold text-gray-800">Care Schedules</h4>
-        <span className="text-sm text-gray-400">{schedules.length} total</span>
+        <h4 className="font-black text-xl text-slate-900 tracking-tight">
+          Care Schedules
+        </h4>
+        <span className="text-sm text-slate-500 font-bold">
+          {schedules.length} total
+        </span>
       </div>
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
+        const cfg =
+          statusConfig[s.status?.toLowerCase()] || statusConfig.pending;
+
         return (
           <div
             key={s.id}
-            className={`bg-gray-50 border rounded-xl p-6 hover:bg-white hover:shadow-sm transition-all ${upcoming ? "border-blue-300" : "border-gray-200"}`}
+            className={`bg-white border rounded-[24px] p-8 hover:shadow-lg transition-all ${upcoming ? "border-blue-200 ring-2 ring-blue-50" : "border-slate-100"}`}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-md ${upcoming ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-gray-400 to-gray-600"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
               >
-                <CalendarDays size={22} className="text-white" />
+                <CalendarDays size={26} className="text-white" />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">
+              <div className="flex-1">
+                <h3 className="font-black text-lg text-slate-900 tracking-tight">
                   Schedule #{s.id.substring(0, 8)}
                 </h3>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-2">
                   <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusColor(s.status)}`}
+                    className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${cfg.color}`}
                   >
-                    {s.status || "Unknown"}
+                    {cfg.label}
                   </span>
                   {upcoming && (
-                    <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                  <Clock size={12} className="text-blue-400" />
-                  Start
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Clock size={12} className="text-blue-500" />
+                  Start Time
                 </p>
-                <p className="text-sm font-medium text-gray-800">
+                <p className="text-sm font-black text-slate-900">
                   {fmt(s.start_at)}
                 </p>
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3">
-                <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                  <Clock size={12} className="text-blue-400" />
-                  End
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Clock size={12} className="text-blue-500" />
+                  End Time
                 </p>
-                <p className="text-sm font-medium text-gray-800">
+                <p className="text-sm font-black text-slate-900">
                   {fmt(s.end_at)}
                 </p>
               </div>
             </div>
             {(s.carer || s.created_by_profile) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                 {s.carer && (
                   <div>
-                    <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <UserCheck size={12} className="text-blue-400" />
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
                     </p>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-base font-black text-slate-900 tracking-tight">
                       {s.carer.full_name}
                     </p>
                   </div>
                 )}
                 {s.created_by_profile && (
                   <div>
-                    <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
-                      <User size={12} className="text-blue-400" />
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <User size={12} className="text-blue-500" />
                       Created By
                     </p>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-base font-black text-slate-900 tracking-tight">
                       {s.created_by_profile.full_name}
                     </p>
                   </div>
@@ -963,72 +1045,72 @@ function ViewReportModal({ report, onClose }) {
 
   const typeConfig = {
     falls: {
-      color: "bg-red-100 text-red-700 border-red-200",
-      dot: "bg-red-500",
+      color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
+      dot: "bg-rose-500",
     },
     medication: {
-      color: "bg-amber-100 text-amber-700 border-amber-200",
+      color: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
     nutrition: {
-      color: "bg-blue-100 text-blue-700 border-blue-200",
+      color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
       dot: "bg-blue-500",
     },
     other: {
-      color: "bg-gray-100 text-gray-600 border-gray-200",
-      dot: "bg-gray-400",
+      color: "bg-slate-50 text-slate-700 ring-1 ring-slate-100",
+      dot: "bg-slate-400",
     },
   };
   const typeCfg = typeConfig[report.type] || typeConfig.other;
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                 {report.title}
               </h2>
               {report.type && (
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${typeCfg.color}`}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${typeCfg.color}`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${typeCfg.dot}`} />
+                  <span className={`w-2.5 h-2.5 rounded-full ${typeCfg.dot}`} />
                   {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
               {report.created_by_profile && (
-                <span className="flex items-center gap-1">
-                  <User size={11} className="text-blue-400" />
+                <span className="flex items-center gap-1.5">
+                  <User size={12} className="text-blue-500" />
                   {report.created_by_profile.full_name}
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Calendar size={11} className="text-blue-400" />
+              <span className="flex items-center gap-1.5">
+                <Calendar size={12} className="text-blue-500" />
                 {fmt(report.created_at)}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center flex-shrink-0"
           >
-            <X size={22} className="text-gray-400" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+        <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8">
+          <p className="text-slate-700 leading-relaxed whitespace-pre-wrap font-medium text-base">
             {report.content || "No content available."}
           </p>
         </div>
 
         <button
           onClick={onClose}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all active:scale-95"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
         >
           Close
         </button>
@@ -1040,18 +1122,24 @@ function ViewReportModal({ report, onClose }) {
 /* ─── Helpers ────────────────────────────────────────────────────── */
 function StatRow({ label, value }) {
   return (
-    <div className="flex justify-between items-center text-sm">
-      <span className="text-gray-400">{label}</span>
-      <span className="font-semibold text-gray-700">{value}</span>
+    <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        {label}
+      </span>
+      <span className="font-black text-sm text-slate-900">{value}</span>
     </div>
   );
 }
 
 function InfoField({ label, value }) {
   return (
-    <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className="font-medium text-gray-800">{value || "Not provided"}</p>
+    <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl hover:bg-white transition-colors">
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+        {label}
+      </p>
+      <p className="font-black text-slate-900 tracking-tight">
+        {value || "Not provided"}
+      </p>
     </div>
   );
 }

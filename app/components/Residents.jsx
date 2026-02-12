@@ -7,13 +7,15 @@ import {
   User,
   X,
   Activity,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
+  Plus,
+  Users,
+  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 4;
 
 export default function Residents() {
   const supabase = createClient();
@@ -63,13 +65,13 @@ export default function Residents() {
   const getStatusStyle = (status) => {
     switch (status?.toLowerCase()) {
       case "stable":
-        return "bg-green-100 text-green-700 border border-green-200";
+        return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100";
       case "attention":
-        return "bg-yellow-100 text-yellow-700 border border-yellow-200";
+        return "bg-amber-50 text-amber-700 ring-1 ring-amber-100";
       case "critical":
-        return "bg-red-100 text-red-700 border border-red-200";
+        return "bg-rose-50 text-rose-700 ring-1 ring-rose-100";
       default:
-        return "bg-gray-100 text-gray-600 border border-gray-200";
+        return "bg-slate-50 text-slate-700 ring-1 ring-slate-100";
     }
   };
 
@@ -78,155 +80,169 @@ export default function Residents() {
       <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-                Residents
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {loading ? "Loading..." : `${activeCount} stable residents`}
-              </p>
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Users size={12} />
+              Care Delivery Network
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
-              type="button"
-            >
-              <span>Add Resident</span>
-            </button>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+              Resident Directory
+            </h2>
+            <p className="text-slate-500 text-lg font-medium mt-1">
+              {loading ? (
+                "Loading..."
+              ) : (
+                <>
+                  Managing high-fidelity clinical records for{" "}
+                  <span className="text-slate-900 font-bold">
+                    {activeCount} stable residents
+                  </span>
+                </>
+              )}
+            </p>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search residents..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all shadow-sm"
-              />
+          {/* Table Container */}
+          <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
+            {/* Search and Filter Bar */}
+            <div className="p-8 border-b border-slate-50 flex flex-wrap gap-6 items-center justify-between bg-slate-50/20">
+              <div className="relative max-w-sm w-full">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="Search by name..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm"
+                />
+              </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                type="button"
+              >
+                <Plus
+                  size={20}
+                  strokeWidth={3}
+                  className="group-hover:rotate-90 transition-transform"
+                />
+                Register Resident
+              </button>
             </div>
-            <button
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
-              type="button"
-            >
-              <Filter size={18} />
-              <span>Filter</span>
-            </button>
-          </div>
 
-          {/* Table */}
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="text-gray-400">Loading residents...</div>
+              <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+                <p className="font-black text-xl text-slate-900 tracking-tight">
+                  Loading residents...
+                </p>
               </div>
             ) : filteredResidents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <User className="text-gray-300 mb-2" size={48} />
-                <p className="text-gray-400">No residents found</p>
+              <div className="flex flex-col items-center justify-center py-20">
+                <User className="text-slate-300 mb-4 opacity-20" size={80} />
+                <p className="font-black text-xl text-slate-900 tracking-tight">
+                  No residents found
+                </p>
+                <p className="text-sm font-bold mt-2 text-slate-400 uppercase tracking-widest">
+                  Try adjusting your search
+                </p>
               </div>
             ) : (
               <>
+                {/* Table */}
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-gray-100 bg-gray-50">
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Resident & Room
-                        </th>
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Wing
-                        </th>
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Key Health Indicator
-                        </th>
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Admission
-                        </th>
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Clinical Status
-                        </th>
-                        <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Action
-                        </th>
+                      <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                        <th className="px-10 py-6">Resident Identity</th>
+                        <th className="px-10 py-6">Facility Location</th>
+                        <th className="px-10 py-6">Key Health Indicator</th>
+                        <th className="px-10 py-6">Admission</th>
+                        <th className="px-10 py-6">Clinical Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-slate-50">
                       {paginatedResidents.map((resident) => (
                         <tr
                           key={resident.id}
                           onClick={() =>
                             router.push(`/residents/${resident.id}`)
                           }
-                          className="hover:bg-slate-50 transition-colors cursor-pointer"
+                          className="hover:bg-slate-50/50 transition-all cursor-pointer group/row"
                         >
-                          {/* Resident & Room */}
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-11 h-11 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md shadow-cyan-500/20 flex-shrink-0">
-                                {resident.full_name?.charAt(0).toUpperCase() ||
-                                  "?"}
+                          {/* Resident Identity */}
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-5">
+                              <div className="relative">
+                                <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md group-hover/row:scale-105 transition-transform duration-300 ring-4 ring-white">
+                                  {resident.full_name
+                                    ?.charAt(0)
+                                    .toUpperCase() || "?"}
+                                </div>
+                                <div
+                                  className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px] border-white ${
+                                    resident.status?.toLowerCase() === "stable"
+                                      ? "bg-emerald-500"
+                                      : resident.status?.toLowerCase() ===
+                                          "attention"
+                                        ? "bg-amber-500"
+                                        : "bg-rose-500"
+                                  }`}
+                                ></div>
                               </div>
                               <div>
-                                <p className="font-semibold text-gray-800 text-sm">
+                                <p className="font-black text-lg text-slate-900 tracking-tight group-hover/row:text-blue-600 transition-colors">
                                   {resident.full_name || "N/A"}
                                 </p>
-                                <p className="text-xs text-gray-400 uppercase tracking-wide mt-0.5">
-                                  Room {resident.room || "N/A"}
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                  Patient ID: {resident.id?.slice(0, 8)}
                                 </p>
                               </div>
                             </div>
                           </td>
 
-                          {/* Wing */}
-                          <td className="px-6 py-4 text-sm text-gray-600">
-                            {resident.wing || "N/A"}
+                          {/* Facility Location */}
+                          <td className="px-10 py-6">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black text-slate-900">
+                                {resident.wing || "N/A"}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                Room {resident.room || "N/A"}
+                              </span>
+                            </div>
                           </td>
 
                           {/* Key Health Indicator */}
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <Activity
-                                size={14}
-                                className="text-cyan-500 flex-shrink-0"
-                              />
-                              <span className="text-sm font-medium text-gray-700">
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                                <Activity size={16} />
+                              </div>
+                              <span className="text-sm font-bold text-slate-900">
                                 {resident.key_health_indicator || "N/A"}
                               </span>
                             </div>
                           </td>
 
                           {/* Admission */}
-                          <td className="px-6 py-4 text-sm text-gray-600">
+                          <td className="px-10 py-6 text-sm text-slate-500 font-bold">
                             {formatDate(resident.created_at)}
                           </td>
 
                           {/* Clinical Status */}
-                          <td className="px-6 py-4">
+                          <td className="px-10 py-6">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${getStatusStyle(resident.status)}`}
+                              className={`text-[10px] px-4 py-1.5 rounded-full font-black uppercase tracking-widest ${getStatusStyle(resident.status)}`}
                             >
                               {resident.status || "Unknown"}
                             </span>
-                          </td>
-
-                          {/* Action */}
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
-                            >
-                              <MoreVertical size={16} />
-                            </button>
                           </td>
                         </tr>
                       ))}
@@ -235,8 +251,8 @@ export default function Residents() {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500">
+                <div className="p-8 bg-slate-50/20 border-t border-slate-50 flex justify-between items-center">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                     Showing{" "}
                     {Math.min(
                       (currentPage - 1) * ITEMS_PER_PAGE + 1,
@@ -247,19 +263,14 @@ export default function Residents() {
                       currentPage * ITEMS_PER_PAGE,
                       filteredResidents.length,
                     )}{" "}
-                    of{" "}
-                    <span className="font-medium">
-                      {filteredResidents.length}
-                    </span>{" "}
-                    active residents
+                    of {filteredResidents.length} residents
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      className="px-6 py-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <ChevronLeft size={14} />
                       Previous
                     </button>
                     <button
@@ -267,10 +278,9 @@ export default function Residents() {
                         setCurrentPage((p) => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      Next
-                      <ChevronRight size={14} />
+                      Next Page
                     </button>
                   </div>
                 </div>
@@ -350,24 +360,32 @@ function AddResidentModal({ onClose, onSuccess }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors text-sm";
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Add New Resident</h2>
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Users size={12} />
+              New Registration
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Add New Resident
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
               Full Name *
             </label>
             <input
@@ -382,9 +400,9 @@ function AddResidentModal({ onClose, onSuccess }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Date of Birth *
               </label>
               <input
@@ -398,7 +416,7 @@ function AddResidentModal({ onClose, onSuccess }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Room *
               </label>
               <input
@@ -414,9 +432,9 @@ function AddResidentModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Wing
               </label>
               <select
@@ -434,7 +452,7 @@ function AddResidentModal({ onClose, onSuccess }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Status
               </label>
               <select
@@ -452,7 +470,7 @@ function AddResidentModal({ onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
               Key Health Indicator
             </label>
             <input
@@ -470,16 +488,16 @@ function AddResidentModal({ onClose, onSuccess }) {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+              <p className="text-sm text-rose-600 font-bold">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-4 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
               disabled={saving}
             >
               Cancel
@@ -487,7 +505,7 @@ function AddResidentModal({ onClose, onSuccess }) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
             >
               {saving ? "Adding..." : "Add Resident"}
             </button>

@@ -10,12 +10,13 @@ import {
   UserCheck,
   Clock,
   AlertCircle,
-  Star,
   Users,
   CalendarDays,
   Plus,
   X,
   Trash2,
+  MapPin,
+  Activity,
 } from "lucide-react";
 
 export default function SpecificCarer({ params }) {
@@ -169,10 +170,12 @@ export default function SpecificCarer({ params }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading carer information...</p>
+          <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+          <p className="font-black text-xl text-slate-900 tracking-tight">
+            Loading carer information...
+          </p>
         </div>
       </div>
     );
@@ -180,15 +183,15 @@ export default function SpecificCarer({ params }) {
 
   if (error || !carer) {
     return (
-      <div className="min-h-screen bg-white/50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <AlertCircle className="w-20 h-20 text-rose-400 mx-auto mb-6 opacity-20" />
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
             {error || "Carer Not Found"}
           </h1>
           <button
             onClick={() => router.push("/carerslist")}
-            className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
+            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to Carers
           </button>
@@ -199,57 +202,66 @@ export default function SpecificCarer({ params }) {
 
   return (
     <>
-      <section className="min-h-screen bg-white/50">
+      <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 py-10">
           {/* Back Button */}
           <button
             onClick={() => router.push("/carerslist")}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} strokeWidth={2.5} />
             <span>Back to Carers</span>
           </button>
 
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-10">
             {/* Left Sidebar - Profile */}
-            <div className="lg:w-80 space-y-6">
+            <div className="lg:w-80 space-y-8">
               {/* Profile Card */}
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-6 text-center">
-                <div className="w-24 h-24 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg shadow-cyan-500/30 mx-auto mb-4">
-                  {getInitials(carer.full_name)}
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden p-10 text-center relative">
+                {/* Header Gradient */}
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-slate-900 to-slate-800 -z-0"></div>
+
+                <div className="relative z-10 pt-4">
+                  <div className="w-32 h-32 rounded-[28px] bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-5xl font-black shadow-2xl ring-[12px] ring-white mx-auto mb-6">
+                    {getInitials(carer.full_name)}
+                  </div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                    {carer.full_name || "N/A"}
+                  </h2>
+                  <p className="text-sm text-slate-500 mb-4 capitalize font-bold uppercase tracking-widest">
+                    {carer.role || "N/A"}
+                  </p>
+                  <span className="inline-flex items-center px-4 py-2 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 uppercase tracking-widest">
+                    Active Carer
+                  </span>
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-1">
-                  {carer.full_name || "N/A"}
-                </h2>
-                <p className="text-sm text-muted-foreground mb-4 capitalize">
-                  {carer.role || "N/A"}
-                </p>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
-                  Active Carer
-                </span>
               </div>
 
               {/* Contact Info */}
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-6">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                   Contact Information
                 </h3>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                      <Mail size={12} />
-                      <span>Email</span>
+                <div className="space-y-5">
+                  <div className="p-4 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Mail size={12} className="text-blue-500" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Email
+                      </span>
                     </div>
-                    <p className="text-sm text-foreground pl-5 break-words">
+                    <p className="text-sm text-slate-900 font-bold break-words">
                       {carer.email || "Not provided"}
                     </p>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                      <Phone size={12} />
-                      <span>Phone</span>
+                  <div className="p-4 rounded-2xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Phone size={12} className="text-blue-500" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Phone
+                      </span>
                     </div>
-                    <p className="text-sm text-foreground pl-5">
+                    <p className="text-sm text-slate-900 font-bold">
                       {carer.phone || "Not provided"}
                     </p>
                   </div>
@@ -257,16 +269,20 @@ export default function SpecificCarer({ params }) {
               </div>
 
               {/* Account Info */}
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-6">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-2">
                   Account Details
                 </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar size={14} className="text-cyan-500" />
+                <div className="p-4 rounded-2xl bg-slate-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <Calendar size={18} className="text-blue-600" />
+                    </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Joined</p>
-                      <p className="text-foreground">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Joined
+                      </p>
+                      <p className="text-sm font-black text-slate-900">
                         {formatDate(carer.created_at)}
                       </p>
                     </div>
@@ -276,86 +292,91 @@ export default function SpecificCarer({ params }) {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-8">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                  icon={<Users size={24} />}
+                  icon={<Users size={26} />}
                   label="Assigned Patients"
                   value={assignedPatients.length.toString()}
-                  color="cyan"
-                />
-                <StatCard
-                  icon={<CalendarDays size={24} />}
-                  label="Upcoming Shifts"
-                  value={upcomingSchedules.length.toString()}
                   color="blue"
                 />
                 <StatCard
-                  icon={<Clock size={24} />}
-                  label="Total Schedules"
+                  icon={<CalendarDays size={26} />}
+                  label="Upcoming Shifts"
                   value={upcomingSchedules.length.toString()}
                   color="purple"
+                />
+                <StatCard
+                  icon={<Clock size={26} />}
+                  label="Total Schedules"
+                  value={upcomingSchedules.length.toString()}
+                  color="emerald"
                 />
               </div>
 
               {/* Assigned Patients Section */}
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <Users size={20} className="text-cyan-500" />
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <Users size={20} className="text-blue-600" />
+                    </div>
                     Assigned Patients
                   </h3>
                   <button
                     onClick={() => setShowAssignModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold text-sm shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
                   >
-                    <Plus size={16} />
+                    <Plus size={16} strokeWidth={3} />
                     <span>Assign Patient</span>
                   </button>
                 </div>
 
                 {assignedPatients.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {assignedPatients.map((patient) => (
                       <div
                         key={patient.id}
-                        className="bg-white/5 border border-white/10 p-4 rounded-lg hover:bg-white/10 transition-colors"
+                        className="bg-slate-50 border border-slate-200 p-6 rounded-[24px] hover:shadow-lg transition-all"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg flex-shrink-0">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-[20px] flex items-center justify-center text-white text-lg font-black shadow-lg flex-shrink-0">
                               {getInitials(patient.full_name)}
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground">
+                              <p className="font-black text-lg text-slate-900 tracking-tight">
                                 {patient.full_name}
                               </p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5 mt-1">
+                                <MapPin size={14} />
                                 Room: {patient.room || "N/A"}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                                patient.status === "Stable"
-                                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                  : patient.status === "Attention"
-                                    ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                                    : "bg-red-500/20 text-red-400 border border-red-500/30"
+                              className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ring-1 ${
+                                patient.status?.toLowerCase() === "stable"
+                                  ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                                  : patient.status?.toLowerCase() ===
+                                      "attention"
+                                    ? "bg-amber-50 text-amber-700 ring-amber-100"
+                                    : "bg-rose-50 text-rose-700 ring-rose-100"
                               }`}
                             >
                               {patient.status || "Unknown"}
                             </span>
                             <button
                               onClick={() => handleUnassignPatient(patient.id)}
-                              className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
+                              className="p-3 hover:bg-rose-50 rounded-xl transition-colors group"
                               title="Unassign patient"
                             >
                               <Trash2
-                                size={16}
-                                className="text-muted-foreground group-hover:text-red-400"
+                                size={18}
+                                className="text-slate-400 group-hover:text-rose-600"
+                                strokeWidth={2.5}
                               />
                             </button>
                           </div>
@@ -364,12 +385,14 @@ export default function SpecificCarer({ params }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users size={48} className="mx-auto mb-2 opacity-30" />
-                    <p>No patients assigned yet</p>
+                  <div className="text-center py-16 text-slate-300">
+                    <Users size={80} className="mx-auto mb-6 opacity-10" />
+                    <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
+                      No patients assigned yet
+                    </p>
                     <button
                       onClick={() => setShowAssignModal(true)}
-                      className="mt-4 px-4 py-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm"
+                      className="mt-4 px-6 py-3 bg-blue-50 text-blue-700 ring-1 ring-blue-100 rounded-xl hover:bg-blue-100 transition-colors font-black text-xs uppercase tracking-widest"
                     >
                       Assign First Patient
                     </button>
@@ -378,51 +401,56 @@ export default function SpecificCarer({ params }) {
               </div>
 
               {/* Upcoming Schedules Section */}
-              <div className="bg-white/5 border-2 border-white/10 rounded-lg overflow-hidden backdrop-blur-xl p-8">
-                <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                  <CalendarDays size={20} className="text-cyan-500" />
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10">
+                <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                  <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                    <CalendarDays size={20} className="text-purple-600" />
+                  </div>
                   Upcoming Schedules
                 </h3>
                 {upcomingSchedules.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {upcomingSchedules.map((schedule) => (
                       <div
                         key={schedule.id}
-                        className="bg-white/5 border border-white/10 p-4 rounded-lg hover:bg-white/10 transition-colors"
+                        className="bg-slate-50 border border-slate-200 p-6 rounded-[24px] hover:shadow-lg transition-all"
                       >
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Clock size={14} className="text-cyan-500" />
-                              <p className="font-semibold text-foreground text-sm">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                                <Clock size={16} className="text-blue-600" />
+                              </div>
+                              <p className="font-black text-base text-slate-900 tracking-tight">
                                 {formatDateTime(schedule.start_at)}
                               </p>
                             </div>
-                            <p className="text-xs text-muted-foreground ml-5">
+                            <p className="text-sm text-slate-500 ml-10 font-medium">
                               to {formatDateTime(schedule.end_at)}
                             </p>
                           </div>
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                            className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ring-1 ${
                               schedule.status === "scheduled"
-                                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                                ? "bg-blue-50 text-blue-700 ring-blue-100"
                                 : schedule.status === "completed"
-                                  ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                                  : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                                  ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                                  : "bg-amber-50 text-amber-700 ring-amber-100"
                             }`}
                           >
                             {schedule.status || "Pending"}
                           </span>
                         </div>
                         {schedule.patients && (
-                          <div className="ml-5 mt-2 text-sm">
-                            <p className="text-muted-foreground">
+                          <div className="ml-10 pt-4 border-t border-slate-200">
+                            <p className="text-sm text-slate-500 font-medium">
                               Patient:{" "}
-                              <span className="text-foreground font-medium">
+                              <span className="text-slate-900 font-black">
                                 {schedule.patients.full_name}
                               </span>
                             </p>
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-xs text-slate-400 font-bold mt-1 flex items-center gap-1.5">
+                              <MapPin size={12} />
                               Room: {schedule.patients.room || "N/A"}
                             </p>
                           </div>
@@ -431,12 +459,14 @@ export default function SpecificCarer({ params }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-16 text-slate-300">
                     <CalendarDays
-                      size={48}
-                      className="mx-auto mb-2 opacity-30"
+                      size={80}
+                      className="mx-auto mb-6 opacity-10"
                     />
-                    <p>No upcoming schedules</p>
+                    <p className="font-black text-xl text-slate-900 tracking-tight">
+                      No upcoming schedules
+                    </p>
                   </div>
                 )}
               </div>
@@ -542,38 +572,43 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 border-2 border-white/20 rounded-2xl backdrop-blur-xl max-w-md w-full p-8 shadow-2xl">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] max-w-md w-full p-10 shadow-2xl border border-slate-100">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Assign Patient</h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            Assign Patient
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={24} className="text-muted-foreground" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading patients...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <Activity size={60} className="mb-4 opacity-10 animate-pulse" />
+            <p className="font-black text-lg text-slate-900 tracking-tight">
+              Loading patients...
+            </p>
           </div>
         ) : allPatients.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <Users
-              size={48}
-              className="mx-auto mb-4 text-muted-foreground opacity-30"
+              size={80}
+              className="mx-auto mb-6 text-slate-300 opacity-10"
             />
-            <p className="text-muted-foreground mb-4">
+            <p className="font-black text-lg text-slate-900 tracking-tight mb-2">
+              All Assigned
+            </p>
+            <p className="text-slate-500 mb-6 font-medium">
               All patients are already assigned to this carer
             </p>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all"
+              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
             >
               Close
             </button>
@@ -582,13 +617,13 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Patient Selection */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-sm font-black text-slate-900 mb-3 uppercase tracking-widest">
                 Select Patient *
               </label>
               <select
                 value={selectedPatient}
                 onChange={(e) => setSelectedPatient(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground focus:outline-none focus:border-cyan-500 transition-colors"
+                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 required
               >
                 <option value="">Choose a patient...</option>
@@ -598,15 +633,15 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-slate-400 mt-2 font-bold">
                 {allPatients.length} patient(s) available to assign
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                <p className="text-sm text-rose-700 font-bold">{error}</p>
               </div>
             )}
 
@@ -615,7 +650,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
@@ -623,7 +658,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? "Assigning..." : "Assign Patient"}
               </button>
@@ -637,20 +672,37 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
 
 function StatCard({ icon, label, value, color }) {
   const colorClasses = {
-    cyan: "from-cyan-400 to-cyan-600",
-    blue: "from-blue-400 to-blue-600",
-    purple: "from-purple-400 to-purple-600",
+    blue: {
+      bg: "bg-blue-50",
+      text: "text-blue-600",
+      ring: "ring-blue-100",
+    },
+    purple: {
+      bg: "bg-purple-50",
+      text: "text-purple-600",
+      ring: "ring-purple-100",
+    },
+    emerald: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-600",
+      ring: "ring-emerald-100",
+    },
   };
+  const cfg = colorClasses[color] || colorClasses.blue;
 
   return (
-    <div className="bg-white/5 border-2 border-white/10 rounded-lg p-6 backdrop-blur-xl">
+    <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-8">
       <div
-        className={`w-12 h-12 bg-gradient-to-r ${colorClasses[color]} rounded-lg flex items-center justify-center text-white mb-3 shadow-lg`}
+        className={`w-14 h-14 ${cfg.bg} rounded-[20px] flex items-center justify-center ${cfg.text} mb-4 shadow-sm ring-1 ${cfg.ring}`}
       >
         {icon}
       </div>
-      <p className="text-3xl font-bold text-foreground">{value}</p>
-      <p className="text-sm text-muted-foreground mt-1">{label}</p>
+      <p className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+        {value}
+      </p>
+      <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">
+        {label}
+      </p>
     </div>
   );
 }

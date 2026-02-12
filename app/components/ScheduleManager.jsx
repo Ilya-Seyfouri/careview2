@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import {
   Calendar,
   User,
-  UserCheck,
   ChevronLeft,
   ChevronRight,
   X,
@@ -13,6 +12,11 @@ import {
   Grid,
   Edit,
   Trash2,
+  Plus,
+  Activity,
+  Users,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 import { useDemoUser } from "./DemoContext";
@@ -251,13 +255,13 @@ export default function ScheduleManager() {
 
   if (loading) {
     return (
-      <section className="min-h-screen bg-white/50">
+      <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 py-10">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading schedules...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+            <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
+            <p className="font-black text-xl text-slate-900 tracking-tight">
+              Loading schedules...
+            </p>
           </div>
         </div>
       </section>
@@ -266,11 +270,11 @@ export default function ScheduleManager() {
 
   if (error) {
     return (
-      <section className="min-h-screen bg-white/50">
+      <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 py-10">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <p className="text-lg text-red-500">Error: {error}</p>
+              <p className="text-lg text-red-500 font-bold">Error: {error}</p>
             </div>
           </div>
         </div>
@@ -280,143 +284,160 @@ export default function ScheduleManager() {
 
   return (
     <>
-      <section id="schedulelist" className="min-h-screen bg-white/50">
-        <div className="container mx-auto">
-          <div className="px-6 lg:px-10 pt-10 pb-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <section id="schedulelist" className="min-h-screen bg-slate-50">
+        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-6">
+          {/* Header */}
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Calendar size={12} />
+              Care Scheduling
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-                  Schedules
+                <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                  Care Schedules
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-slate-500 text-lg font-medium mt-1">
                   {viewMode === "list"
-                    ? `${schedules.length} schedules today`
-                    : `${allSchedules.length} schedules this month`}
+                    ? `Monitoring ${schedules.length} scheduled tasks today`
+                    : `${allSchedules.length} tasks scheduled this month`}
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 {/* View Toggle */}
-                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
+                <div className="bg-white p-1 rounded-xl ring-1 ring-slate-100 flex shadow-sm">
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       viewMode === "list"
-                        ? "bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white shadow-lg"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-slate-50 text-slate-900 shadow-sm font-black"
+                        : "text-slate-400 font-bold hover:text-slate-600"
                     }`}
                   >
                     <List size={18} />
-                    <span className="text-sm font-medium">List</span>
+                    <span className="text-[10px] uppercase tracking-widest">
+                      List
+                    </span>
                   </button>
                   <button
                     onClick={() => setViewMode("calendar")}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       viewMode === "calendar"
-                        ? "bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white shadow-lg"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "bg-slate-50 text-slate-900 shadow-sm font-black"
+                        : "text-slate-400 font-bold hover:text-slate-600"
                     }`}
                   >
                     <Grid size={18} />
-                    <span className="text-sm font-medium">Calendar</span>
+                    <span className="text-[10px] uppercase tracking-widest">
+                      Calendar
+                    </span>
                   </button>
                 </div>
 
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95"
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
                   type="button"
                 >
-                  <span>Add Schedule</span>
+                  <Plus
+                    size={20}
+                    strokeWidth={3}
+                    className="group-hover:rotate-90 transition-transform"
+                  />
+                  Create Task
                 </button>
               </div>
             </div>
-
-            {viewMode === "list" ? (
-              <>
-                {/* Date Navigation */}
-                <div className="bg-white/5 border-2 border-white/10 rounded-lg p-4 backdrop-blur-xl mb-6">
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => changeDate(-1)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <ChevronLeft size={24} className="text-foreground" />
-                    </button>
-
-                    <h2 className="text-xl font-bold text-foreground">
-                      {formatDateHeader(selectedDate)}
-                    </h2>
-
-                    <button
-                      onClick={() => changeDate(1)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <ChevronRight size={24} className="text-foreground" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Schedules List */}
-                {filteredSchedules.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                    <Calendar size={48} className="mb-4 opacity-20" />
-                    <p className="text-lg font-medium">No schedules found</p>
-                    <p className="text-sm mt-2">No schedules for this date</p>
-                  </div>
-                ) : (
-                  <div className="bg-white/5 border-2 border-white/10 rounded-lg backdrop-blur-xl overflow-hidden">
-                    <div className="divide-y divide-white/10">
-                      {filteredSchedules.map((schedule) => (
-                        <ScheduleRow
-                          key={schedule.id}
-                          schedule={schedule}
-                          onEdit={handleEditSchedule}
-                          onDelete={handleDeleteSchedule}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {/* Month Navigation */}
-                <div className="bg-white/5 border-2 border-white/10 rounded-lg p-4 backdrop-blur-xl mb-6">
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => changeMonth(-1)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <ChevronLeft size={24} className="text-foreground" />
-                    </button>
-
-                    <h2 className="text-xl font-bold text-foreground">
-                      {formatMonthHeader(selectedDate)}
-                    </h2>
-
-                    <button
-                      onClick={() => changeMonth(1)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <ChevronRight size={24} className="text-foreground" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Calendar Grid */}
-                <CalendarGrid
-                  selectedDate={selectedDate}
-                  schedules={allSchedules}
-                  onDateClick={(date) => {
-                    setSelectedDate(date);
-                    setViewMode("list");
-                  }}
-                />
-              </>
-            )}
           </div>
+
+          {viewMode === "list" ? (
+            <>
+              {/* Date Navigation */}
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-6 mb-6">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => changeDate(-1)}
+                    className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+                  >
+                    <ChevronLeft size={24} className="text-slate-900" />
+                  </button>
+
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                    {formatDateHeader(selectedDate)}
+                  </h2>
+
+                  <button
+                    onClick={() => changeDate(1)}
+                    className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+                  >
+                    <ChevronRight size={24} className="text-slate-900" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Schedules List */}
+              {filteredSchedules.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                  <Calendar size={80} className="mb-6 opacity-10" />
+                  <p className="font-black text-xl text-slate-900 tracking-tight">
+                    No schedules found
+                  </p>
+                  <p className="text-sm font-bold mt-2 text-slate-400 uppercase tracking-widest">
+                    No schedules for this date
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
+                  <div className="divide-y divide-slate-50">
+                    {filteredSchedules.map((schedule) => (
+                      <ScheduleRow
+                        key={schedule.id}
+                        schedule={schedule}
+                        onEdit={handleEditSchedule}
+                        onDelete={handleDeleteSchedule}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Month Navigation */}
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-6 mb-6">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => changeMonth(-1)}
+                    className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+                  >
+                    <ChevronLeft size={24} className="text-slate-900" />
+                  </button>
+
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                    {formatMonthHeader(selectedDate)}
+                  </h2>
+
+                  <button
+                    onClick={() => changeMonth(1)}
+                    className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+                  >
+                    <ChevronRight size={24} className="text-slate-900" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Calendar Grid */}
+              <CalendarGrid
+                selectedDate={selectedDate}
+                schedules={allSchedules}
+                onDateClick={(date) => {
+                  setSelectedDate(date);
+                  setViewMode("list");
+                }}
+              />
+            </>
+          )}
         </div>
       </section>
 
@@ -507,13 +528,13 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
   };
 
   return (
-    <div className="bg-white/5 border-2 border-white/10 rounded-lg backdrop-blur-xl overflow-hidden">
+    <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-white/10">
+      <div className="grid grid-cols-7 border-b border-slate-50">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
             key={day}
-            className="p-3 text-center text-sm font-semibold text-muted-foreground bg-white/5"
+            className="p-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/30"
           >
             {day}
           </div>
@@ -526,9 +547,9 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
         {prevMonthDays.map((day, index) => (
           <div
             key={`prev-${index}`}
-            className="min-h-[100px] p-2 border-b border-r border-white/5 bg-white/5 opacity-50"
+            className="min-h-[100px] p-3 border-b border-r border-slate-50 bg-slate-50/50 opacity-50"
           >
-            <div className="text-sm text-muted-foreground">{day}</div>
+            <div className="text-sm text-slate-400 font-bold">{day}</div>
           </div>
         ))}
 
@@ -541,18 +562,18 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
             <button
               key={day}
               onClick={() => onDateClick(new Date(year, month, day))}
-              className={`min-h-[100px] p-2 border-b border-r border-white/5 text-left hover:bg-white/10 transition-colors ${
-                today ? "bg-cyan-500/10 border-cyan-500/30" : ""
+              className={`min-h-[100px] p-3 border-b border-r border-slate-50 text-left hover:bg-slate-50 transition-colors ${
+                today ? "bg-blue-50/50 border-blue-100" : ""
               }`}
             >
               <div
-                className={`text-sm font-semibold mb-2 ${
-                  today ? "text-cyan-500" : "text-foreground"
+                className={`text-sm font-black mb-2 ${
+                  today ? "text-blue-600" : "text-slate-900"
                 }`}
               >
                 {day}
                 {today && (
-                  <span className="ml-1 text-xs bg-cyan-500 text-white px-1.5 py-0.5 rounded">
+                  <span className="ml-1.5 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-widest">
                     Today
                   </span>
                 )}
@@ -562,13 +583,13 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
                 {daySchedules.slice(0, 3).map((schedule) => (
                   <div
                     key={schedule.id}
-                    className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded truncate border border-cyan-500/30"
+                    className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg truncate border border-blue-100 font-bold"
                   >
                     {schedule.title}
                   </div>
                 ))}
                 {daySchedules.length > 3 && (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-slate-500 font-bold">
                     +{daySchedules.length - 3} more
                   </div>
                 )}
@@ -581,9 +602,9 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
         {nextMonthDays.map((day, index) => (
           <div
             key={`next-${index}`}
-            className="min-h-[100px] p-2 border-b border-r border-white/5 bg-white/5 opacity-50"
+            className="min-h-[100px] p-3 border-b border-r border-slate-50 bg-slate-50/50 opacity-50"
           >
-            <div className="text-sm text-muted-foreground">{day}</div>
+            <div className="text-sm text-slate-400 font-bold">{day}</div>
           </div>
         ))}
       </div>
@@ -606,70 +627,85 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
       case "completed":
         return {
           text: "Completed",
-          color: "text-green-500",
-          icon: "✓",
+          color: "text-emerald-600",
+          bgColor: "bg-emerald-50",
+          ringColor: "ring-emerald-100",
+          icon: CheckCircle2,
         };
       case "scheduled":
         return {
           text: "Upcoming",
-          color: "text-gray-400",
-          icon: "○",
+          color: "text-slate-600",
+          bgColor: "bg-slate-50",
+          ringColor: "ring-slate-100",
+          icon: Clock,
         };
       case "in progress":
         return {
           text: "In Progress",
-          color: "text-orange-500",
-          icon: "⟳",
+          color: "text-amber-600",
+          bgColor: "bg-amber-50",
+          ringColor: "ring-amber-100",
+          icon: Activity,
         };
       case "cancelled":
         return {
           text: "Cancelled",
-          color: "text-red-500",
-          icon: "✕",
+          color: "text-rose-600",
+          bgColor: "bg-rose-50",
+          ringColor: "ring-rose-100",
+          icon: X,
         };
       default:
         return {
           text: "Unknown",
-          color: "text-gray-400",
-          icon: "○",
+          color: "text-slate-600",
+          bgColor: "bg-slate-50",
+          ringColor: "ring-slate-100",
+          icon: AlertCircle,
         };
     }
   };
 
   const statusInfo = getStatusDisplay(schedule.status);
+  const StatusIcon = statusInfo.icon;
 
   return (
-    <div className="p-6 hover:bg-white/5 transition-colors">
+    <div className="p-8 hover:bg-slate-50/50 transition-colors group/row">
       <div className="flex items-start gap-6">
         {/* Time */}
         <div className="w-24 flex-shrink-0">
-          <p className="text-lg font-bold text-foreground">
+          <p className="text-lg font-black text-slate-900">
             {formatTime(schedule.start_at)}
           </p>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
             Planned
           </p>
         </div>
 
         {/* Content */}
-        <div className="flex-1">
-          <h3 className="text-lg font-bold text-foreground mb-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-black text-slate-900 mb-2 tracking-tight group-hover/row:text-blue-600 transition-colors">
             {schedule.title || "Untitled Schedule"}
           </h3>
 
           <div className="flex items-center gap-4 text-sm">
             {/* Patient */}
-            <div className="flex items-center gap-1.5">
-              <User size={14} className="text-muted-foreground" />
-              <span className="text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center">
+                <User size={14} className="text-slate-600" />
+              </div>
+              <span className="text-slate-600 font-bold">
                 {schedule.patient?.full_name || "Unknown"}
               </span>
             </div>
 
             {/* Carer */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Assignee:</span>
-              <span className="text-blue-500 font-medium">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">
+                Assignee:
+              </span>
+              <span className="text-blue-600 font-black">
                 {schedule.carer?.full_name || "Unknown"}
               </span>
             </div>
@@ -678,32 +714,34 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
 
         {/* Status and Actions */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <div className={`flex items-center gap-2 ${statusInfo.color}`}>
-            <span className="text-lg">{statusInfo.icon}</span>
-            <span className="font-medium">{statusInfo.text}</span>
-          </div>
+          <span
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ${statusInfo.bgColor} ${statusInfo.color} ${statusInfo.ringColor}`}
+          >
+            <StatusIcon size={14} strokeWidth={3} />
+            {statusInfo.text}
+          </span>
 
           {/* Edit Button */}
           <button
             onClick={() => onEdit(schedule)}
-            className="p-2 hover:bg-cyan-500/20 rounded-lg transition-colors group"
+            className="p-2 hover:bg-blue-50 rounded-xl transition-colors group/edit"
             title="Edit schedule"
           >
             <Edit
               size={18}
-              className="text-muted-foreground group-hover:text-cyan-400"
+              className="text-slate-400 group-hover/edit:text-blue-600"
             />
           </button>
 
           {/* Delete Button */}
           <button
             onClick={() => onDelete(schedule.id)}
-            className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
+            className="p-2 hover:bg-rose-50 rounded-xl transition-colors group/delete"
             title="Delete schedule"
           >
             <Trash2
               size={18}
-              className="text-muted-foreground group-hover:text-red-400"
+              className="text-slate-400 group-hover/delete:text-rose-600"
             />
           </button>
         </div>
@@ -711,6 +749,7 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
     </div>
   );
 }
+
 function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
   const supabase = createClient();
   const { demoUser } = useDemoUser();
@@ -843,33 +882,41 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
       setSaving(false);
     }
   };
+
   const inputClass =
-    "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors";
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 border-2 border-white/20 rounded-2xl backdrop-blur-xl max-w-2xl w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-foreground">
-            Add New Schedule
-          </h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Calendar size={12} />
+              New Schedule
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Add New Schedule
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={24} className="text-muted-foreground" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
         {loadingData ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <Activity size={60} className="mb-4 opacity-10 animate-pulse" />
+            <p className="font-black text-lg text-slate-900">Loading...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Title *
               </label>
               <input
@@ -885,9 +932,9 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
             </div>
 
             {/* Patient + Carer */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Patient *
                 </label>
                 <select
@@ -907,7 +954,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Carer *
                 </label>
                 <select
@@ -929,9 +976,9 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
             </div>
 
             {/* Start + End */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Start Time *
                 </label>
                 <input
@@ -945,7 +992,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   End Time *
                 </label>
                 <input
@@ -962,7 +1009,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
 
             {/* Status */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Status
               </label>
               <select
@@ -979,11 +1026,11 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               </select>
             </div>
 
-            {/* ── Required Tasks ── */}
+            {/* Required Tasks */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Required Tasks
-                <span className="ml-2 text-xs text-muted-foreground font-normal">
+                <span className="ml-2 text-xs text-slate-400 font-normal normal-case tracking-normal">
                   (optional — press Enter or + to add)
                 </span>
               </label>
@@ -1002,7 +1049,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   type="button"
                   onClick={handleAddTask}
                   disabled={!taskInput.trim()}
-                  className="px-4 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl hover:bg-blue-100 transition-all font-black text-lg disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   +
                 </button>
@@ -1014,18 +1061,20 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                   {tasks.map((task, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5"
+                      className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-4 h-4 rounded border border-white/20 flex-shrink-0" />
-                        <span className="text-sm text-foreground">{task}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0" />
+                        <span className="text-sm text-slate-900 font-medium">
+                          {task}
+                        </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveTask(index)}
-                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                        className="text-slate-400 hover:text-rose-600 transition-colors p-1"
                       >
-                        <X size={14} />
+                        <X size={16} strokeWidth={3} />
                       </button>
                     </div>
                   ))}
@@ -1033,23 +1082,23 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               )}
 
               {tasks.length === 0 && (
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-xs text-slate-400 italic font-medium">
                   No tasks added yet
                 </p>
               )}
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                <p className="text-sm text-rose-600 font-bold">{error}</p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
@@ -1057,7 +1106,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Adding..." : "Add Schedule"}
               </button>
@@ -1192,29 +1241,38 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500 transition-colors";
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 border-2 border-white/20 rounded-2xl backdrop-blur-xl max-w-2xl w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-foreground">Edit Schedule</h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[32px] max-w-2xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
+              <Calendar size={12} />
+              Edit Schedule
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Edit Schedule
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={24} className="text-muted-foreground" />
+            <X size={20} className="text-slate-500" />
           </button>
         </div>
 
         {loadingData ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <Activity size={60} className="mb-4 opacity-10 animate-pulse" />
+            <p className="font-black text-lg text-slate-900">Loading...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Title *
               </label>
               <input
@@ -1228,9 +1286,9 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Patient *
                 </label>
                 <select
@@ -1250,7 +1308,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Carer *
                 </label>
                 <select
@@ -1271,9 +1329,9 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   Start Time *
                 </label>
                 <input
@@ -1287,7 +1345,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                   End Time *
                 </label>
                 <input
@@ -1303,7 +1361,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Status
               </label>
               <select
@@ -1322,9 +1380,9 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
 
             {/* Required Tasks */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Required Tasks
-                <span className="ml-2 text-xs text-muted-foreground font-normal">
+                <span className="ml-2 text-xs text-slate-400 font-normal normal-case tracking-normal">
                   (press Enter or + to add)
                 </span>
               </label>
@@ -1341,7 +1399,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   type="button"
                   onClick={handleAddTask}
                   disabled={!taskInput.trim()}
-                  className="px-4 py-3 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition-all font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl hover:bg-blue-100 transition-all font-black text-lg disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   +
                 </button>
@@ -1351,40 +1409,42 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   {tasks.map((task, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5"
+                      className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-4 h-4 rounded border border-white/20 flex-shrink-0" />
-                        <span className="text-sm text-foreground">{task}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0" />
+                        <span className="text-sm text-slate-900 font-medium">
+                          {task}
+                        </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveTask(index)}
-                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                        className="text-slate-400 hover:text-rose-600 transition-colors p-1"
                       >
-                        <X size={14} />
+                        <X size={16} strokeWidth={3} />
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">
+                <p className="text-xs text-slate-400 italic font-medium">
                   No tasks added yet
                 </p>
               )}
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
+                <p className="text-sm text-rose-600 font-bold">{error}</p>
               </div>
             )}
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg hover:bg-white/10 transition-all font-semibold"
+                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
@@ -1392,7 +1452,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white rounded-lg font-semibold shadow-lg shadow-cyan-500/30 hover:from-cyan-500 hover:via-cyan-600 hover:to-cyan-700 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>

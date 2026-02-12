@@ -12,11 +12,12 @@ import {
   Utensils,
   User,
   AlertCircle,
-  FileText,
   X,
-  ClipboardList,
   CalendarDays,
   UserCheck,
+  MessageSquare,
+  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
 
@@ -181,55 +182,61 @@ export default function FamilyDashboard() {
     switch (status?.toLowerCase()) {
       case "stable":
         return {
-          color: "bg-green-100 text-green-700 border-green-200",
-          dot: "bg-green-500",
+          color: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
+          dot: "bg-emerald-500",
         };
       case "attention":
         return {
-          color: "bg-amber-100 text-amber-700 border-amber-200",
+          color: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
           dot: "bg-amber-500",
         };
       case "critical":
         return {
-          color: "bg-red-100 text-red-700 border-red-200",
-          dot: "bg-red-500",
+          color: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
+          dot: "bg-rose-500",
         };
       default:
         return {
-          color: "bg-gray-100 text-gray-600 border-gray-200",
-          dot: "bg-gray-400",
+          color: "bg-slate-50 text-slate-600 ring-1 ring-slate-100",
+          dot: "bg-slate-400",
         };
     }
   };
 
   const reportTypeConfig = {
     falls: {
-      color: "bg-red-100 text-red-700 border-red-200",
-      dot: "bg-red-500",
+      color: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
+      dot: "bg-rose-500",
     },
     medication: {
-      color: "bg-amber-100 text-amber-700 border-amber-200",
+      color: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
     nutrition: {
-      color: "bg-blue-100 text-blue-700 border-blue-200",
+      color: "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
       dot: "bg-blue-500",
     },
     other: {
-      color: "bg-gray-100 text-gray-600 border-gray-200",
-      dot: "bg-gray-400",
+      color: "bg-slate-50 text-slate-600 ring-1 ring-slate-100",
+      dot: "bg-slate-400",
     },
   };
 
   const isLoading = userLoading || loading;
   const statusCfg = patient ? getStatusConfig(patient.status) : null;
 
+  // Get primary carer from most recent visit log
+  const primaryCarerId = visitLogs[0]?.carer_id;
+  const primaryCarerName = primaryCarerId ? carerNames[primaryCarerId] : null;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 text-sm">Loading your dashboard...</p>
+          <p className="text-slate-500 text-sm font-bold">
+            Loading your dashboard...
+          </p>
         </div>
       </div>
     );
@@ -239,11 +246,11 @@ export default function FamilyDashboard() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-600 font-semibold">
+          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-900 font-black tracking-tight">
             No linked resident found
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-slate-400 mt-1 font-medium">
             Contact the care home to be linked to a resident.
           </p>
         </div>
@@ -256,95 +263,67 @@ export default function FamilyDashboard() {
       <section className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10 max-w-5xl">
           {/* ── Welcome Banner ── */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-7 mb-7 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  Welcome back, {demoUser?.full_name?.split(" ")[0] || "there"}
-                </h1>
-                <p className="text-gray-500">
-                  Here is the latest update for your{" "}
-                  <span className="text-gray-700 font-medium">
-                    {relationship ? relationship.toLowerCase() : "loved one"}
-                  </span>
-                  ,{" "}
-                  <span className="text-blue-600 font-semibold">
-                    {patient.full_name}
-                  </span>
-                  .
-                </p>
-              </div>
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white p-10 rounded-[40px] border border-slate-100 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group mb-10">
+            {/* SaaS Glow Accent */}
+            <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 blur-[80px] rounded-full group-hover:bg-blue-500/10 transition-all"></div>
 
-              <div className="flex flex-col items-center gap-3 flex-shrink-0">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg bg-gradient-to-br from-blue-400 to-blue-600">
-                  {patient.full_name?.charAt(0).toUpperCase()}
-                </div>
-                <button
-                  onClick={() => router.push("/family/mylovedones")}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  View Full Profile
-                  <ChevronRight size={13} />
-                </button>
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 ring-1 ring-blue-100">
+                <Sparkles size={12} className="animate-pulse" />
+                Live Care Feed
               </div>
+              <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+                Welcome, {demoUser?.full_name?.split(" ")[0] || "there"}.
+              </h2>
+              <p className="text-slate-500 font-bold text-lg">
+                Here's the latest update for{" "}
+                <span className="text-slate-900">{patient.full_name}</span>.
+              </p>
             </div>
 
-            {/* Quick info strip */}
-            <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <MapPin size={14} className="text-blue-500" />
-                <span>Room {patient.room || "N/A"}</span>
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg bg-gradient-to-br from-blue-400 to-blue-600">
+                {patient.full_name?.charAt(0).toUpperCase()}
               </div>
-              {patient.wing && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <User size={14} className="text-blue-500" />
-                  <span>{patient.wing} Wing</span>
-                </div>
-              )}
-              {patient.key_health_indicator && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Heart size={14} className="text-blue-500" />
-                  <span>{patient.key_health_indicator}</span>
-                </div>
-              )}
-              {statusCfg && (
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${statusCfg.color}`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`}
-                  />
-                  {patient.status}
-                </span>
-              )}
+              <button
+                onClick={() => router.push("/family/mylovedones")}
+                className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors"
+              >
+                View Full Profile
+              </button>
             </div>
-          </div>
+          </header>
 
           {/* ── Main Grid ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {/* ── Recent Updates feed ── */}
-            <div className="lg:col-span-2">
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <Activity size={18} className="text-blue-500" />
-                    Recent Updates
-                  </h2>
-                  <span className="text-sm text-gray-400">
-                    {feedItems.length} items
-                  </span>
+            <div className="md:col-span-2 space-y-8">
+              <section className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden relative group">
+                {/* Subtle Background Accent */}
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/5 blur-3xl rounded-full"></div>
+
+                <div className="flex justify-between items-center mb-10 relative z-10">
+                  <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                      <Activity size={20} />
+                    </div>
+                    Recent Care Journal
+                  </h3>
+                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                    Full Archive
+                  </button>
                 </div>
 
                 {feedItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-gray-300">
-                    <Activity size={40} className="mb-3" />
-                    <p className="text-sm font-medium text-gray-400">
+                  <div className="flex flex-col items-center justify-center py-16 text-slate-300 relative z-10">
+                    <Activity size={40} className="mb-3 opacity-20" />
+                    <p className="text-sm font-bold text-slate-400">
                       No updates yet
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-50">
-                    {feedItems.map((item) => {
+                  <div className="space-y-8 relative z-10">
+                    {feedItems.map((item, index) => {
                       /* ── Visit Log entry ── */
                       if (item._kind === "log") {
                         const moodCfg = getMoodEmoji(item.mood);
@@ -359,58 +338,51 @@ export default function FamilyDashboard() {
                           : "CT";
 
                         return (
-                          <button
+                          <div
                             key={`log-${item.id}`}
                             onClick={() => setSelectedLog(item)}
-                            className="w-full px-6 py-5 hover:bg-slate-50 transition-colors text-left"
+                            className="flex gap-6 relative group/item cursor-pointer hover:translate-x-1 transition-transform"
                           >
-                            <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+                            <div className="flex flex-col items-center shrink-0">
+                              <div className="w-16 h-16 rounded-[24px] border-4 border-white bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-sm font-bold shadow-md group-hover/item:scale-105 transition-transform">
                                 {initials}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-sm font-bold text-gray-800">
-                                      {carerName || "Care Team"}
-                                    </p>
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-violet-100 text-violet-600 border border-violet-200 rounded-full">
-                                      Visit Log
-                                    </span>
-                                  </div>
-                                  <span className="text-xs text-gray-400 flex-shrink-0 ml-3">
-                                    {formatLogDate(item.created_at)}
-                                  </span>
-                                </div>
-                                {item.notes && (
-                                  <p className="text-sm text-gray-600 leading-relaxed mb-2 line-clamp-2">
-                                    {item.notes}
-                                  </p>
-                                )}
-                                <div className="flex flex-wrap gap-2">
-                                  {moodCfg && (
-                                    <span
-                                      className={`text-xs font-semibold ${moodCfg.color}`}
-                                    >
-                                      {moodCfg.emoji} Mood: {moodCfg.label}
-                                    </span>
-                                  )}
-                                  {item.appetite && (
-                                    <span className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                                      <Utensils size={11} />
-                                      Appetite:{" "}
-                                      {item.appetite.charAt(0).toUpperCase() +
-                                        item.appetite.slice(1)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <ChevronRight
-                                size={18}
-                                className="text-gray-300 flex-shrink-0 mt-1"
-                              />
+                              {index === 0 && (
+                                <div className="w-1 h-full bg-slate-100 my-2 rounded-full"></div>
+                              )}
                             </div>
-                          </button>
+
+                            <div className="flex-1 bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-slate-50 transition-colors">
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                  <p className="font-black text-lg text-slate-900 tracking-tight">
+                                    {carerName || "Care Team"}
+                                  </p>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                    Assigned Senior Carer
+                                  </p>
+                                </div>
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-3 py-1 bg-blue-50 rounded-full ring-1 ring-blue-100">
+                                  {formatLogDate(item.created_at)}
+                                </span>
+                              </div>
+                              {item.notes && (
+                                <p className="text-slate-600 font-medium leading-relaxed mb-6 italic">
+                                  "{item.notes}"
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                  Client Mood:
+                                </span>
+                                {moodCfg && (
+                                  <span className="text-[10px] px-3 py-1 bg-white border border-slate-200 text-slate-900 rounded-full font-black uppercase tracking-widest shadow-sm">
+                                    {moodCfg.label}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
@@ -428,153 +400,164 @@ export default function FamilyDashboard() {
                         : "MG";
 
                       return (
-                        <button
+                        <div
                           key={`report-${item.id}`}
                           onClick={() => setSelectedReport(item)}
-                          className="w-full px-6 py-5 hover:bg-slate-50 transition-colors text-left"
+                          className="flex gap-6 relative group/item cursor-pointer hover:translate-x-1 transition-transform"
                         >
-                          <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+                          <div className="flex flex-col items-center shrink-0">
+                            <div className="w-16 h-16 rounded-[24px] border-4 border-white bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-md group-hover/item:scale-105 transition-transform">
                               {initials}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="text-sm font-bold text-gray-800">
-                                    {authorName || "Care Team"}
-                                  </p>
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 bg-blue-100 text-blue-600 border border-blue-200 rounded-full">
-                                    Report
-                                  </span>
-                                  {item.type && (
-                                    <span
-                                      className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${typeCfg.color}`}
-                                    >
-                                      <span
-                                        className={`w-1.5 h-1.5 rounded-full ${typeCfg.dot}`}
-                                      />
-                                      {item.type.charAt(0).toUpperCase() +
-                                        item.type.slice(1)}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-xs text-gray-400 flex-shrink-0 ml-3">
-                                  {formatLogDate(item.created_at)}
-                                </span>
-                              </div>
-                              <p className="text-sm font-semibold text-gray-700 mb-1">
-                                {item.title}
-                              </p>
-                              {item.content && (
-                                <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">
-                                  {item.content}
-                                </p>
-                              )}
-                            </div>
-                            <ChevronRight
-                              size={18}
-                              className="text-gray-300 flex-shrink-0 mt-1"
-                            />
+                            {index === 0 && (
+                              <div className="w-1 h-full bg-slate-100 my-2 rounded-full"></div>
+                            )}
                           </div>
-                        </button>
+
+                          <div className="flex-1 bg-slate-50/50 p-6 rounded-[28px] border border-slate-100 hover:bg-slate-50 transition-colors">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <p className="font-black text-lg text-slate-900 tracking-tight">
+                                  {authorName || "Care Team"}
+                                </p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
+                                  {item.type
+                                    ? `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} Report`
+                                    : "Report"}
+                                </p>
+                              </div>
+                              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-3 py-1 bg-blue-50 rounded-full ring-1 ring-blue-100">
+                                {formatLogDate(item.created_at)}
+                              </span>
+                            </div>
+                            <p className="font-bold text-slate-900 mb-2">
+                              {item.title}
+                            </p>
+                            {item.content && (
+                              <p className="text-slate-600 font-medium leading-relaxed line-clamp-2">
+                                {item.content}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
                 )}
-              </div>
+              </section>
             </div>
 
             {/* ── Right Column ── */}
-            <div className="space-y-5">
+            <div className="space-y-8">
               {/* Upcoming Visits */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-100">
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <Calendar size={16} className="text-blue-500" />
-                    Upcoming Visits
-                  </h2>
+              <section className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.03)] relative overflow-hidden group">
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="font-black text-xl text-slate-900 tracking-tight flex items-center gap-2">
+                    <Calendar size={20} className="text-blue-600" />
+                    Protocol Schedule
+                  </h3>
                 </div>
 
                 {upcomingSchedules.length === 0 ? (
-                  <div className="px-5 py-8 text-center">
+                  <div className="text-center py-8">
                     <Calendar
                       size={28}
-                      className="text-gray-200 mx-auto mb-2"
+                      className="text-slate-200 mx-auto mb-2"
                     />
-                    <p className="text-sm text-gray-400">No upcoming visits</p>
+                    <p className="text-sm text-slate-400 font-medium">
+                      No upcoming visits
+                    </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-50">
+                  <div className="space-y-4">
                     {upcomingSchedules.map((schedule) => (
-                      <button
+                      <div
                         key={schedule.id}
                         onClick={() => setSelectedSchedule(schedule)}
-                        className="w-full px-5 py-4 hover:bg-slate-50 transition-colors text-left"
+                        className="p-5 border-2 border-slate-50 rounded-2xl bg-slate-50/50 hover:bg-slate-50 hover:border-blue-100 transition-all cursor-pointer hover:scale-[1.02]"
                       >
-                        <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">
+                        <p className="text-[10px] font-black text-blue-600 uppercase mb-2 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                           {formatDate(schedule.start_at)},{" "}
                           {formatTime(schedule.start_at)}
                         </p>
-                        <p className="text-sm font-bold text-gray-800 mb-0.5">
+                        <p className="font-black text-slate-900 text-base tracking-tight">
                           {schedule.title || "Care Visit"}
                         </p>
                         {schedule.end_at && (
-                          <p className="text-xs text-gray-400 flex items-center gap-1">
-                            <Clock size={11} />
+                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">
                             Until {formatTime(schedule.end_at)}
                           </p>
                         )}
-                      </button>
+                      </div>
                     ))}
+
+                    <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group/btn">
+                      Request New Visit
+                      <ArrowUpRight
+                        size={14}
+                        strokeWidth={3}
+                        className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform"
+                      />
+                    </button>
                   </div>
                 )}
-              </div>
+              </section>
 
               {/* Send a Message */}
-              <div className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-2xl p-5 shadow-lg">
-                <h3 className="text-base font-bold text-white mb-1.5">
-                  Send a Message
-                </h3>
-                <p className="text-sm text-blue-200 mb-4 leading-relaxed">
-                  Leave a note for the care team or send a digital card to{" "}
-                  {patient.full_name?.split(" ")[0]}.
-                </p>
-                <button
-                  className="w-full py-2.5 bg-white text-blue-700 text-sm font-bold rounded-xl hover:bg-blue-50 transition-all active:scale-95"
-                  onClick={() => router.push("/family/messages")}
-                >
-                  New Message
-                </button>
-              </div>
+              <section className="bg-slate-900 rounded-[32px] p-8 text-white overflow-hidden relative shadow-2xl shadow-slate-200 group">
+                {/* Subtle Neon Glow */}
+                <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 blur-[60px] rounded-full group-hover:bg-blue-500/20 transition-all"></div>
+
+                <div className="relative z-10">
+                  <div className="w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-blue-400 mb-6">
+                    <MessageSquare size={24} strokeWidth={3} />
+                  </div>
+                  <h3 className="font-black text-2xl tracking-tight mb-3">
+                    Send Appreciation
+                  </h3>
+                  <p className="text-slate-400 font-medium text-sm mb-8 leading-relaxed">
+                    {primaryCarerName
+                      ? `Send a message to ${primaryCarerName}, the carer looking after ${patient.full_name?.split(" ")[0]}.`
+                      : `Leave a secure message for the care team or send a digital memory to ${patient.full_name?.split(" ")[0]}.`}
+                  </p>
+                  <button
+                    onClick={() => router.push("/family/messages")}
+                    className="w-full py-4 bg-white text-slate-900 rounded-[20px] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-50 transition-all"
+                  >
+                    Compose Message
+                  </button>
+                </div>
+              </section>
 
               {/* Health summary */}
               {patient.health_summary && (
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                    <Heart size={15} className="text-red-400" />
+                <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <h3 className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                    <Heart size={15} className="text-rose-500" />
                     Health Summary
                   </h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">
+                  <p className="text-sm text-slate-600 leading-relaxed font-medium mb-4">
                     {patient.health_summary}
                   </p>
                   {(patient.pulse || patient.bp) && (
-                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex gap-3 pt-4 border-t border-slate-100">
                       {patient.pulse && (
-                        <div className="flex-1 bg-red-50 rounded-xl p-3 text-center">
-                          <p className="text-lg font-bold text-red-600">
+                        <div className="flex-1 bg-rose-50 rounded-2xl p-4 text-center">
+                          <p className="text-2xl font-black text-rose-600">
                             {patient.pulse}
                           </p>
-                          <p className="text-[10px] font-semibold text-red-400 uppercase tracking-wide">
+                          <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mt-1">
                             BPM
                           </p>
                         </div>
                       )}
                       {patient.bp && (
-                        <div className="flex-1 bg-blue-50 rounded-xl p-3 text-center">
-                          <p className="text-lg font-bold text-blue-600">
+                        <div className="flex-1 bg-blue-50 rounded-2xl p-4 text-center">
+                          <p className="text-2xl font-black text-blue-600">
                             {patient.bp}
                           </p>
-                          <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wide">
+                          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">
                             BP
                           </p>
                         </div>
@@ -629,25 +612,25 @@ function VisitLogModal({ log, carerName, onClose }) {
         return {
           emoji: "😊",
           label: "Happy",
-          color: "bg-green-100 text-green-700 border-green-200",
+          color: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
         };
       case "calm":
         return {
           emoji: "😌",
           label: "Calm",
-          color: "bg-blue-100 text-blue-700 border-blue-200",
+          color: "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
         };
       case "anxious":
         return {
           emoji: "😰",
           label: "Anxious",
-          color: "bg-amber-100 text-amber-700 border-amber-200",
+          color: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
         };
       case "irritable":
         return {
           emoji: "😤",
           label: "Irritable",
-          color: "bg-red-100 text-red-700 border-red-200",
+          color: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
         };
       default:
         return null;
@@ -659,20 +642,20 @@ function VisitLogModal({ log, carerName, onClose }) {
       case "great":
         return {
           label: "Great",
-          dot: "bg-green-500",
-          color: "bg-green-100 text-green-700 border-green-200",
+          dot: "bg-emerald-500",
+          color: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
         };
       case "normal":
         return {
           label: "Normal",
           dot: "bg-amber-500",
-          color: "bg-amber-100 text-amber-700 border-amber-200",
+          color: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
         };
       case "poor":
         return {
           label: "Poor",
-          dot: "bg-red-500",
-          color: "bg-red-100 text-red-700 border-red-200",
+          dot: "bg-rose-500",
+          color: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
         };
       default:
         return null;
@@ -700,32 +683,36 @@ function VisitLogModal({ log, carerName, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+      <div className="bg-white rounded-[32px] shadow-2xl max-w-2xl w-full p-10 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-slate-400 to-slate-600 rounded-[20px] flex items-center justify-center text-white text-sm font-bold shadow-lg">
               {initials}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Visit Log</h2>
-              <p className="text-sm text-gray-400 mt-0.5">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                Visit Log
+              </h2>
+              <p className="text-sm text-slate-400 mt-1 font-bold">
                 {fmt(log.created_at)}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
           >
-            <X size={22} className="text-gray-400" />
+            <X size={24} className="text-slate-400" />
           </button>
         </div>
 
         <div className="space-y-6">
           {/* Carer info */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Visited by</p>
-            <p className="text-base font-semibold text-gray-800">
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+              Visited by
+            </p>
+            <p className="text-lg font-black text-slate-900 tracking-tight">
               {carerName || "Care Team"}
             </p>
           </div>
@@ -733,20 +720,20 @@ function VisitLogModal({ log, carerName, onClose }) {
           {/* Mood + Appetite */}
           {(moodConfig || appetiteConfig) && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                 Assessment
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {moodConfig && (
                   <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border ${moodConfig.color}`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-black ${moodConfig.color}`}
                   >
                     {moodConfig.emoji} Mood: {moodConfig.label}
                   </span>
                 )}
                 {appetiteConfig && (
                   <span
-                    className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-semibold border ${appetiteConfig.color}`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-black ${appetiteConfig.color}`}
                   >
                     <span
                       className={`w-2 h-2 rounded-full ${appetiteConfig.dot}`}
@@ -761,11 +748,11 @@ function VisitLogModal({ log, carerName, onClose }) {
           {/* Observations */}
           {log.notes && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                 Observations
               </p>
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-medium">
                   {log.notes}
                 </p>
               </div>
@@ -775,27 +762,34 @@ function VisitLogModal({ log, carerName, onClose }) {
           {/* Tasks */}
           {tasks.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                 Tasks Completed
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {tasks.map((task, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg p-3"
+                    className="flex items-center gap-4 bg-slate-50 border border-slate-100 rounded-2xl p-4"
                   >
-                    <div className="w-5 h-5 rounded bg-green-100 border border-green-200 flex items-center justify-center flex-shrink-0">
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <div className="w-6 h-6 rounded-lg bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center flex-shrink-0">
+                      <svg
+                        width="12"
+                        height="10"
+                        viewBox="0 0 12 10"
+                        fill="none"
+                      >
                         <path
-                          d="M1 4L3.5 6.5L9 1"
-                          stroke="#16a34a"
-                          strokeWidth="2"
+                          d="M1 5L4.5 8.5L11 1"
+                          stroke="#10b981"
+                          strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
                       </svg>
                     </div>
-                    <span className="text-sm text-gray-700">{task}</span>
+                    <span className="text-sm text-slate-700 font-bold">
+                      {task}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -805,7 +799,7 @@ function VisitLogModal({ log, carerName, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all active:scale-95"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>
@@ -827,72 +821,72 @@ function ReportModal({ report, onClose }) {
 
   const typeConfig = {
     falls: {
-      color: "bg-red-100 text-red-700 border-red-200",
-      dot: "bg-red-500",
+      color: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
+      dot: "bg-rose-500",
     },
     medication: {
-      color: "bg-amber-100 text-amber-700 border-amber-200",
+      color: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
     nutrition: {
-      color: "bg-blue-100 text-blue-700 border-blue-200",
+      color: "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
       dot: "bg-blue-500",
     },
     other: {
-      color: "bg-gray-100 text-gray-600 border-gray-200",
-      dot: "bg-gray-400",
+      color: "bg-slate-50 text-slate-600 ring-1 ring-slate-100",
+      dot: "bg-slate-400",
     },
   };
   const typeCfg = typeConfig[report.type] || typeConfig.other;
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
+      <div className="bg-white rounded-[32px] shadow-2xl max-w-2xl w-full p-10 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center gap-3 mb-3 flex-wrap">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                 {report.title}
               </h2>
               {report.type && (
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${typeCfg.color}`}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${typeCfg.color}`}
                 >
                   <span className={`w-2 h-2 rounded-full ${typeCfg.dot}`} />
                   {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-4 text-xs text-slate-400 font-bold">
               {report.created_by_profile && (
-                <span className="flex items-center gap-1">
-                  <User size={11} className="text-blue-400" />
+                <span className="flex items-center gap-1.5">
+                  <User size={12} className="text-blue-400" />
                   {report.created_by_profile.full_name}
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Calendar size={11} className="text-blue-400" />
+              <span className="flex items-center gap-1.5">
+                <Calendar size={12} className="text-blue-400" />
                 {fmt(report.created_at)}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
           >
-            <X size={22} className="text-gray-400" />
+            <X size={24} className="text-slate-400" />
           </button>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+          <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">
             {report.content || "No content available."}
           </p>
         </div>
 
         <button
           onClick={onClose}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all active:scale-95"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>
@@ -950,36 +944,36 @@ function ScheduleModal({ schedule, onClose }) {
 
   const statusColor = (s) =>
     ({
-      completed: "bg-green-100 text-green-700 border-green-200",
-      pending: "bg-amber-100 text-amber-700 border-amber-200",
-      cancelled: "bg-red-100 text-red-700 border-red-200",
-      "in progress": "bg-blue-100 text-blue-700 border-blue-200",
-    })[s?.toLowerCase()] || "bg-gray-100 text-gray-600 border-gray-200";
+      completed: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
+      pending: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
+      cancelled: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
+      "in progress": "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
+    })[s?.toLowerCase()] || "bg-slate-50 text-slate-600 ring-1 ring-slate-100";
 
   const upcoming = new Date(schedule.start_at) > new Date();
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-[32px] shadow-2xl max-w-2xl w-full p-10 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-8">
+          <div className="flex items-center gap-4">
             <div
-              className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-gray-400 to-gray-600"}`}
+              className={`w-14 h-14 rounded-[20px] flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-slate-400 to-slate-600"}`}
             >
-              <CalendarDays size={24} className="text-white" />
+              <CalendarDays size={28} className="text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                 {schedule.title || "Care Visit"}
               </h2>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-2">
                 <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusColor(schedule.status)}`}
+                  className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${statusColor(schedule.status)}`}
                 >
                   {schedule.status || "Unknown"}
                 </span>
                 {upcoming && (
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-blue-50 text-blue-600 ring-1 ring-blue-100">
                     Upcoming
                   </span>
                 )}
@@ -988,30 +982,30 @@ function ScheduleModal({ schedule, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
           >
-            <X size={22} className="text-gray-400" />
+            <X size={24} className="text-slate-400" />
           </button>
         </div>
 
         <div className="space-y-4">
           {/* Time details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-              <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 <Clock size={12} className="text-blue-400" />
                 Start Time
               </p>
-              <p className="text-sm font-semibold text-gray-800">
+              <p className="text-sm font-black text-slate-900 tracking-tight">
                 {fmt(schedule.start_at)}
               </p>
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-              <p className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 <Clock size={12} className="text-blue-400" />
                 End Time
               </p>
-              <p className="text-sm font-semibold text-gray-800">
+              <p className="text-sm font-black text-slate-900 tracking-tight">
                 {fmt(schedule.end_at)}
               </p>
             </div>
@@ -1019,30 +1013,30 @@ function ScheduleModal({ schedule, onClose }) {
 
           {/* Carer and creator info */}
           {!loading && (carerInfo || creatorInfo) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
               {carerInfo && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <UserCheck size={12} className="text-blue-400" />
                     Assigned Carer
                   </p>
-                  <p className="text-sm font-semibold text-gray-800 mb-2">
+                  <p className="text-sm font-black text-slate-900 tracking-tight mb-2">
                     {carerInfo.full_name}
                   </p>
                   {carerInfo.phone && (
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-xs text-slate-500 flex items-center gap-1.5 font-bold">
                       <span>📞</span> {carerInfo.phone}
                     </p>
                   )}
                 </div>
               )}
               {creatorInfo && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                  <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                     <User size={12} className="text-blue-400" />
                     Created By
                   </p>
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-sm font-black text-slate-900 tracking-tight">
                     {creatorInfo.full_name}
                   </p>
                 </div>
@@ -1053,7 +1047,7 @@ function ScheduleModal({ schedule, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all active:scale-95"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>
