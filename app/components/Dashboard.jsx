@@ -239,52 +239,10 @@ export default function ManagerDashboard() {
           </div>
 
           {/* Alert Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
-            <AlertCard
-              icon={<Clock size={26} className="text-rose-600" />}
-              iconBg="bg-rose-50"
-              severity="CRITICAL"
-              severityColor="text-rose-600"
-              cardBg="bg-white"
-              borderColor="border-rose-100"
-              value={loading ? "—" : overdueTasks}
-              valueColor="text-rose-600"
-              label="Overdue Tasks"
-              cta="View All Tasks"
-              ctaColor="text-rose-600"
-              gradient="from-rose-500 to-red-600"
-              onCta={() => router.push("/schedules")}
-            />
-            <AlertCard
-              icon={<AlertCircle size={26} className="text-amber-600" />}
-              iconBg="bg-amber-50"
-              severity="WARNING"
-              severityColor="text-amber-600"
-              cardBg="bg-white"
-              borderColor="border-amber-100"
-              value={loading ? "—" : repeatedIncidents}
-              valueColor="text-amber-600"
-              label="Repeated Incidents"
-              cta="Check Logs"
-              ctaColor="text-amber-600"
-              gradient="from-amber-400 to-orange-500"
-              onCta={() => router.push("/reports")}
-            />
-            <AlertCard
-              icon={<Activity size={26} className="text-blue-600" />}
-              iconBg="bg-blue-50"
-              severity="ATTENTION"
-              severityColor="text-blue-600"
-              cardBg="bg-white"
-              borderColor="border-amber-100"
-              value={loading ? "—" : missingVitals}
-              valueColor="text-blue-600"
-              label="Missing Vitals"
-              cta="Notify Carers"
-              ctaColor="text-blue-600"
-              gradient="from-blue-500 to-indigo-600"
-              onCta={() => router.push("/residents")}
-            />
+          <div className="flex w-full h-90 w-90">
+            <div className="border-2">
+              hi
+            </div>
           </div>
 
           {/* Charts Row */}
@@ -366,79 +324,27 @@ export default function ManagerDashboard() {
                   />
                 </div>
               )}
-              <div className="mt-10 pt-10 border-t border-slate-100">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                    Capacity Load
-                  </p>
-                  <p className="text-sm font-black text-blue-600">
-                    {occupancyPct}%
-                  </p>
-                </div>
-                <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-lg shadow-blue-200/50 transition-all duration-700"
-                    style={{ width: `${Math.min(occupancyPct, 100)}%` }}
-                  />
-                </div>
-                <div className="flex items-center gap-2 mt-5 text-emerald-600">
-                  <CheckCircle2 size={14} strokeWidth={3} />
-                  <p className="text-[10px] font-black uppercase tracking-widest">
-                    {bedsAvailable} {bedsAvailable === 1 ? "bed" : "beds"}{" "}
-                    available
-                  </p>
-                </div>
-              </div>
+              
             </div>
           </div>
 
           {/* Bottom Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pb-10">
-            {/* Active Alerts */}
-            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] overflow-hidden">
-              <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/20">
-                <div>
-                  <h3 className="font-black text-2xl tracking-tight text-slate-900">
-                    Critical Alerts
-                  </h3>
-                  <p className="text-slate-400 text-sm font-medium mt-1">
-                    Live updates from care floors
-                  </p>
-                </div>
-                <button
-                  onClick={() => router.push("/residents")}
-                  className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:shadow-lg transition-all active:scale-90"
-                >
-                  <History size={20} />
-                </button>
-              </div>
-              {loading ? (
-                <div className="p-10 space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-20 bg-slate-100 rounded-[24px] animate-pulse"
-                    />
-                  ))}
-                </div>
-              ) : activeAlerts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-                  <AlertCircle size={60} className="mb-4 opacity-10" />
-                  <p className="font-black text-lg text-slate-900 tracking-tight">
-                    No active alerts
-                  </p>
-                  <p className="text-sm font-medium text-slate-400 mt-1">
-                    All systems running smoothly
-                  </p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-50">
-                  {activeAlerts.map((alert) => (
-                    <AlertRow key={alert.id} alert={alert} />
-                  ))}
-                </div>
-              )}
-            </div>
+            <AlertCard
+              icon={<Clock size={26} className="text-rose-600" />}
+              iconBg="bg-rose-50"
+              severity="CRITICAL"
+              severityColor="text-rose-600"
+              cardBg="bg-white"
+              borderColor="border-rose-100"
+              value={loading ? "—" : overdueTasks}
+              valueColor="text-rose-600"
+              label="Overdue Tasks"
+              cta="View All Tasks"
+              ctaColor="text-rose-600"
+              gradient="from-rose-500 to-red-600"
+              onCta={() => router.push("/schedules")}
+            />
 
             {/* Latest Handover */}
             <div className="bg-slate-900 rounded-[32px] p-10 text-white shadow-2xl shadow-slate-200 flex flex-col justify-between relative overflow-hidden group">
@@ -478,12 +384,15 @@ export default function ManagerDashboard() {
                       Shift Briefing
                     </h3>
 
-                    <div className="p-8 bg-white/5 backdrop-blur-md rounded-[32px] border border-white/10 relative mb-6">
+                    <div className="p-6 bg-white/5 backdrop-blur-md rounded-[32px] border border-white/10 relative mb-6">
                       <div className="absolute -top-3 left-8 px-3 py-1 bg-slate-800 text-[10px] font-black text-blue-400 uppercase tracking-widest rounded-lg border border-white/5">
                         Critical Directive
                       </div>
                       <p className="text-slate-300 text-lg leading-relaxed italic font-medium">
-                        "{latestHandover.notes || "No general observations recorded."}"
+                        "
+                        {latestHandover.notes ||
+                          "No general observations recorded."}
+                        "
                       </p>
                     </div>
 

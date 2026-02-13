@@ -124,13 +124,33 @@ export default function CarerEmar() {
     return round ? isInRound(e.time_to_take, round) : true;
   });
 
-  const filteredEntries = roundEntries.filter((entry) => {
-    const patient = patients[entry.patient_id];
-    const name = patient?.full_name?.toLowerCase() || "";
-    const med = entry.medication_name?.toLowerCase() || "";
-    const term = searchTerm.toLowerCase();
-    return name.includes(term) || med.includes(term);
-  });
+  const filteredEntries = roundEntries
+    .filter((entry) => {
+      const patient = patients[entry.patient_id];
+      const name = patient?.full_name?.toLowerCase() || "";
+      const med = entry.medication_name?.toLowerCase() || "";
+      const term = searchTerm.toLowerCase();
+      return name.includes(term) || med.includes(term);
+    })
+    .sort((a, b) => {
+      // Status priority: due (0) -> missed (1) -> given (2)
+      const statusPriority = {
+        due: 0,
+        missed: 1,
+        given: 2,
+      };
+
+      const aPriority = statusPriority[a.status] ?? 3;
+      const bPriority = statusPriority[b.status] ?? 3;
+
+      // First sort by status priority
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+
+      // Then sort by time within same status
+      return a.time_to_take.localeCompare(b.time_to_take);
+    });
 
   const given = roundEntries.filter((e) => e.status === "given").length;
   const total = roundEntries.length;
@@ -553,7 +573,7 @@ function EntryDetailModal({ entry, patient, onClose }) {
         >
           Close
         </button>
-      </div>  
+      </div>
     </div>
   );
 }

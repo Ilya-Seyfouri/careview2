@@ -153,7 +153,7 @@ export default function FamilyList() {
               Extended Care Network
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-              Family Relations
+            Relatives Of Patients
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
               {familyMembers.length} family members
@@ -222,9 +222,9 @@ export default function FamilyList() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                        <th className="px-10 py-6">Family Member Identity</th>
+                        <th className="px-10 py-6">Family Member </th>
                         <th className="px-10 py-6">Primary Relation</th>
-                        <th className="px-10 py-6">Linked Residents</th>
+                        <th className="px-10 py-6">Linked Patient</th>
                         <th className="px-10 py-6">Email</th>
                         <th className="px-10 py-6">Phone</th>
                       </tr>

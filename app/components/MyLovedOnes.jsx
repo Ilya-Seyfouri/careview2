@@ -294,11 +294,11 @@ export default function MyLovedOnes() {
                             </p>
                           </div>
                         </div>
-                        <div className="space-y-2 pl-13">
+                        <div className="">
                           {carer.phone && (
                             <a
                               href={`tel:${carer.phone}`}
-                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                              className="flex pt-2 items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
                             >
                               <Phone size={12} /> {carer.phone}
                             </a>
@@ -306,7 +306,7 @@ export default function MyLovedOnes() {
                           {carer.email && (
                             <a
                               href={`mailto:${carer.email}`}
-                              className="flex items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
+                              className="flex pt-2 items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
                             >
                               <Mail size={12} /> {carer.email}
                             </a>
@@ -829,7 +829,6 @@ function ReportsTab({ reports, onViewReport }) {
     </div>
   );
 }
-
 /* ─── Schedules Tab ──────────────────────────────────────────────── */
 function SchedulesTab({ patientId }) {
   const supabase = createClient();
@@ -844,7 +843,7 @@ function SchedulesTab({ patientId }) {
         const { data, error: err } = await supabase
           .from("schedules")
           .select(
-            `id, start_at, end_at, status, created_at, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
+            `id, start_at, end_at, status, created_at, title, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
           )
           .eq("patient_id", patientId)
           .order("start_at", { ascending: false });
@@ -861,12 +860,13 @@ function SchedulesTab({ patientId }) {
 
   const fmt = (d) =>
     d
-      ? new Date(d).toLocaleString("en-GB", {
+      ? new Date(d).toLocaleString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
           hour: "numeric",
           minute: "2-digit",
+          hour12: true,
         })
       : "N/A";
 
@@ -889,53 +889,10 @@ function SchedulesTab({ patientId }) {
     },
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
-        <p className="font-black text-xl text-slate-900 tracking-tight">
-          Loading schedules...
-        </p>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-        <AlertCircle size={80} className="mb-6 opacity-10" />
-        <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
-          Something went wrong
-        </p>
-        <p className="text-sm text-slate-500 font-medium">{error}</p>
-      </div>
-    );
-  }
-
-  if (schedules.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-        <CalendarDays size={80} className="mb-6 opacity-10" />
-        <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
-          No schedules found
-        </p>
-        <p className="text-sm text-slate-500 font-medium">
-          Scheduled visits will appear here once created
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Care Schedules
-        </h4>
-        <span className="text-sm text-slate-500 font-bold">
-          {schedules.length} total
-        </span>
-      </div>
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
         const cfg =
@@ -944,26 +901,21 @@ function SchedulesTab({ patientId }) {
         return (
           <div
             key={s.id}
-            className={`bg-white border rounded-[24px] p-8 hover:shadow-lg transition-all ${upcoming ? "border-blue-200 ring-2 ring-blue-50" : "border-slate-100"}`}
+            className={`bg-slate-100 hover:border rounded-[24px] p-6 hover:shadow-lg transition-all ${upcoming ? "border-blue-300 ring-2 ring-blue-50" : "border-slate-300"}`}
           >
             <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
               >
                 <CalendarDays size={26} className="text-white" />
               </div>
               <div className="flex-1">
                 <h3 className="font-black text-lg text-slate-900 tracking-tight">
-                  Schedule #{s.id.substring(0, 8)}
+                  {s.title}
                 </h3>
                 <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${cfg.color}`}
-                  >
-                    {cfg.label}
-                  </span>
                   {upcoming && (
-                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
+                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
@@ -993,24 +945,13 @@ function SchedulesTab({ patientId }) {
             {(s.carer || s.created_by_profile) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                 {s.carer && (
-                  <div>
+                  <div className="px-4">
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
                     </p>
                     <p className="text-base font-black text-slate-900 tracking-tight">
                       {s.carer.full_name}
-                    </p>
-                  </div>
-                )}
-                {s.created_by_profile && (
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                      <User size={12} className="text-blue-500" />
-                      Created By
-                    </p>
-                    <p className="text-base font-black text-slate-900 tracking-tight">
-                      {s.created_by_profile.full_name}
                     </p>
                   </div>
                 )}

@@ -648,7 +648,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
                   key={key}
                   type="button"
                   onClick={() => setFormData({ ...formData, type: key })}
-                  className={`py-3 px-2 rounded-2xl border-2 text-xs font-black capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-md` : "bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100"}`}
+                  className={`py-3 px-2 rounded-2xl border-2 text-xs font-semibold capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-md` : "bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100"}`}
                 >
                   <div
                     className="w-3 h-3 rounded-full mx-auto mb-2"

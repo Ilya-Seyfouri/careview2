@@ -18,6 +18,8 @@ import {
   MessageSquare,
   Sparkles,
   ArrowUpRight,
+  History,
+  FileText,
 } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
 
@@ -38,6 +40,9 @@ export default function FamilyDashboard() {
   const [selectedLog, setSelectedLog] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [showArchive, setShowArchive] = useState(false);
+  const [archiveData, setArchiveData] = useState({ logs: [], reports: [] });
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   useEffect(() => {
     if (demoUser?.id) fetchData(demoUser.id);
@@ -121,13 +126,68 @@ export default function FamilyDashboard() {
     }
   };
 
-  // Merge visit logs + reports into one feed sorted by date
+  const fetchArchiveData = async () => {
+    if (!patient?.id) return;
+
+    try {
+      setArchiveLoading(true);
+
+      // Fetch ALL visit logs
+      const { data: allLogsData } = await supabase
+        .from("visit_logs")
+        .select("*")
+        .eq("patient_id", patient.id)
+        .order("created_at", { ascending: false });
+
+      const allLogs = allLogsData || [];
+
+      // Get all unique carer IDs from archive
+      const allCarerIds = [
+        ...new Set(allLogs.map((l) => l.carer_id).filter(Boolean)),
+      ];
+
+      if (allCarerIds.length > 0) {
+        const { data: carersData } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", allCarerIds);
+        const map = { ...carerNames };
+        (carersData || []).forEach((c) => (map[c.id] = c.full_name));
+        setCarerNames(map);
+      }
+
+      // Fetch ALL reports
+      const { data: allReportsData } = await supabase
+        .from("reports")
+        .select(
+          "id, title, content, type, created_at, created_by_profile:created_by (id, full_name)",
+        )
+        .eq("patient_id", patient.id)
+        .order("created_at", { ascending: false });
+
+      setArchiveData({
+        logs: allLogs,
+        reports: allReportsData || [],
+      });
+    } catch (err) {
+      console.error("Error fetching archive:", err);
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  const handleOpenArchive = () => {
+    setShowArchive(true);
+    fetchArchiveData();
+  };
+
+  // Merge visit logs + reports into one feed sorted by date - only show 3 most recent
   const feedItems = [
     ...visitLogs.map((l) => ({ ...l, _kind: "log" })),
     ...reports.map((r) => ({ ...r, _kind: "report" })),
   ]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 8);
+    .slice(0, 3);
 
   const formatTime = (d) =>
     new Date(d).toLocaleTimeString("en-GB", {
@@ -309,7 +369,10 @@ export default function FamilyDashboard() {
                     </div>
                     Recent Care Journal
                   </h3>
-                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                  <button
+                    onClick={handleOpenArchive}
+                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  >
                     Full Archive
                   </button>
                 </div>
@@ -492,7 +555,10 @@ export default function FamilyDashboard() {
                       </div>
                     ))}
 
-                    <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group/btn">
+                    <button
+                      className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 group/btn"
+                      onClick={() => router.push("/family/messages")}
+                    >
                       Request New Visit
                       <ArrowUpRight
                         size={14}
@@ -554,7 +620,230 @@ export default function FamilyDashboard() {
           onClose={() => setSelectedSchedule(null)}
         />
       )}
+      {showArchive && (
+        <ArchiveModal
+          archiveData={archiveData}
+          loading={archiveLoading}
+          carerNames={carerNames}
+          formatLogDate={formatLogDate}
+          getMoodEmoji={getMoodEmoji}
+          reportTypeConfig={reportTypeConfig}
+          onSelectLog={setSelectedLog}
+          onSelectReport={setSelectedReport}
+          onClose={() => setShowArchive(false)}
+        />
+      )}
     </>
+  );
+}
+
+/* ─── Archive Modal ──────────────────────────────────────────────── */
+function ArchiveModal({
+  archiveData,
+  loading,
+  carerNames,
+  formatLogDate,
+  getMoodEmoji,
+  reportTypeConfig,
+  onSelectLog,
+  onSelectReport,
+  onClose,
+}) {
+  // Merge all logs and reports into one feed
+  const allItems = [
+    ...archiveData.logs.map((l) => ({ ...l, _kind: "log" })),
+    ...archiveData.reports.map((r) => ({ ...r, _kind: "report" })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-[28px] max-w-4xl w-full shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
+              <History size={18} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                Complete Care Archive
+              </h2>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                Full History • {allItems.length} Records
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+          >
+            <X size={18} className="text-slate-500" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-slate-50 border border-slate-100 rounded-2xl p-6 animate-pulse h-32"
+                />
+              ))}
+            </div>
+          ) : allItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+              <FileText size={48} className="mb-4 opacity-20" />
+              <p className="font-bold text-lg text-slate-900">No records yet</p>
+              <p className="text-sm mt-1">
+                Visit logs and reports will appear here
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {allItems.map((item) => {
+                /* ── Visit Log entry ── */
+                if (item._kind === "log") {
+                  const moodCfg = getMoodEmoji(item.mood);
+                  const carerName = carerNames[item.carer_id];
+                  const initials = carerName
+                    ? carerName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "CT";
+
+                  return (
+                    <div
+                      key={`log-${item.id}`}
+                      onClick={() => {
+                        onClose();
+                        onSelectLog(item);
+                      }}
+                      className="flex gap-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-all cursor-pointer group"
+                    >
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 rounded-xl border-2 border-white bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-105 transition-transform">
+                          {initials}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-black text-sm text-slate-900 tracking-tight">
+                              {carerName || "Care Team"}
+                            </p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                              Visit Log
+                            </p>
+                          </div>
+                          <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest px-2 py-1 bg-blue-50 rounded-full ring-1 ring-blue-100">
+                            {formatLogDate(item.created_at)}
+                          </span>
+                        </div>
+
+                        {item.notes && (
+                          <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2 mb-3 italic">
+                            "{item.notes}"
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {moodCfg && (
+                            <span className="text-[9px] px-2 py-1 bg-white border border-slate-200 text-slate-900 rounded-full font-black uppercase tracking-widest">
+                              Mood: {moodCfg.label}
+                            </span>
+                          )}
+                          {item.appetite && (
+                            <span className="text-[9px] px-2 py-1 bg-white border border-slate-200 text-slate-900 rounded-full font-black uppercase tracking-widest">
+                              Appetite: {item.appetite}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                /* ── Report entry ── */
+                const typeCfg =
+                  reportTypeConfig[item.type] || reportTypeConfig.other;
+                const authorName = item.created_by_profile?.full_name;
+                const initials = authorName
+                  ? authorName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : "MG";
+
+                return (
+                  <div
+                    key={`report-${item.id}`}
+                    onClick={() => {
+                      onClose();
+                      onSelectReport(item);
+                    }}
+                    className="flex gap-4 bg-slate-50/50 p-5 rounded-2xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-all cursor-pointer group"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl border-2 border-white bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-105 transition-transform">
+                        {initials}
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <p className="font-black text-sm text-slate-900 tracking-tight">
+                            {authorName || "Care Team"}
+                          </p>
+                          {item.type && (
+                            <span
+                              className={`text-[9px] px-2 py-1 rounded-full font-black uppercase tracking-widest ${typeCfg.color}`}
+                            >
+                              {item.type}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest px-2 py-1 bg-blue-50 rounded-full ring-1 ring-blue-100">
+                          {formatLogDate(item.created_at)}
+                        </span>
+                      </div>
+
+                      <p className="font-bold text-slate-900 text-xs mb-1">
+                        {item.title}
+                      </p>
+
+                      {item.content && (
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-2">
+                          {item.content}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-slate-100">
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+          >
+            Close Archive
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

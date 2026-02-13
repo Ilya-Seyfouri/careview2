@@ -244,76 +244,66 @@ export default function Messages() {
       : "Messaging assigned care staff";
 
   return (
-    <section className="min-h-screen bg-slate-50 flex flex-col">
+    <section className="h-screen bg-slate-50 flex flex-col overflow-hidden">
       {/* ── Page header ── */}
-      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-4 max-w-2xl">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-          Family Messaging
-        </h2>
-        
-      </div>
-
-      <div className="container mx-auto px-0 lg:px-10 pb-0 lg:pb-10 flex-1 flex flex-col max-w-2xl">
+    
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Chat window wrapper */}
-        <div className="flex-1 flex flex-col bg-white lg:rounded-2xl lg:border lg:border-gray-200 lg:shadow-sm overflow-hidden">
+        <div className="flex-1 flex flex-col bg-white overflow-hidden">
           {/* ── iMessage-style header ── */}
-          <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-            <button className="lg:hidden p-1.5 -ml-1 text-cyan-500">
-              <ChevronLeft size={22} />
-            </button>
-
+          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center gap-3">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-cyan-500/20">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-cyan-500/20">
                 {otherPerson?.full_name?.charAt(0) || "?"}
               </div>
               {/* Online dot */}
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-gray-50" />
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-50" />
             </div>
 
             {/* Name & role */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
+              <p className="text-base font-bold text-gray-900 truncate">
                 {otherPerson?.full_name || "Loading..."}
               </p>
-              <p className="text-xs text-gray-400 truncate">{headerSubtitle}</p>
+              <p className="text-sm text-gray-400 truncate">{headerSubtitle}</p>
             </div>
 
             {/* Header actions */}
-            <div className="flex items-center gap-1">
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
-                <Phone size={18} />
+            <div className="flex items-center gap-2">
+              <button className="p-2.5 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
+                <Phone size={20} />
               </button>
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
-                <Video size={18} />
+              <button className="p-2.5 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
+                <Video size={20} />
               </button>
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
-                <Info size={18} />
+              <button className="p-2.5 rounded-full hover:bg-gray-100 transition-colors text-cyan-500">
+                <Info size={20} />
               </button>
             </div>
           </div>
 
           {/* ── Message list ── */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1 bg-white">
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-2 bg-white">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 animate-pulse" />
-                  <p className="text-xs text-gray-400">Loading messages...</p>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 animate-pulse" />
+                  <p className="text-sm text-gray-400">Loading messages...</p>
                 </div>
               </div>
             ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl shadow-cyan-500/20">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-3xl font-bold shadow-xl shadow-cyan-500/20">
                   {otherPerson?.full_name?.charAt(0) || "?"}
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-gray-700">
+                  <p className="text-base font-semibold text-gray-700">
                     {otherPerson?.full_name || ""}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">{headerSubtitle}</p>
+                  <p className="text-sm text-gray-400 mt-1">{headerSubtitle}</p>
                 </div>
-                <p className="text-xs text-gray-400 text-center max-w-xs leading-relaxed">
+                <p className="text-sm text-gray-400 text-center max-w-md leading-relaxed">
                   This is the beginning of your conversation. Send a message to
                   get started.
                 </p>
@@ -324,9 +314,9 @@ export default function Messages() {
                   return (
                     <div
                       key={item.id}
-                      className="flex items-center justify-center py-3"
+                      className="flex items-center justify-center py-4"
                     >
-                      <span className="text-xs text-gray-400 font-medium bg-gray-100 px-3 py-1 rounded-full">
+                      <span className="text-xs text-gray-400 font-medium bg-gray-100 px-4 py-1.5 rounded-full">
                         {item.label}
                       </span>
                     </div>
@@ -338,20 +328,20 @@ export default function Messages() {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+                    className={`flex items-end gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
                   >
                     {/* Other person avatar — only show on their messages */}
                     {!isMe && (
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mb-1">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mb-1">
                         {otherPerson?.full_name?.charAt(0) || "?"}
                       </div>
                     )}
 
                     <div
-                      className={`flex flex-col gap-0.5 max-w-[72%] ${isMe ? "items-end" : "items-start"}`}
+                      className={`flex flex-col gap-1 max-w-[65%] ${isMe ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-opacity ${
+                        className={`px-4 py-3 rounded-2xl text-[15px] leading-relaxed transition-opacity ${
                           item._optimistic ? "opacity-70" : "opacity-100"
                         } ${
                           isMe
@@ -361,7 +351,7 @@ export default function Messages() {
                       >
                         {item.content}
                       </div>
-                      <span className="text-[10px] text-gray-400 px-1">
+                      <span className="text-[11px] text-gray-400 px-1">
                         {formatTime(item.created_at)}
                         {item._optimistic && " · Sending..."}
                       </span>
@@ -374,9 +364,9 @@ export default function Messages() {
           </div>
 
           {/* ── Input bar ── */}
-          <div className="border-t border-gray-100 bg-white px-4 py-3">
-            <div className="flex items-end gap-3">
-              <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5 min-h-[42px] flex items-center">
+          <div className="border-t border-gray-100 bg-white px-6 py-4">
+            <div className="flex items-end gap-3 max-w-4xl mx-auto">
+              <div className="flex-1 bg-gray-100 rounded-3xl px-5 py-3 min-h-[48px] flex items-center">
                 <textarea
                   ref={inputRef}
                   rows={1}
@@ -389,8 +379,8 @@ export default function Messages() {
                   }}
                   onKeyDown={handleKeyDown}
                   placeholder="iMessage"
-                  className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none resize-none leading-relaxed"
-                  style={{ height: "22px", maxHeight: "120px" }}
+                  className="w-full bg-transparent text-[15px] text-gray-800 placeholder:text-gray-400 focus:outline-none resize-none leading-relaxed"
+                  style={{ height: "24px", maxHeight: "120px" }}
                 />
               </div>
 
@@ -398,14 +388,14 @@ export default function Messages() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
-                className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
                   input.trim()
                     ? "bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-md shadow-cyan-500/30 text-white"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
                 <Send
-                  size={15}
+                  size={16}
                   className={input.trim() ? "translate-x-px" : ""}
                 />
               </button>

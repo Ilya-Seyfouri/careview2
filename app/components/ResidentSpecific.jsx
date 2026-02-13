@@ -858,7 +858,7 @@ function ScheduleTab({ residentId }) {
         const { data, error: err } = await supabase
           .from("schedules")
           .select(
-            `id, start_at, end_at, status, created_at, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
+            `id, start_at, end_at, status, created_at, title, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
           )
           .eq("patient_id", residentId)
           .order("start_at", { ascending: false });
@@ -917,14 +917,7 @@ function ScheduleTab({ residentId }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Patient Schedules
-        </h4>
-        <span className="text-sm text-slate-500 font-bold">
-          {schedules.length} total
-        </span>
-      </div>
+      
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
         const cfg =
@@ -933,26 +926,22 @@ function ScheduleTab({ residentId }) {
         return (
           <div
             key={s.id}
-            className={`bg-white border rounded-[24px] p-8 hover:shadow-lg transition-all ${upcoming ? "border-blue-200 ring-2 ring-blue-50" : "border-slate-100"}`}
+            className={`bg-slate-100 hover:border   rounded-[24px] p-6 hover:shadow-lg transition-all ${upcoming ? "border-blue-300 ring-2 ring-blue-50" : "border-slate-300"}`}
           >
             <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
               >
                 <CalendarDays size={26} className="text-white" />
               </div>
               <div className="flex-1">
                 <h3 className="font-black text-lg text-slate-900 tracking-tight">
-                  Schedule #{s.id.substring(0, 8)}
+                  {s.title}
                 </h3>
                 <div className="flex items-center gap-2 mt-2">
-                  <span
-                    className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${cfg.color}`}
-                  >
-                    {cfg.label}
-                  </span>
+                 
                   {upcoming && (
-                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
+                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
@@ -982,7 +971,7 @@ function ScheduleTab({ residentId }) {
             {(s.carer || s.created_by_profile) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                 {s.carer && (
-                  <div>
+                  <div className="px-4">
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
@@ -992,17 +981,7 @@ function ScheduleTab({ residentId }) {
                     </p>
                   </div>
                 )}
-                {s.created_by_profile && (
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                      <User size={12} className="text-blue-500" />
-                      Created By
-                    </p>
-                    <p className="text-base font-black text-slate-900 tracking-tight">
-                      {s.created_by_profile.full_name}
-                    </p>
-                  </div>
-                )}
+                
               </div>
             )}
           </div>

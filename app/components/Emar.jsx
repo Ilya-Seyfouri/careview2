@@ -92,13 +92,33 @@ export default function Emar() {
     return round ? isInRound(e.time_to_take, round) : true;
   });
 
-  const filteredEntries = roundEntries.filter((entry) => {
-    const patient = patients[entry.patient_id];
-    const name = patient?.full_name?.toLowerCase() || "";
-    const med = entry.medication_name?.toLowerCase() || "";
-    const term = searchTerm.toLowerCase();
-    return name.includes(term) || med.includes(term);
-  });
+  const filteredEntries = roundEntries
+    .filter((entry) => {
+      const patient = patients[entry.patient_id];
+      const name = patient?.full_name?.toLowerCase() || "";
+      const med = entry.medication_name?.toLowerCase() || "";
+      const term = searchTerm.toLowerCase();
+      return name.includes(term) || med.includes(term);
+    })
+    .sort((a, b) => {
+      // Status priority: due (0) -> missed (1) -> given (2)
+      const statusPriority = {
+        due: 0,
+        missed: 1,
+        given: 2,
+      };
+
+      const aPriority = statusPriority[a.status] ?? 3;
+      const bPriority = statusPriority[b.status] ?? 3;
+
+      // First sort by status priority
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+
+      // Then sort by time within same status
+      return a.time_to_take.localeCompare(b.time_to_take);
+    });
 
   const given = roundEntries.filter((e) => e.status === "given").length;
   const total = roundEntries.length;
@@ -635,37 +655,6 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-              Initial Status
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: "due", label: "Due", color: "amber" },
-                { value: "given", label: "Given", color: "green" },
-                { value: "missed", label: "Missed", color: "red" },
-              ].map(({ value, label, color }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, status: value })}
-                  className={`py-3 rounded-xl text-sm font-black border-2 transition-all ${
-                    formData.status === value
-                      ? color === "amber"
-                        ? "bg-amber-50 border-amber-400 text-amber-700"
-                        : color === "green"
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-700"
-                          : "bg-rose-50 border-rose-400 text-rose-700"
-                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
             </div>
           </div>
 

@@ -1,14 +1,20 @@
 "use client";
-// components/CarerSidebar.jsx
 import { useRouter, usePathname } from "next/navigation";
-import { LayoutDashboard, Users } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  Pill,
+  Repeat,
+  MessageSquare,
+  HeartPulse,
+} from "lucide-react";
 import RoleSwitcher from "./RoleSwitcher";
 
 const menuItems = [
   {
     id: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
+    label: "My Schedule",
+    icon: Calendar,
     href: "/carer",
   },
   {
@@ -19,20 +25,20 @@ const menuItems = [
   },
   {
     id: "emar",
-    label: "eMAR",
-    icon: Users,
+    label: "eMAR Round",
+    icon: Pill,
     href: "/carer/emarcarer",
   },
   {
     id: "shifthandover",
-    label: "shifthandover",
-    icon: Users,
+    label: "Handover",
+    icon: Repeat,
     href: "/carer/shifthandover",
   },
   {
     id: "messages",
-    label: "messages",
-    icon: Users,
+    label: "Messages",
+    icon: MessageSquare,
     href: "/carer/messages",
   },
 ];
@@ -47,38 +53,46 @@ export default function CarerSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-background border-r border-white/5">
-      <div className="p-6 border-b border-white/5">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-violet-400 via-violet-500 to-violet-600 bg-clip-text text-transparent">
-          Care Manager
-        </h1>
-        <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-semibold uppercase tracking-wider">
-          Demo Mode
+    <aside className="bg-white border-r border-slate-200 flex flex-col w-[260px] h-screen shadow-[4px_0_24px_-4px_rgba(0,0,0,0.02)]">
+      {/* Header */}
+      <div className="p-6 flex items-center gap-3 shrink-0">
+        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-xl shadow-slate-200">
+          <HeartPulse className="text-white w-5 h-5" />
+        </div>
+        <span className="font-bold text-xl tracking-tight text-slate-900">
+          CareView
         </span>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const active = isActive(item.href, pathname);
           return (
             <button
               key={item.id}
               onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all active:scale-95 ${
-                isActive(item.href, pathname)
-                  ? "bg-gradient-to-r from-violet-400 via-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/30"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all relative group ${
+                active
+                  ? "bg-slate-900 text-white shadow-2xl shadow-slate-300"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
               }`}
               type="button"
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <Icon
+                size={20}
+                strokeWidth={active ? 2.5 : 2}
+                className="shrink-0"
+              />
+              <span className="text-sm tracking-tight">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
+      {/* Role Switcher */}
       <RoleSwitcher />
-    </div>
+    </aside>
   );
 }

@@ -281,11 +281,9 @@ export default function CarerDashboard() {
             <div className="flex items-end justify-between mb-8">
               <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Today's Protocol
+                  Your Schedules
                 </h2>
-                <p className="text-slate-400 font-bold text-sm">
-                  Priority sequence based on clinical requirements
-                </p>
+               
               </div>
               <button
                 onClick={handleOpenHistory}

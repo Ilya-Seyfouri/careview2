@@ -1,5 +1,4 @@
 "use client";
-// components/ManagerSidebar.jsx
 import { useRouter, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -8,24 +7,37 @@ import {
   UsersRound,
   Calendar,
   FileText,
+  Pill,
+  BarChart,
+  Repeat,
+  HeartPulse,
 } from "lucide-react";
 import RoleSwitcher from "./RoleSwitcher";
 
 const menuItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { id: "residents", label: "Residents", icon: Users, href: "/residents" },
-  { id: "carers", label: "Carers", icon: HeartHandshake, href: "/carerslist" },
-  { id: "families", label: "Families", icon: UsersRound, href: "/familyslist" },
-  { id: "emar", label: "eMAR", icon: UsersRound, href: "/emar" },
-  { id: "reports", label: "reports", icon: UsersRound, href: "/reports" },
-  { id: "shifthandover", label: "shifthandover", icon: UsersRound, href: "/shifthandover" },
-
+  { id: "emar", label: "eMAR", icon: Pill, href: "/emar" },
   {
     id: "schedules",
     label: "Schedules",
     icon: Calendar,
     href: "/schedulemanager",
   },
+  {
+    id: "shifthandover",
+    label: "Shift Handover",
+    icon: Repeat,
+    href: "/shifthandover",
+  },
+  {
+    id: "carers",
+    label: "Staff Management",
+    icon: HeartHandshake,
+    href: "/carerslist",
+  },
+  { id: "families", label: "Families", icon: UsersRound, href: "/familyslist" },
+  { id: "reports", label: "Reports", icon: BarChart, href: "/reports" },
   { id: "audit-log", label: "Audit Log", icon: FileText, href: "/auditlog" },
 ];
 
@@ -34,17 +46,19 @@ export default function ManagerSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-background border-r border-white/5">
-      <div className="p-6 border-b border-white/5">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">
-          Care Manager
-        </h1>
-        <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-semibold uppercase tracking-wider">
-          Demo Mode
+    <aside className="bg-white border-r border-slate-200 flex flex-col w-[260px] h-screen shadow-[4px_0_24px_-4px_rgba(0,0,0,0.02)]">
+      {/* Header */}
+      <div className="p-6 flex items-center gap-3 shrink-0">
+        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-xl shadow-slate-200">
+          <HeartPulse className="text-white w-5 h-5" />
+        </div>
+        <span className="font-bold text-xl tracking-tight text-slate-900">
+          CareView
         </span>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-4">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -53,21 +67,26 @@ export default function ManagerSidebar() {
             <button
               key={item.id}
               onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all active:scale-95 ${
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all relative group ${
                 isActive
-                  ? "bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                  ? "bg-slate-900 text-white shadow-2xl shadow-slate-300"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
               }`}
               type="button"
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <Icon
+                size={20}
+                strokeWidth={isActive ? 2.5 : 2}
+                className="shrink-0"
+              />
+              <span className="text-sm tracking-tight">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
+      {/* Role Switcher */}
       <RoleSwitcher />
-    </div>
+    </aside>
   );
 }
