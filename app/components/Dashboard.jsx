@@ -189,6 +189,7 @@ export default function ManagerDashboard() {
     }
   };
 
+  
   const staffRatio =
     staffStatus.active > 0
       ? `1:${Math.round(occupancy / staffStatus.active)}`
@@ -240,9 +241,7 @@ export default function ManagerDashboard() {
 
           {/* Alert Cards */}
           <div className="flex w-full h-90 w-90">
-            <div className="border-2">
-              hi
-            </div>
+            <div className="border-2">hi</div>
           </div>
 
           {/* Charts Row */}
@@ -324,7 +323,6 @@ export default function ManagerDashboard() {
                   />
                 </div>
               )}
-              
             </div>
           </div>
 
@@ -343,7 +341,6 @@ export default function ManagerDashboard() {
               cta="View All Tasks"
               ctaColor="text-rose-600"
               gradient="from-rose-500 to-red-600"
-              onCta={() => router.push("/schedules")}
             />
 
             {/* Latest Handover */}
