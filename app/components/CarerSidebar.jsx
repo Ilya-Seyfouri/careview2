@@ -85,7 +85,7 @@ export default function CarerSidebar() {
                 strokeWidth={active ? 2.5 : 2}
                 className="shrink-0"
               />
-              <span className="text-sm tracking-tight">{item.label}</span>
+              <span className="text-sm tracking-tight font-semibold">{item.label}</span>
             </button>
           );
         })}

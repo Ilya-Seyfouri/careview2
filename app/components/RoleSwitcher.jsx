@@ -10,17 +10,24 @@ const roleOptions = [
   { value: "family", label: "Family Member", path: "/family" },
 ];
 
+const ROLE_IDS = {
+  carer: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  family: "dddddddd-dddd-dddd-dddd-dddddddddddd",
+};
 export default function RoleSwitcher() {
-  const { demoUser, loadUserForRole } = useDemoUser();
+const { demoUser, loadUserForRole, loadUserById } = useDemoUser();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
   const handleRoleChange = async (newRole, path) => {
-    await loadUserForRole(newRole);
+    if (ROLE_IDS[newRole]) {
+      await loadUserById(ROLE_IDS[newRole]);
+    } else {
+      await loadUserForRole(newRole);
+    }
     router.push(path);
     setIsOpen(false);
   };
-
   const currentRoleLabel =
     roleOptions.find((r) => r.value === demoUser?.role)?.label || "Manager";
 

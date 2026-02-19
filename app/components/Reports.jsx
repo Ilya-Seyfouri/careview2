@@ -120,7 +120,7 @@ export default function Analytics() {
             visits: carerMap[c.id] || 0,
           }))
           .sort((a, b) => b.visits - a.visits)
-          .slice(0, 6);
+          .slice(0, 3);
         setStaffVisitCounts(staffData);
       }
     } catch (err) {
@@ -404,26 +404,24 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
               />
             ))}
 
-            {/* Bars */}
             <div className="absolute inset-0 flex items-end justify-around px-2 gap-4">
               {data.map((staff) => {
-                const heightPct = (staff.visits / yMax) * 100;
+                const heightPx = Math.max((staff.visits / yMax) * 208, 8);
                 const isHovered = tooltip?.id === staff.id;
                 return (
                   <div
                     key={staff.id}
                     className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer"
-                    onMouseEnter={() => {
+                    onMouseEnter={() =>
                       setTooltip({
                         id: staff.id,
                         name: staff.shortName,
                         visits: staff.visits,
-                      });
-                    }}
+                      })
+                    }
                     onMouseLeave={() => setTooltip(null)}
                   >
                     <div className="relative w-full flex justify-center">
-                      {/* Tooltip */}
                       {isHovered && (
                         <div
                           className="absolute bottom-full mb-3 bg-slate-900 rounded-2xl shadow-2xl px-4 py-3 z-10 whitespace-nowrap pointer-events-none"
@@ -437,18 +435,13 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
                           </p>
                         </div>
                       )}
-
-                      {/* Bar */}
                       <div
-                        className={`w-full rounded-t-2xl transition-all duration-300 shadow-lg ${
+                        className={`w-1/2 rounded-t-2xl transition-all duration-300 shadow-lg ${
                           isHovered
                             ? "bg-blue-500 scale-105"
                             : "bg-blue-600 group-hover:bg-blue-500"
                         }`}
-                        style={{
-                          height: `${Math.max(heightPct, 4)}%`,
-                          maxHeight: "208px",
-                        }}
+                        style={{ height: `${heightPx}px` }}
                       />
                     </div>
                   </div>

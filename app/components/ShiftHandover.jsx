@@ -63,7 +63,6 @@ const TEST_DATA = {
   },
 };
 
-// NEW: returns colour tokens for flag cards based on shift assessment level
 const getFlagStyles = (level) => {
   switch (level) {
     case "GOOD":
@@ -124,11 +123,11 @@ export default function ShiftHandover() {
   const [handoverLoading, setHandoverLoading] = useState(false);
   const [shiftType, setShiftType] = useState("AM->PM");
   const [shiftSummary, setShiftSummary] = useState("");
-  const [followUps, setFollowUps] = useState([]);
   const [generalNotes, setGeneralNotes] = useState("");
   const [redFlags, setRedFlags] = useState([]);
   const [newFlag, setNewFlag] = useState({ patient_id: "", patient_notes: "" });
   const [addingFlag, setAddingFlag] = useState(false);
+  const [loadingAISummary, setLoadingAISummary] = useState(false);
 
   useEffect(() => {
     if (demoUser?.id) fetchData(demoUser);
@@ -156,7 +155,6 @@ export default function ShiftHandover() {
         .select("id, shift_type, created_at")
         .order("created_at", { ascending: false })
         .limit(25);
-      // Deduplicate by created_at — multiple rows per handover (one per patient flag)
       const seen = new Set();
       const dedupedPast = (past || [])
         .filter((h) => {
@@ -267,8 +265,7 @@ export default function ShiftHandover() {
       setTimeout(() => {
         setGeneralNotes("");
         setRedFlags([]);
-        setFollowUps([]); // CHANGE: clear follow ups on publish
-        setShiftSummary(""); // CHANGE: clear shift summary on publish
+        setShiftSummary("");
         setShiftAssessment(null);
         setSaved(false);
         fetchData(demoUser);
@@ -280,36 +277,47 @@ export default function ShiftHandover() {
     }
   };
 
-  const sortedPatients = [...patients].sort((a, b) =>
-    a.full_name.localeCompare(b.full_name),
-  );
-  const flaggedPatientIds = redFlags.map((f) => f.patient_id);
-  const availablePatients = sortedPatients.filter(
-    (p) => !flaggedPatientIds.includes(p.id),
-  );
-  const getPatient = (id) => patients.find((p) => p.id === id);
+  // ── Parse AI summary response ──
+  // New prompt returns: "patient_id - Patient Name - What happened"
+  // We use patient_id (UUID) directly instead of looking up by name
+  const parseAISummary = (summary) => {
+    const patientNotesMap = {};
 
-  const completionSteps = [
-    { label: "Shift direction set", done: !!shiftType },
-    { label: "General observations", done: generalNotes.trim().length > 0 },
-    { label: "Resident flags added", done: redFlags.length > 0 },
-  ];
-  const completionPct = Math.round(
-    (completionSteps.filter((s) => s.done).length / completionSteps.length) *
-      100,
-  );
+    // Helper: parse "patient_id - Patient Name - note content" entries
+    const parseEntries = (entries, prefix) => {
+      if (!entries) return;
+      entries.forEach((entry) => {
+        // Split on " - " — first part is UUID, second is name, rest is note
+        const parts = entry.split(" - ");
+        if (parts.length < 3) return;
+        const patientId = parts[0].trim();
+        // parts[1] is patient name — we don't need it for the map key
+        const noteContent = parts.slice(2).join(" - ");
+        if (!patientNotesMap[patientId]) {
+          patientNotesMap[patientId] = [];
+        }
+        patientNotesMap[patientId].push(`${prefix} ${noteContent}`);
+      });
+    };
 
-  const isLoading = userLoading || loading;
+    // New prompt fields
+    parseEntries(summary.critical_incidents, "🚨");
+    parseEntries(summary.notable_observations, "📋");
 
-  const [loadingAISummary, setLoadingAISummary] = useState(false);
+    const newFlags = Object.keys(patientNotesMap).map((patientId) => ({
+      patient_id: patientId,
+      patient_notes: patientNotesMap[patientId].join("\n\n"),
+    }));
+
+    return newFlags;
+  };
 
   const generateAIShiftSummary = async () => {
     try {
       setLoadingAISummary(true);
-      setRedFlags([]); // CHANGE: clear before generating
-      setFollowUps([]); // CHANGE: clear before generating
-      setShiftSummary(""); // clear before generating
-      setShiftAssessment(null); // clear before generating
+      setRedFlags([]);
+      setShiftSummary("");
+      setShiftAssessment(null);
 
       const { data: visitLogs } = await supabase
         .from("visit_logs")
@@ -325,40 +333,25 @@ export default function ShiftHandover() {
         )
         .order("created_at", { ascending: false })
         .limit(3);
-      const patientIdMap = {};
-      const formattedVisitLogs = (visitLogs || []).map((log, index) => {
-        const patientName = log.patients?.full_name || "Unknown";
-        patientIdMap[patientName] = log.patient_id;
-        return {
-          visit: index + 1,
-          patient_name: patientName,
-          health_summary: log.patients?.health_summary || "Not available",
-          notes: log.notes || "No notes recorded",
-          appetite: log.appetite || "Not recorded",
-          mood: log.mood || "Not recorded",
-        };
-      });
-      const formattedReports = (reports || []).map((report, index) => {
-        const patientName = report.patients?.full_name || "Unknown";
-        patientIdMap[patientName] = report.patient_id;
-        return {
-          report: index + 1,
-          patient_name: patientName,
-          health_summary: report.patients?.health_summary || "Not available",
-          type: report.type || "General",
-          content: report.content || "No content",
-        };
-      });
-      console.log("=== VISIT LOGS ===");
-      formattedVisitLogs.forEach((log, i) => {
-        console.log(`\nVisit Log ${i + 1}:`, log);
-      });
-      console.log("\n=== REPORTS ===");
-      formattedReports.forEach((report, i) => {
-        console.log(`\nReport ${i + 1}:`, report);
-      });
-      console.log("\n=== PATIENT ID MAP ===");
-      console.log(patientIdMap);
+
+      const formattedVisitLogs = (visitLogs || []).map((log, index) => ({
+        visit: index + 1,
+        patient_id: log.patient_id,
+        patient_name: log.patients?.full_name || "Unknown",
+        health_summary: log.patients?.health_summary || "Not available",
+        notes: log.notes || "No notes recorded",
+        appetite: log.appetite || "Not recorded",
+        mood: log.mood || "Not recorded",
+      }));
+      const formattedReports = (reports || []).map((report, index) => ({
+        report: index + 1,
+        patient_id: report.patient_id,
+        patient_name: report.patients?.full_name || "Unknown",
+        health_summary: report.patients?.health_summary || "Not available",
+        type: report.type || "General",
+        content: report.content || "No content",
+      }));
+
       const response = await fetch("/api/generate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -367,69 +360,24 @@ export default function ShiftHandover() {
           reports: formattedReports,
         }),
       });
-      if (!response.ok) {
-        throw new Error("Failed to generate summary");
-      }
+      if (!response.ok) throw new Error("Failed to generate summary");
+
       const result = await response.json();
-      console.log(result);
       if (result.success && result.summary) {
         const summary = JSON.parse(result.summary);
-        const patientNotesMap = {};
-        if (summary.critical_alerts) {
-          summary.critical_alerts.forEach((alert) => {
-            const parts = alert.split(" - ");
-            console.log(alert);
-            const patientName = parts[0];
-            const patientId = patientIdMap[patientName];
-            console.log("Looking for:", patientName);
-            console.log("Found ID:", patientId);
-            if (patientId) {
-              if (!patientNotesMap[patientId]) {
-                patientNotesMap[patientId] = [];
-              }
-              const alertWithoutName = parts.slice(1).join(" - ");
-              console.log(alertWithoutName);
-              patientNotesMap[patientId].push(`🚨 ${alertWithoutName}`);
-            }
-          });
-        }
-        if (summary.key_observations) {
-          summary.key_observations.forEach((obs) => {
-            console.log(summary.key_observations);
-            const parts = obs.split(" - ");
-            const patientName = parts[0];
-            const patientId = patientIdMap[patientName];
-            console.log("Looking for:", patientName);
-            console.log("Found ID:", patientId);
-            if (patientId) {
-              if (!patientNotesMap[patientId]) {
-                patientNotesMap[patientId] = [];
-              }
-              const noteWithoutName = parts.slice(1).join(" - ");
-              console.log("hi" + noteWithoutName);
-              patientNotesMap[patientId].push(`📋 ${noteWithoutName}`);
-            }
-          });
-        }
-        const newFlags = Object.keys(patientNotesMap).map((patientId) => ({
-          patient_id: patientId,
-          patient_notes: patientNotesMap[patientId].join("\n\n"),
-        }));
+        const newFlags = parseAISummary(summary);
         setRedFlags(newFlags);
-        let notesText = "";
+
         if (summary.shift_assessment) {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
+        }
+
+        // General notes — just the shift summary now (no follow-ups)
+        let notesText = "";
+        if (summary.shift_assessment) {
           notesText += "SHIFT SUMMARY:\n\n";
           notesText += summary.shift_assessment.summary;
-          notesText += "\n\n";
-        }
-        if (summary.follow_up_actions?.length > 0) {
-          setFollowUps(summary.follow_up_actions);
-          notesText += "FOLLOW-UPS:\n\n";
-          summary.follow_up_actions.forEach((action, i) => {
-            notesText += `${i + 1}. ${action}\n\n`;
-          });
         }
         setGeneralNotes(notesText);
       }
@@ -444,10 +392,9 @@ export default function ShiftHandover() {
   const generateTestSummary = async (testMode) => {
     try {
       setLoadingAISummary(true);
-      setShiftSummary(""); // clear before generating
-      setShiftAssessment(null); // clear before generating
-      setRedFlags([]); // CHANGE: clear before generating
-      setFollowUps([]); // CHANGE: clear before generating
+      setShiftSummary("");
+      setShiftAssessment(null);
+      setRedFlags([]);
 
       const testIds = TEST_DATA[testMode];
       const { data: visitLogs } = await supabase
@@ -462,39 +409,25 @@ export default function ShiftHandover() {
           `id, content, type, patient_id, created_at, patients (full_name, health_summary)`,
         )
         .in("id", testIds.reportIds);
-      const patientIdMap = {};
-      const formattedVisitLogs = (visitLogs || []).map((log, index) => {
-        const patientName = log.patients?.full_name || "Unknown";
-        patientIdMap[patientName] = log.patient_id;
-        return {
-          visit: index + 1,
-          patient_name: patientName,
-          health_summary: log.patients?.health_summary || "Not available",
-          notes: log.notes || "No notes recorded",
-          appetite: log.appetite || "Not recorded",
-          mood: log.mood || "Not recorded",
-        };
-      });
-      const formattedReports = (reports || []).map((report, index) => {
-        const patientName = report.patients?.full_name || "Unknown";
-        patientIdMap[patientName] = report.patient_id;
-        return {
-          report: index + 1,
-          patient_name: patientName,
-          health_summary: report.patients?.health_summary || "Not available",
-          type: report.type || "General",
-          content: report.content || "No content",
-        };
-      });
-      console.log(`=== USING ${testMode} TEST DATA ===`);
-      console.log("=== VISIT LOGS ===");
-      formattedVisitLogs.forEach((log, i) => {
-        console.log(`\nVisit Log ${i + 1}:`, log);
-      });
-      console.log("\n=== REPORTS ===");
-      formattedReports.forEach((report, i) => {
-        console.log(`\nReport ${i + 1}:`, report);
-      });
+
+      const formattedVisitLogs = (visitLogs || []).map((log, index) => ({
+        visit: index + 1,
+        patient_id: log.patient_id,
+        patient_name: log.patients?.full_name || "Unknown",
+        health_summary: log.patients?.health_summary || "Not available",
+        notes: log.notes || "No notes recorded",
+        appetite: log.appetite || "Not recorded",
+        mood: log.mood || "Not recorded",
+      }));
+      const formattedReports = (reports || []).map((report, index) => ({
+        report: index + 1,
+        patient_id: report.patient_id,
+        patient_name: report.patients?.full_name || "Unknown",
+        health_summary: report.patients?.health_summary || "Not available",
+        type: report.type || "General",
+        content: report.content || "No content",
+      }));
+
       const response = await fetch("/api/generate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -503,61 +436,23 @@ export default function ShiftHandover() {
           reports: formattedReports,
         }),
       });
-      if (!response.ok) {
-        throw new Error("Failed to generate summary");
-      }
+      if (!response.ok) throw new Error("Failed to generate summary");
+
       const result = await response.json();
-      console.log(result);
       if (result.success && result.summary) {
         const summary = JSON.parse(result.summary);
-        const patientNotesMap = {};
-        if (summary.critical_alerts) {
-          summary.critical_alerts.forEach((alert) => {
-            const parts = alert.split(" - ");
-            const patientName = parts[0];
-            const patientId = patientIdMap[patientName];
-            if (patientId) {
-              if (!patientNotesMap[patientId]) {
-                patientNotesMap[patientId] = [];
-              }
-              const alertWithoutName = parts.slice(1).join(" - ");
-              patientNotesMap[patientId].push(`🚨 ${alertWithoutName}`);
-            }
-          });
-        }
-        if (summary.key_observations) {
-          summary.key_observations.forEach((obs) => {
-            const parts = obs.split(" - ");
-            const patientName = parts[0];
-            const patientId = patientIdMap[patientName];
-            if (patientId) {
-              if (!patientNotesMap[patientId]) {
-                patientNotesMap[patientId] = [];
-              }
-              const noteWithoutName = parts.slice(1).join(" - ");
-              patientNotesMap[patientId].push(`📋 ${noteWithoutName}`);
-            }
-          });
-        }
-        const newFlags = Object.keys(patientNotesMap).map((patientId) => ({
-          patient_id: patientId,
-          patient_notes: patientNotesMap[patientId].join("\n\n"),
-        }));
+        const newFlags = parseAISummary(summary);
         setRedFlags(newFlags);
-        let notesText = "";
+
         if (summary.shift_assessment) {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
+        }
+
+        let notesText = "";
+        if (summary.shift_assessment) {
           notesText += "SHIFT SUMMARY:\n\n";
           notesText += summary.shift_assessment.summary;
-          notesText += "\n\n";
-        }
-        if (summary.follow_up_actions?.length > 0) {
-          setFollowUps(summary.follow_up_actions);
-          notesText += "FOLLOW-UPS:\n\n";
-          summary.follow_up_actions.forEach((action, i) => {
-            notesText += `${i + 1}. ${action}\n\n`;
-          });
         }
         setGeneralNotes(notesText);
       }
@@ -570,7 +465,6 @@ export default function ShiftHandover() {
   };
 
   const getAssessmentIcon = (level) => {
-    if (!level) return null;
     switch (level) {
       case "GOOD":
         return <CheckCircle size={18} className="text-green-600" />;
@@ -596,7 +490,26 @@ export default function ShiftHandover() {
     }
   };
 
-  // NEW: derive flag styles from current assessment level
+  const sortedPatients = [...patients].sort((a, b) =>
+    a.full_name.localeCompare(b.full_name),
+  );
+  const flaggedPatientIds = redFlags.map((f) => f.patient_id);
+  const availablePatients = sortedPatients.filter(
+    (p) => !flaggedPatientIds.includes(p.id),
+  );
+  const getPatient = (id) => patients.find((p) => p.id === id);
+
+  const completionSteps = [
+    { label: "Shift direction set", done: !!shiftType },
+    { label: "General observations", done: generalNotes.trim().length > 0 },
+    { label: "Resident flags added", done: redFlags.length > 0 },
+  ];
+  const completionPct = Math.round(
+    (completionSteps.filter((s) => s.done).length / completionSteps.length) *
+      100,
+  );
+
+  const isLoading = userLoading || loading;
   const flagStyles = getFlagStyles(shiftAssessment?.level);
 
   return (
@@ -770,7 +683,7 @@ export default function ShiftHandover() {
                   </div>
                 )}
 
-                {/* Resident Red Flags - CHANGE: header icon + cards use flagStyles */}
+                {/* Resident Red Flags */}
                 <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
                   <div className="flex items-center gap-3 mb-5">
                     <div
@@ -783,7 +696,7 @@ export default function ShiftHandover() {
                     </div>
                     <div>
                       <p className="text-sm font-black text-slate-900">
-                        Resident Red Flags
+                        Resident Flags
                       </p>
                       <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
                         Per-resident concerns
@@ -903,57 +816,6 @@ export default function ShiftHandover() {
                       Add New Flag
                     </button>
                   )}
-                </div>
-
-                {/* Follow Ups */}
-                <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                      <FileText size={18} className="text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-900">
-                        Follow Ups
-                      </p>
-                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
-                        Shift assessment, summary & follow-ups
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-5">
-                    {followUps.length > 0 && (
-                      <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                          Follow-up Actions
-                        </p>
-                        <div className="space-y-3">
-                          {followUps.map((action, i) => (
-                            <div
-                              key={i}
-                              className="flex items-start gap-3 p-4 bg-blue-50/50 border border-blue-100/50 rounded-xl"
-                            >
-                              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-black text-blue-600 flex-shrink-0">
-                                {i + 1}
-                              </div>
-                              <p className="text-sm text-blue-900 font-medium leading-relaxed flex-1">
-                                {action}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {!shiftAssessment &&
-                      !shiftSummary &&
-                      followUps.length === 0 && (
-                        <div className="text-center py-8">
-                          <p className="text-xs text-slate-400 font-medium italic">
-                            Generate AI summary to populate observations and
-                            follow-ups
-                          </p>
-                        </div>
-                      )}
-                  </div>
                 </div>
 
                 {error && (
@@ -1122,46 +984,34 @@ function HandoverModal({ handover, details, loading, onClose }) {
       ? "AM to PM Transition"
       : "PM to AM Transition";
 
+  // Parse stored general notes — now only contains SHIFT SUMMARY (no follow-ups)
   const parseGeneralNotes = (notes) => {
-    if (!notes) return { shiftSummary: "", followUps: [], shiftLevel: null };
-    const summaryMatch = notes.match(
-      /SHIFT SUMMARY:\n\n([\s\S]*?)(?=\n\nFOLLOW-UPS:|$)/,
-    );
-    const followUpsMatch = notes.match(/FOLLOW-UPS:\n\n([\s\S]*)/);
-    const shiftSummary = summaryMatch ? summaryMatch[1].trim() : "";
-    const followUpsText = followUpsMatch ? followUpsMatch[1].trim() : "";
-    const followUps = followUpsText
-      ? followUpsText
-          .split(/\n\n/)
-          .map((item) => item.replace(/^\d+\.\s*/, "").trim())
-          .filter(Boolean)
-      : [];
+    if (!notes) return { shiftSummary: "", shiftLevel: null };
+    const summaryMatch = notes.match(/SHIFT SUMMARY:\n\n([\s\S]*)/);
+    const shiftSummary = summaryMatch ? summaryMatch[1].trim() : notes.trim();
+
     let shiftLevel = null;
-    if (
-      shiftSummary.toLowerCase().includes("critical") ||
-      shiftSummary.toLowerCase().includes("severe")
-    ) {
+    const lower = shiftSummary.toLowerCase();
+    if (lower.includes("critical") || lower.includes("severe")) {
       shiftLevel = "CRITICAL";
     } else if (
-      shiftSummary.toLowerCase().includes("concerning") ||
-      shiftSummary.toLowerCase().includes("notable issues")
+      lower.includes("concerning") ||
+      lower.includes("notable issues")
     ) {
       shiftLevel = "CONCERNING";
     } else if (
-      shiftSummary.toLowerCase().includes("routine") ||
-      shiftSummary.toLowerCase().includes("stable")
+      lower.includes("routine") ||
+      lower.includes("stable") ||
+      lower.includes("no incidents")
     ) {
       shiftLevel = "GOOD";
     }
-    return { shiftSummary, followUps, shiftLevel };
+    return { shiftSummary, shiftLevel };
   };
 
-  const { shiftSummary, followUps, shiftLevel } = parseGeneralNotes(
-    details?.generalNotes,
-  );
+  const { shiftSummary, shiftLevel } = parseGeneralNotes(details?.generalNotes);
 
   const getAssessmentIcon = (level) => {
-    if (!level) return null;
     switch (level) {
       case "GOOD":
         return <CheckCircle size={18} className="text-green-600" />;
@@ -1187,7 +1037,6 @@ function HandoverModal({ handover, details, loading, onClose }) {
     }
   };
 
-  // NEW: derive flag styles from parsed shift level
   const flagStyles = getFlagStyles(shiftLevel);
 
   return (
@@ -1290,7 +1139,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
                 </div>
               )}
 
-              {/* Resident Red Flags - CHANGE: cards use flagStyles */}
+              {/* Resident Red Flags */}
               {details?.items && details.items.length > 0 && (
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
@@ -1340,37 +1189,12 @@ function HandoverModal({ handover, details, loading, onClose }) {
                 </div>
               )}
 
-              {followUps.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                    Follow-up Actions
-                  </p>
-                  <div className="space-y-3">
-                    {followUps.map((action, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3 p-4 bg-blue-50/50 border border-blue-100/50 rounded-xl"
-                      >
-                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-black text-blue-600 flex-shrink-0">
-                          {i + 1}
-                        </div>
-                        <p className="text-sm text-blue-900 font-medium leading-relaxed flex-1">
-                          {action}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+              {!details?.items?.length && !shiftSummary && (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                  <FileText size={48} className="mb-3 opacity-20" />
+                  <p className="font-bold text-sm">No details available</p>
                 </div>
               )}
-
-              {!details?.items?.length &&
-                !shiftSummary &&
-                followUps.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                    <FileText size={48} className="mb-3 opacity-20" />
-                    <p className="font-bold text-sm">No details available</p>
-                  </div>
-                )}
             </div>
           )}
         </div>

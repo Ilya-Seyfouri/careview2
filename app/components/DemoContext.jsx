@@ -14,6 +14,27 @@ export function DemoProvider({ children }) {
     loadUserForRole("manager");
   }, []);
 
+
+  
+
+  const loadUserById = async (id) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      setDemoUser(data);
+    } catch (err) {
+      console.error("Failed to load demo user by id:", id, err);
+      setDemoUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadUserForRole = async (role) => {
     try {
       setLoading(true);
@@ -35,7 +56,9 @@ export function DemoProvider({ children }) {
   };
 
   return (
-    <DemoContext.Provider value={{ demoUser, loadUserForRole, loading }}>
+    <DemoContext.Provider
+      value={{ demoUser, loadUserForRole, loadUserById, loading }}
+    >
       {children}
     </DemoContext.Provider>
   );
