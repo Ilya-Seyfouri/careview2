@@ -51,11 +51,10 @@ export default function CarePriorityAnalysis({
             AI-Powered Assistant
           </div>
           <h3 className="text-2xl font-semibold text-slate-900 mb-2">
-            Patient Priority Analysis
+            Patient Action Engine
           </h3>
           <p className="text-slate-500 text-sm leading-relaxed">
-            Assessment of patient data with actionable
-            recommendations
+            Assessment of every patient with actionable recommendations
           </p>
         </div>
 
@@ -65,7 +64,7 @@ export default function CarePriorityAnalysis({
             onClick={() => setAnalysisSectionOpen((prev) => !prev)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+            className="w-10 h-10 cursor-pointer flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
             aria-label={analysisSectionOpen ? "Collapse" : "Expand"}
           >
             <motion.div
@@ -82,7 +81,7 @@ export default function CarePriorityAnalysis({
             disabled={loadingAnalysis}
             whileHover={{ scale: loadingAnalysis ? 1 : 1.02 }}
             whileTap={{ scale: loadingAnalysis ? 1 : 0.98 }}
-            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2.5 font-medium text-sm shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
+            className=" cursor-pointer bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2.5 font-medium text-sm shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loadingAnalysis ? (
               <>
@@ -119,7 +118,7 @@ export default function CarePriorityAnalysis({
           height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
           opacity: { duration: 0.25, delay: analysisSectionOpen ? 0.1 : 0 },
         }}
-        className="overflow-hidden"
+        className="overflow-hidden "
       >
         <div className="pb-2">
           {/* Error Message */}
@@ -298,7 +297,7 @@ export default function CarePriorityAnalysis({
                                   }
                                   whileHover={{ scale: 1.03 }}
                                   whileTap={{ scale: 0.97 }}
-                                  className={`w-full text-xs font-semibold px-4 py-2.5 rounded-lg bg-gradient-to-r ${cfg.gradient} text-white shadow-md hover:shadow-lg transition-all`}
+                                  className={`w-full cursor-pointer text-xs font-semibold px-4 py-2.5 rounded-lg bg-gradient-to-r ${cfg.gradient} text-white shadow-md hover:shadow-lg transition-all`}
                                 >
                                   {seg.label.replace(/_/g, " ")}
                                 </motion.button>

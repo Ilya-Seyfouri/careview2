@@ -44,12 +44,12 @@ export default function RoleSwitcher({ isCollapsed }) {
           type="button"
           disabled={isCollapsed}
         >
-          <div className={`flex items-center gap-3 min-w-0`}>
+          <div className={`flex items-center gap-3 min-w-0 `}>
             <div className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
               <User size={14} className="text-slate-600" />
             </div>
             {!isCollapsed && (
-              <div className="text-left min-w-0">
+              <div className="text-left cursor-pointer   min-w-0">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
                   Viewing as
                 </p>
@@ -62,7 +62,7 @@ export default function RoleSwitcher({ isCollapsed }) {
           {!isCollapsed && (
             <ChevronDown
               size={16}
-              className={`text-slate-400 transition-transform flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
+              className={`text-slate-400  cursor-pointer transition-transform flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
             />
           )}
         </button>

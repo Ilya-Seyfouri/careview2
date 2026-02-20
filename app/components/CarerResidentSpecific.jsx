@@ -131,7 +131,7 @@ export default function CarerResidentSpecific() {
           </h1>
           <button
             onClick={() => router.push("/carer/myclients")}
-            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+            className="mt-6 px-8 py-4 cursor-pointer bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to My Clients
           </button>
@@ -141,15 +141,15 @@ export default function CarerResidentSpecific() {
   }
 
   const statusConfig = {
-    Stable: {
+    stable: {
       badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
       dot: "bg-emerald-500",
     },
-    Attention: {
+    attention: {
       badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
-    Critical: {
+    critical: {
       badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
       dot: "bg-rose-500 animate-pulse",
     },
@@ -159,15 +159,17 @@ export default function CarerResidentSpecific() {
 
   return (
     <>
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-  className="min-h-screen bg-slate-50"
->        <div className="container mx-auto px-6 lg:px-10 py-10">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
+        <div className="container mx-auto px-6 lg:px-10 py-10">
           <button
             onClick={() => router.push("/carer/myclients")}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
+            className="flex items-center cursor-pointer gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
           >
             <ArrowLeft size={20} strokeWidth={2.5} />
             <span>Back to My Clients</span>
@@ -224,7 +226,7 @@ export default function CarerResidentSpecific() {
                 <div className="space-y-4">
                   <DemoRow
                     label="Age "
-                    value={`${calculateAge(client.dob)}y${client.gender ? ` / ${client.gender}` : ""}`}
+                    value={`${calculateAge(client.dob)}${client.gender ? ` / ${client.gender}` : ""}`}
                     icon={User}
                   />
                   <DemoRow
@@ -266,7 +268,7 @@ export default function CarerResidentSpecific() {
                       <button
                         key={tab}
                         onClick={() => setActiveTab(key)}
-                        className={`px-6 py-5 text-xs font-black uppercase tracking-widest transition-all relative ${
+                        className={`px-6 py-5  cursor-pointer text-xs font-black uppercase tracking-widest transition-all relative ${
                           activeTab === key
                             ? "text-blue-600"
                             : "text-slate-400 hover:text-slate-900"
@@ -349,16 +351,18 @@ function OverviewTab({ client }) {
   return (
     <div className="space-y-10">
       {/* Executive Clinical Summary */}
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className=""
->        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className=""
+      >
+        {" "}
+        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
-          Executive Clinical Summary
+          Clinical Summary
         </h4>
         <div className="p-4 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
           {client.health_summary ? (
@@ -374,12 +378,14 @@ function OverviewTab({ client }) {
       </motion.section>
 
       {/* Emergency Contacts */}
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className=""
->        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className=""
+      >
+        {" "}
+        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
           Emergency Contacts
         </h4>
         {familyMembers.length === 0 ? (
@@ -563,14 +569,16 @@ function VisitLogsTab({ visitLogs, onAddLog }) {
   };
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className="space-y-6"
->      <div className="flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      {" "}
+      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Visit History
+          History
         </h4>
         <div className="flex items-center gap-4 mr-4">
           <span className="text-sm text-slate-500 font-bold">
@@ -578,7 +586,6 @@ function VisitLogsTab({ visitLogs, onAddLog }) {
           </span>
         </div>
       </div>
-
       {visitLogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-300">
           <ClipboardList size={80} className="mb-6 opacity-10" />
@@ -722,20 +729,21 @@ function ReportsTab({ reports, onViewReport }) {
     });
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className="space-y-6"
->      <div className="flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      {" "}
+      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Reports
+          History
         </h4>
         <span className="text-sm text-slate-500 font-bold">
           {reports.length} total
         </span>
       </div>
-
       {reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-300">
           <FileText size={80} className="mb-6 opacity-10" />
@@ -752,7 +760,7 @@ function ReportsTab({ reports, onViewReport }) {
             <button
               key={report.id}
               onClick={() => onViewReport(report)}
-              className="w-full bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all text-left group"
+              className="w-full bg-white border cursor-pointer border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all text-left group"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -976,9 +984,9 @@ function ViewReportModal({ report, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10  hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center flex-shrink-0"
           >
-            <X size={20} className="text-slate-500" />
+            <X size={20} className="text-slate-500 cursor-pointer" />
           </button>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8">
@@ -988,7 +996,7 @@ function ViewReportModal({ report, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+          className="w-full mt-8 cursor-pointer px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
         >
           Close
         </button>

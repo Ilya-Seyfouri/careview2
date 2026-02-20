@@ -321,12 +321,14 @@ export default function FamilyDashboard() {
 
   return (
     <>
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-  className="min-h-screen bg-slate-50"
->        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10 max-w-5xl">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
+        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10 max-w-5xl">
           {/* ── Welcome Banner ── */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white p-10 rounded-[40px] border border-slate-100 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group mb-10">
             {/* SaaS Glow Accent */}
@@ -352,7 +354,7 @@ export default function FamilyDashboard() {
               </div>
               <button
                 onClick={() => router.push("/family/mylovedones")}
-                className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors"
+                className="text-[10px] font-black cursor-pointer text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors"
               >
                 View Full Profile
               </button>
@@ -372,11 +374,11 @@ export default function FamilyDashboard() {
                     <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                       <Activity size={20} />
                     </div>
-                    Recent Care Journal
+                    Recent News
                   </h3>
                   <button
                     onClick={handleOpenArchive}
-                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                    className="text-[10px] font-black text-blue-600  cursor-pointer uppercase tracking-widest hover:underline"
                   >
                     Full Archive
                   </button>
@@ -522,7 +524,7 @@ export default function FamilyDashboard() {
                 <div className="flex justify-between items-center mb-8">
                   <h3 className="font-black text-xl text-slate-900 tracking-tight flex items-center gap-2">
                     <Calendar size={20} className="text-blue-600" />
-                    Schedule
+                    Schedules
                   </h3>
                 </div>
 
@@ -585,7 +587,7 @@ export default function FamilyDashboard() {
                     <MessageSquare size={24} strokeWidth={3} />
                   </div>
                   <h3 className="font-black text-2xl tracking-tight mb-3">
-                    Send Appreciation
+                    Worried?
                   </h3>
                   <p className="text-slate-400 font-medium text-sm mb-8 leading-relaxed">
                     {primaryCarerName
@@ -594,9 +596,9 @@ export default function FamilyDashboard() {
                   </p>
                   <button
                     onClick={() => router.push("/family/messages")}
-                    className="w-full py-4 bg-white text-slate-900 rounded-[20px] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-50 transition-all"
+                    className="w-full py-4 bg-white text-slate-900 cursor-pointer rounded-[20px] font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-50 transition-all"
                   >
-                    Compose Message
+                    Send Message
                   </button>
                 </div>
               </section>
@@ -680,7 +682,7 @@ function ArchiveModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            className="w-8 h-8 hover:bg-slate-100 rounded-lg  cursor-pointer transition-colors flex items-center justify-center"
           >
             <X size={18} className="text-slate-500" />
           </button>
@@ -842,7 +844,7 @@ function ArchiveModal({
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+            className="w-full py-3 bg-slate-100 cursor-pointer text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
           >
             Close Archive
           </button>
@@ -957,7 +959,7 @@ function VisitLogModal({ log, carerName, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex-shrink-0"
           >
             <X size={24} className="text-slate-400" />
           </button>
@@ -1056,7 +1058,7 @@ function VisitLogModal({ log, carerName, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
+          className="w-full mt-8 px-6 py-4 cursor-pointer bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>
@@ -1129,7 +1131,7 @@ function ReportModal({ report, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex-shrink-0"
           >
             <X size={24} className="text-slate-400" />
           </button>
@@ -1143,7 +1145,7 @@ function ReportModal({ report, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
+          className="w-full mt-8 px-6 py-4 cursor-pointer bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>
@@ -1239,7 +1241,7 @@ function ScheduleModal({ schedule, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors flex-shrink-0"
+            className="p-2 hover:bg-slate-100  cursor-pointer rounded-xl transition-colors flex-shrink-0"
           >
             <X size={24} className="text-slate-400" />
           </button>
@@ -1304,7 +1306,7 @@ function ScheduleModal({ schedule, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 cursor-pointer hover:bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-slate-200"
         >
           Close
         </button>

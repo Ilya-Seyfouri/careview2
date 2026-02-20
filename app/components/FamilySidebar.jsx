@@ -68,7 +68,7 @@ export default function FamilySidebar() {
             <button
               key={item.id}
               onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative group ${
+              className={`w-full flex  cursor-pointer items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 relative group ${
                 active
                   ? "bg-slate-900 text-white shadow-2xl shadow-slate-300"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
@@ -101,7 +101,7 @@ export default function FamilySidebar() {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 ${
-            isCollapsed ? "justify-center" : ""
+            isCollapsed ? "justify-center cursor-pointer" : "cursor-pointer"
           }`}
         >
           <div className="shrink-0">
@@ -112,9 +112,9 @@ export default function FamilySidebar() {
             )}
           </div>
           <span
-            className={`text-sm font-semibold whitespace-nowrap transition-all duration-300 ease-in-out ${
+            className={`text-sm  font-semibold whitespace-nowrap transition-all duration-300 ease-in-out ${
               isCollapsed
-                ? "opacity-0 translate-x-[-10px] w-0"
+                ? "opacity-0 translate-x-[-10px] w-0 "
                 : "opacity-100 translate-x-0 w-auto"
             }`}
             style={{ transitionProperty: "opacity, transform, width" }}

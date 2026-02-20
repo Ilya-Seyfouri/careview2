@@ -243,7 +243,7 @@ export default function AuditLog() {
                   Audit Log
                 </h1>
                 <p className="text-slate-500">
-                  Complete system activity tracking and compliance monitoring
+                  Activity tracking and compliance monitoring
                 </p>
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function AuditLog() {
                 />
                 <input
                   type="text"
-                  placeholder="Search by action, user, or patient..."
+                  placeholder="Search by category, user, or patient..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all text-sm font-medium shadow-sm"

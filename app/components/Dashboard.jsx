@@ -569,10 +569,12 @@ export default function ManagerDashboard() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-10 relative z-10">
                 <div>
                   <h3 className="font-bold text-xl text-slate-900 tracking-tight mb-1">
-                    System Performance
+                    Performance Chart
                   </h3>
                   <p className="text-slate-500 font-medium text-sm">
-                    This week — incidents & missed medications
+                    {new Date().toLocaleString("default", {
+                      month: "long",
+                    })}{" "}
                   </p>
                 </div>
                 <div className="bg-slate-50/80 backdrop-blur-sm p-1 rounded-xl border border-slate-200/50 flex gap-1">
@@ -586,7 +588,7 @@ export default function ManagerDashboard() {
                       onClick={() => setChartMetric(key)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                      className={`px-4 py-2 cursor-pointer text-xs font-semibold rounded-lg transition-all duration-200 ${
                         chartMetric === key
                           ? "bg-white text-slate-900 shadow-sm"
                           : "text-slate-500 hover:text-slate-700"
@@ -608,7 +610,7 @@ export default function ManagerDashboard() {
             </div>
             <div className="bg-white rounded-3xl border border-slate-200/60 shadow-lg shadow-slate-200/50 p-8 flex flex-col">
               <h3 className="font-bold text-xl text-slate-900 tracking-tight mb-8">
-                Shift Metrics
+                Care Team
               </h3>
               {loading ? (
                 <div className="space-y-4 flex-1">
@@ -773,7 +775,7 @@ export default function ManagerDashboard() {
                     onClick={() => setShowHandoverModal(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="relative z-10 w-full py-4 bg-white text-slate-900 font-semibold text-sm rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 hover:bg-blue-50 group/btn"
+                    className="relative z-10 cursor-pointer w-full py-4 bg-white text-slate-900 font-semibold text-sm rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 hover:bg-blue-50 group/btn"
                   >
                     Review Handover Protocol
                     <motion.div
@@ -2628,7 +2630,7 @@ function AlertCard({
           onClick={onCta}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="group/btn w-full py-4 bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3"
+          className="group/btn cursor-pointer w-full py-4 bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3"
         >
           <span>View Details</span>
           <motion.div whileHover={{ x: 2, y: -2 }}>

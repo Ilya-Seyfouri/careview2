@@ -279,21 +279,15 @@ export default function ShiftHandover() {
     }
   };
 
-  // ── Parse AI summary response ──
-  // New prompt returns: "patient_id - Patient Name - What happened"
-  // We use patient_id (UUID) directly instead of looking up by name
   const parseAISummary = (summary) => {
     const patientNotesMap = {};
 
-    // Helper: parse "patient_id - Patient Name - note content" entries
     const parseEntries = (entries, prefix) => {
       if (!entries) return;
       entries.forEach((entry) => {
-        // Split on " - " — first part is UUID, second is name, rest is note
         const parts = entry.split(" - ");
         if (parts.length < 3) return;
         const patientId = parts[0].trim();
-        // parts[1] is patient name — we don't need it for the map key
         const noteContent = parts.slice(2).join(" - ");
         if (!patientNotesMap[patientId]) {
           patientNotesMap[patientId] = [];
@@ -302,7 +296,6 @@ export default function ShiftHandover() {
       });
     };
 
-    // New prompt fields
     parseEntries(summary.critical_incidents, "🚨");
     parseEntries(summary.notable_observations, "📋");
 
@@ -316,7 +309,7 @@ export default function ShiftHandover() {
 
   const generateAIShiftSummary = async () => {
     try {
-      setError("")
+      setError("");
       setLoadingAISummary(true);
       setRedFlags([]);
       setShiftSummary("");
@@ -376,7 +369,6 @@ export default function ShiftHandover() {
           setShiftAssessment(summary.shift_assessment);
         }
 
-        // General notes — just the shift summary now (no follow-ups)
         let notesText = "";
         if (summary.shift_assessment) {
           notesText += "SHIFT SUMMARY:\n\n";
@@ -542,7 +534,7 @@ export default function ShiftHandover() {
               <button
                 onClick={() => handleSubmit("published")}
                 disabled={saving || saved || isLoading}
-                className="bg-blue-500 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
+                className="bg-blue-500 text-white cursor-pointer px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
               >
                 <Send size={16} />
                 {saving
@@ -575,7 +567,7 @@ export default function ShiftHandover() {
                         Shift Direction
                       </p>
                       <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
-                        Required
+                        Morning / Afternoon
                       </p>
                     </div>
                   </div>
@@ -584,7 +576,7 @@ export default function ShiftHandover() {
                       <button
                         key={shift.value}
                         onClick={() => setShiftType(shift.value)}
-                        className={`py-3 px-4 rounded-xl text-sm font-black border-2 transition-all flex items-center justify-center gap-2 ${
+                        className={`py-3 px-4 rounded-xl  cursor-pointer text-sm font-black border-2 transition-all flex items-center justify-center gap-2 ${
                           shiftType === shift.value
                             ? "bg-blue-50 border-blue-400 text-blue-700"
                             : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
@@ -602,96 +594,6 @@ export default function ShiftHandover() {
                   </div>
                 </div>
 
-                {/* AI Generate Button */}
-                <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                      <Sparkles size={18} className="text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-900">
-                        AI Summary Generator
-                      </p>
-                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
-                        Analyze shift data automatically
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={generateAIShiftSummary}
-                    disabled={loadingAISummary}
-                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
-                  >
-                    {loadingAISummary ? (
-                      <>
-                        <Activity size={14} className="animate-spin" />
-                        Generating Summary...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={14} />
-                        Generate AI Summary
-                      </>
-                    )}
-                  </button>
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                      Test Modes
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        onClick={() => generateTestSummary("GOOD")}
-                        disabled={loadingAISummary}
-                        className="py-2 px-3 bg-green-50 border-2 border-green-200 text-green-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-green-100 transition-all disabled:opacity-50 active:scale-95"
-                      >
-                        🟢 Good
-                      </button>
-                      <button
-                        onClick={() => generateTestSummary("INTERMEDIATE")}
-                        disabled={loadingAISummary}
-                        className="py-2 px-3 bg-yellow-50 border-2 border-yellow-200 text-yellow-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-yellow-100 transition-all disabled:opacity-50 active:scale-95"
-                      >
-                        🟡 Concerning
-                      </button>
-                      <button
-                        onClick={() => generateTestSummary("CRITICAL")}
-                        disabled={loadingAISummary}
-                        className="py-2 px-3 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all disabled:opacity-50 active:scale-95"
-                      >
-                        🔴 Critical
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shift Assessment Banner */}
-                {shiftAssessment && (
-                  <div
-                    className={`mt-4 p-4 border-2 rounded-xl ${getAssessmentColor(shiftAssessment.level)}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {getAssessmentIcon(shiftAssessment.level)}
-                      <span className="text-md font-bold uppercase tracking-widest text-black">
-                        Shift Assessment: {shiftAssessment.level}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Shift Summary */}
-                {shiftSummary && (
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                      Shift Summary
-                    </p>
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                        {shiftSummary}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {/* Resident Red Flags */}
                 <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
                   <div className="flex items-center gap-3 mb-5">
@@ -708,7 +610,7 @@ export default function ShiftHandover() {
                         Resident Flags
                       </p>
                       <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
-                        Per-resident concerns
+                        Specific Concerns
                       </p>
                     </div>
                   </div>
@@ -819,13 +721,103 @@ export default function ShiftHandover() {
                     <button
                       onClick={() => setAddingFlag(true)}
                       disabled={availablePatients.length === 0}
-                      className="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-xs text-slate-400 font-black hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-widest"
+                      className="w-full py-3 border-2 border-dashed cursor-pointer border-slate-200 rounded-xl text-xs text-slate-400 font-black hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-widest"
                     >
                       <Plus size={14} />
                       Add New Flag
                     </button>
                   )}
                 </div>
+
+                {/* AI Generate Button */}
+                <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                      <Sparkles size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900">
+                        AI Shift Summarizer
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                        Assess shift summary automatically
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={generateAIShiftSummary}
+                    disabled={loadingAISummary}
+                    className="w-full py-3 bg-gradient-to-r from-blue-500 cursor-pointer to-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
+                  >
+                    {loadingAISummary ? (
+                      <>
+                        <Activity size={14} className="animate-spin" />
+                        Generating Summary...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={14} />
+                        Generate AI Summary
+                      </>
+                    )}
+                  </button>
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                      Test Modes
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => generateTestSummary("GOOD")}
+                        disabled={loadingAISummary}
+                        className="py-2 px-3 bg-green-50 cursor-pointer border-2 border-green-200 text-green-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-green-100 transition-all disabled:opacity-50 active:scale-95"
+                      >
+                        🟢 Good
+                      </button>
+                      <button
+                        onClick={() => generateTestSummary("INTERMEDIATE")}
+                        disabled={loadingAISummary}
+                        className="py-2 px-3 bg-yellow-50 border-2 cursor-pointer border-yellow-200 text-yellow-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-yellow-100 transition-all disabled:opacity-50 active:scale-95"
+                      >
+                        🟡 Concerning
+                      </button>
+                      <button
+                        onClick={() => generateTestSummary("CRITICAL")}
+                        disabled={loadingAISummary}
+                        className="py-2 px-3 bg-red-50 border-2 cursor-pointer border-red-200 text-red-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all disabled:opacity-50 active:scale-95"
+                      >
+                        🔴 Critical
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shift Assessment Banner */}
+                {shiftAssessment && (
+                  <div
+                    className={`mt-4 p-4 border-2 rounded-xl ${getAssessmentColor(shiftAssessment.level)}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {getAssessmentIcon(shiftAssessment.level)}
+                      <span className="text-md font-bold uppercase tracking-widest text-black">
+                        Shift Assessment: {shiftAssessment.level}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Shift Summary */}
+                {shiftSummary && (
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                      Shift Summary
+                    </p>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                        {shiftSummary}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center gap-3">
@@ -994,7 +986,6 @@ function HandoverModal({ handover, details, loading, onClose }) {
       ? "AM to PM Transition"
       : "PM to AM Transition";
 
-  // Parse stored general notes — now only contains SHIFT SUMMARY (no follow-ups)
   const parseGeneralNotes = (notes) => {
     if (!notes) return { shiftSummary: "", shiftLevel: null };
     const summaryMatch = notes.match(/SHIFT SUMMARY:\n\n([\s\S]*)/);

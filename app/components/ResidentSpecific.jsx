@@ -179,7 +179,7 @@ export default function ResidentSpecific({ params }) {
                         : "bg-rose-50 text-rose-700 ring-rose-100"
                   }`}
                 >
-                  {resident.status || "Unknown"} Status
+                  {resident.status || "Unknown"}
                 </div>
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function ResidentSpecific({ params }) {
               <div className="space-y-4">
                 <DemoRow
                   label="Age"
-                  value={`${calculateAge(resident.dob)}y${resident.gender ? ` / ${resident.gender}` : ""}`}
+                  value={`${calculateAge(resident.dob)}${resident.gender ? ` / ${resident.gender}` : ""}`}
                   icon={User}
                 />
                 <DemoRow
@@ -240,7 +240,7 @@ export default function ResidentSpecific({ params }) {
                     onClick={() =>
                       setActiveTab(tab.toLowerCase().replace(" ", "-"))
                     }
-                    className={`px-6 py-5 text-xs font-black uppercase tracking-widest transition-all relative ${
+                    className={`px-6 py-5 cursor-pointer text-xs font-black uppercase tracking-widest transition-all relative ${
                       activeTab === tab.toLowerCase().replace(" ", "-")
                         ? "text-blue-600"
                         : "text-slate-400 hover:text-slate-900"
@@ -317,7 +317,7 @@ function OverviewTab({ resident }) {
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
-          Executive Clinical Summary
+          Clinical Summary
         </h4>
         <div className="p-4 bg-slate-50/50 rounded-3xl border-2 border-slate-100 border-dashed">
           {resident.health_summary ? (
@@ -439,7 +439,7 @@ function VisitLogsTab({ visitLogs, residentId }) {
       {" "}
       <div className="flex justify-between items-center mb-6">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Visit History
+          History
         </h4>
         <span className="text-sm text-slate-500 font-bold">
           {visitLogs.length} total visits
@@ -449,7 +449,7 @@ function VisitLogsTab({ visitLogs, residentId }) {
         <button
           key={log.id}
           onClick={() => router.push(`/residents/${residentId}/${log.id}`)}
-          className="w-full bg-white border border-slate-100 p-8 rounded-[24px] hover:shadow-lg transition-all text-left group"
+          className="w-full cursor-pointer bg-white border border-slate-100 p-8 rounded-[24px] hover:shadow-lg transition-all text-left group"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -642,7 +642,7 @@ function CareTeamTab({ residentId }) {
           </h4>
           <button
             onClick={() => setShowAvailableCarers((prev) => !prev)}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
+            className="flex items-center cursor-pointer gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableCarers ? "Hide" : "View"} Available (
             {availableCarers.length})
@@ -737,7 +737,7 @@ function CareTeamTab({ residentId }) {
           </h4>
           <button
             onClick={() => setShowAvailableFamily((prev) => !prev)}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
+            className="flex items-center gap-2 cursor-pointer text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableFamily ? "Hide" : "View"} Available (
             {availableFamily.length})
@@ -828,9 +828,7 @@ function CarerCard({ assignment, onRemove, isLoading }) {
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="bg-blue-50 text-blue-700 ring-1 ring-blue-100 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
-            Carer
-          </span>
+         
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
@@ -867,9 +865,7 @@ function FamilyCard({ member, onRemove, isLoading }) {
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-          <span className="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest">
-            Family
-          </span>
+         
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
@@ -916,7 +912,7 @@ function AvailableCard({ person, onAssign, isLoading }) {
         </h3>
         <AssignButton onAssign={onAssign} isLoading={isLoading} />
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 ">
         {person.email && (
           <div className="flex items-center gap-2">
             <Mail size={14} className="text-blue-500" />
@@ -1190,7 +1186,7 @@ function ReportsTab({ residentId }) {
       {" "}
       <div className="flex justify-between items-center mb-6">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Patient Reports
+          History
         </h4>
         <span className="text-sm text-slate-500 font-bold">
           {reports.length} total
@@ -1207,7 +1203,7 @@ function ReportsTab({ residentId }) {
           <button
             key={r.id}
             onClick={() => setSelected(r)}
-            className="w-full bg-white border border-slate-100 rounded-[24px] p-8 hover:shadow-lg transition-all text-left group"
+            className="w-full bg-white border cursor-pointer border-slate-100 rounded-[24px] p-8 hover:shadow-lg transition-all text-left group"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
@@ -1276,7 +1272,7 @@ function ReportsTab({ residentId }) {
                 onClick={() => setSelected(null)}
                 className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
               >
-                <X size={20} className="text-slate-500" />
+                <X size={20} className="text-slate-500 cursor-pointer" />
               </button>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-4">
@@ -1305,7 +1301,7 @@ function RemoveButton({ onRemove, isLoading }) {
     <button
       onClick={onRemove}
       disabled={isLoading}
-      className="text-rose-500 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-50"
+      className="text-rose-500 cursor-pointer hover:text-rose-600 p-2 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-50"
     >
       {isLoading ? (
         <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
@@ -1335,7 +1331,7 @@ function AssignButton({ onAssign, isLoading }) {
     <button
       onClick={onAssign}
       disabled={isLoading}
-      className="bg-blue-50 text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100 text-[10px] font-black px-4 py-2 rounded-xl transition-all disabled:opacity-50 uppercase tracking-widest"
+      className="bg-blue-50 cursor-pointer text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100 text-[10px] font-black px-4 py-2 rounded-xl transition-all disabled:opacity-50 uppercase tracking-widest"
     >
       {isLoading ? (
         <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />

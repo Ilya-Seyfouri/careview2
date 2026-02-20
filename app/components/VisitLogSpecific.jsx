@@ -178,7 +178,7 @@ export default function VisitLogDetail({ params }) {
           </h1>
           <button
             onClick={() => router.push(`/residents/${residentId}`)}
-            className="mt-6 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+            className="mt-6 px-8 py-4  bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
           >
             Back to Resident
           </button>
@@ -191,16 +191,18 @@ export default function VisitLogDetail({ params }) {
   const appetiteConfig = getAppetiteConfig(visitLog.appetite);
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-  className="min-h-screen bg-slate-50"
->      <div className="container mx-auto px-6 lg:px-10 py-10">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-slate-50"
+    >
+      {" "}
+      <div className="container mx-auto px-6 lg:px-10 py-10">
         {/* Back */}
         <button
           onClick={() => router.push(`/residents/${residentId}`)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
+          className="flex cursor-pointer items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
         >
           <ArrowLeft size={20} strokeWidth={2.5} />
           <span>Back to {resident?.full_name || "Resident"}</span>

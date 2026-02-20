@@ -187,12 +187,14 @@ export default function CarerEmar() {
   };
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-  className="min-h-screen bg-slate-50"
->      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-slate-50"
+    >
+      {" "}
+      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
         {/* Header */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-slate-50 text-slate-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 ring-1 ring-slate-100">
@@ -203,9 +205,7 @@ export default function CarerEmar() {
             Electronic MAR
           </h2>
           <p className="text-slate-500 text-base font-medium mt-1">
-            {isLoading
-              ? "Loading..."
-              : `Your assigned residents · ${demoUser?.full_name ?? ""}`}
+            Medication Tracking
           </p>
         </div>
 
@@ -229,7 +229,7 @@ export default function CarerEmar() {
             <button
               key={round.label}
               onClick={() => setActiveRound(round.label)}
-              className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+              className={`px-5 py-2 rounded-lg cursor-pointer text-[11px] font-black uppercase tracking-widest transition-all ${
                 activeRound === round.label
                   ? "bg-blue-500 text-white shadow-md"
                   : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
@@ -446,7 +446,7 @@ export default function CarerEmar() {
                                   <button
                                     onClick={(e) => handleAdminister(e, entry)}
                                     disabled={isAdministering}
-                                    className="px-4 py-1.5 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                                    className="px-4 py-1.5 bg-blue-500 cursor-pointer text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
                                   >
                                     {isAdministering ? "..." : "Administer"}
                                   </button>
@@ -469,7 +469,6 @@ export default function CarerEmar() {
           </div>
         </div>
       </div>
-
       {selectedEntry && (
         <EntryDetailModal
           entry={selectedEntry}

@@ -128,7 +128,7 @@ export default function Residents() {
               </div>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                className="bg-slate-900 cursor-pointer hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
                 type="button"
               >
                 <Plus
@@ -165,10 +165,10 @@ export default function Residents() {
                     <thead>
                       <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
                         <th className="px-10 py-6">Resident Identity</th>
-                        <th className="px-10 py-6">Facility Location</th>
-                        <th className="px-10 py-6">Key Health Indicator</th>
+                        <th className="px-10 py-6">Location</th>
+                        <th className="px-10 py-6">Health Summary</th>
                         <th className="px-10 py-6">Admission</th>
-                        <th className="px-10 py-6">Clinical Status</th>
+                        <th className="px-10 py-6">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -273,7 +273,7 @@ export default function Residents() {
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-6 py-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-6 py-3 cursor-pointer bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -282,7 +282,7 @@ export default function Residents() {
                         setCurrentPage((p) => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-6 py-3 cursor-pointer bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Next Page
                     </button>

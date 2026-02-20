@@ -304,7 +304,6 @@ export default function MyLovedOnes() {
                         <div className="">
                           {carer.phone && (
                             <a
-                              href={`tel:${carer.phone}`}
                               className="flex pt-2 items-center gap-2 text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium"
                             >
                               <Phone size={12} /> {carer.phone}
@@ -337,7 +336,7 @@ export default function MyLovedOnes() {
                       <button
                         key={tab}
                         onClick={() => setActiveTab(key)}
-                        className={`px-6 py-5 text-xs font-black uppercase tracking-widest transition-all relative ${
+                        className={`px-6 py-5 text-xs  cursor-pointer font-black uppercase tracking-widest transition-all relative ${
                           activeTab === key
                             ? "text-blue-600"
                             : "text-slate-400 hover:text-slate-900"
@@ -397,45 +396,17 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
   return (
     <div className="space-y-10">
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className=""
->        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
-          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-            <User size={20} />
-          </div>
-          Personal Information
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InfoField label="Full Name" value={client.full_name} />
-          <InfoField label="Room Number" value={client.room} />
-          <InfoField label="Age" value={calculateAge(client.dob)} />
-          <InfoField
-            label="Date of Birth"
-            value={
-              client.dob
-                ? new Date(client.dob).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : "N/A"
-            }
-          />
-          <InfoField label="Wing" value={client.wing} />
-          <InfoField label="Language" value={client.language} />
-        </div>
-      </motion.section>
+      
 
       {client.health_summary && (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className=""
->          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className=""
+        >
+          {" "}
+          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
               <History size={20} />
             </div>
@@ -451,12 +422,14 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
       {/* Current Vitals */}
       {hasVitals && (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className=""
->          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className=""
+        >
+          {" "}
+          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
             Current Vitals
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -589,20 +562,21 @@ function VisitLogsTab({ visitLogs, carerNames }) {
   };
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className="space-y-6"
->      <div className="flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      {" "}
+      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Visit History
+          History
         </h4>
         <span className="text-sm text-slate-500 font-bold">
           {visitLogs.length} total
         </span>
       </div>
-
       {visitLogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-300">
           <ClipboardList size={80} className="mb-6 opacity-10" />
@@ -769,20 +743,21 @@ function ReportsTab({ reports, onViewReport }) {
   };
 
   return (
-<motion.section
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-  className="space-y-6"
->      <div className="flex items-center justify-between">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      {" "}
+      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
-          Reports
+          History
         </h4>
         <span className="text-sm text-slate-500 font-bold">
           {reports.length} total
         </span>
       </div>
-
       {reports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-300">
           <FileText size={80} className="mb-6 opacity-10" />
@@ -801,7 +776,7 @@ function ReportsTab({ reports, onViewReport }) {
               <button
                 key={report.id}
                 onClick={() => onViewReport(report)}
-                className="w-full bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all text-left group"
+                className="w-full bg-white border cursor-pointer  border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all text-left group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -813,7 +788,6 @@ function ReportsTab({ reports, onViewReport }) {
                         <p className="font-black text-lg text-slate-900 truncate tracking-tight">
                           {report.title}
                         </p>
-                       
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2 font-medium">
                         {report.content || "No content"}
@@ -1125,7 +1099,7 @@ function ViewReportModal({ report, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex items-center justify-center flex-shrink-0"
           >
             <X size={20} className="text-slate-500" />
           </button>
@@ -1139,7 +1113,7 @@ function ViewReportModal({ report, onClose }) {
 
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+          className="w-full mt-8 px-6 py-4 bg-slate-900 cursor-pointer text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
         >
           Close
         </button>

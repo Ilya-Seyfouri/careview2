@@ -293,7 +293,7 @@ export default function CarerDashboard() {
               </div>
               <button
                 onClick={handleOpenHistory}
-                className="text-blue-600 font-black text-[10px] uppercase tracking-widest hover:underline"
+                className="text-blue-600  cursor-pointer font-black text-[10px] uppercase tracking-widest hover:underline"
               >
                 View Historical Records
               </button>
@@ -355,7 +355,7 @@ export default function CarerDashboard() {
                       <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
                           <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full ring-1 ring-blue-100 self-center md:self-start">
-                            {formatTime(schedule.start_at)} Protocol
+                            {formatTime(schedule.start_at)}
                           </span>
                           {schedule.patient?.room && (
                             <>
@@ -399,7 +399,7 @@ export default function CarerDashboard() {
                               setActiveVisit(schedule);
                               setVisitStep("active");
                             }}
-                            className="w-full md:w-auto bg-blue-600 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200 flex items-center gap-3 justify-center hover:bg-blue-700 transition-all active:scale-95"
+                            className="w-full md:w-auto cursor-pointer bg-blue-600 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200 flex items-center gap-3 justify-center hover:bg-blue-700 transition-all active:scale-95"
                           >
                             <Square
                               size={18}
@@ -411,14 +411,14 @@ export default function CarerDashboard() {
                         ) : (
                           <button
                             onClick={() => handleStartVisit(schedule)}
-                            className="w-full md:w-auto bg-slate-900 text-white px-8 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
+                            className="w-full md:w-auto  cursor-pointer bg-slate-900 text-white px-8 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
                           >
                             <Play
                               size={18}
                               fill="currentColor"
                               strokeWidth={0}
                             />
-                            Initiate Visit
+                            Start Visit
                           </button>
                         )}
                       </div>
@@ -500,7 +500,7 @@ function HistoryModal({ history, loading, onClose }) {
             </div>
             <div>
               <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                Visit History
+                Schedule History
               </p>
               <h2 className="text-lg font-black text-slate-900 tracking-tight">
                 Past Visits
@@ -509,7 +509,7 @@ function HistoryModal({ history, loading, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            className="w-8 h-8 hover:bg-slate-100 rounded-lg  cursor-pointer transition-colors flex items-center justify-center"
           >
             <X size={16} className="text-slate-500" />
           </button>
@@ -601,7 +601,7 @@ function HistoryModal({ history, loading, onClose }) {
         <div className="pt-6 mt-6 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-black active:scale-95 text-xs uppercase tracking-widest shadow-lg shadow-slate-200"
+            className="w-full px-4  cursor-pointer py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-black active:scale-95 text-xs uppercase tracking-widest shadow-lg shadow-slate-200"
           >
             Close
           </button>
@@ -665,24 +665,18 @@ function ActiveVisitModal({ schedule, formatTime, onEndVisit, onClose }) {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
-              <Clock size={18} className="text-white" />
-            </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 px-2 mb-1">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                <span className="text-lg font-black text-emerald-600 uppercase tracking-widest">
                   In Progress
                 </span>
               </div>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">
-                Active Visit
-              </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            className="w-8 h-8 hover:bg-slate-100 rounded-lg  cursor-pointer transition-colors flex items-center justify-center"
           >
             <X size={16} className="text-slate-500" />
           </button>
@@ -835,13 +829,13 @@ function ActiveVisitModal({ schedule, formatTime, onEndVisit, onClose }) {
           <div className="flex gap-3 pt-1">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 text-xs uppercase tracking-widest"
+              className="flex-1 px-4 py-3 bg-slate-100 text-slate-700   cursor-pointer rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 text-xs uppercase tracking-widest"
             >
               Minimize
             </button>
             <button
               onClick={handleEndVisit}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 text-xs uppercase tracking-widest"
+              className="flex-1 flex items-center  justify-center gap-2 px-4  cursor-pointer  py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 text-xs uppercase tracking-widest"
             >
               <Square size={13} fill="white" />
               End Visit
@@ -909,17 +903,14 @@ function VisitLogModal({ schedule, onSubmit, onClose }) {
               <ClipboardList size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+              <p className="text-[12px] font-black text-slate-600 uppercase tracking-widest">
                 Visit Complete
               </p>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">
-                Visit Notes
-              </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            className="w-8 h-8 hover:bg-slate-100 rounded-lg   cursor-pointer transition-colors flex items-center justify-center"
           >
             <X size={16} className="text-slate-500" />
           </button>
@@ -1087,14 +1078,14 @@ function VisitLogModal({ schedule, onSubmit, onClose }) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest"
+              className="flex-1 px-4 py-3 bg-slate-100  cursor-pointer text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || !notes.trim()}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3  cursor-pointer bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
             >
               <ClipboardList size={13} />
               {saving ? "Saving..." : "Complete Visit"}

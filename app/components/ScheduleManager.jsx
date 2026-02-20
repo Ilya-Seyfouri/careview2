@@ -367,11 +367,11 @@ export default function ScheduleManager() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
               <div>
                 <h2 className="text-5xl font-bold text-slate-900 tracking-tight mb-2">
-                  Care Schedules
+                  Schedules
                 </h2>
                 <p className="text-slate-600 text-lg font-medium">
                   {viewMode === "list"
-                    ? `Monitoring ${schedules.length} scheduled tasks today`
+                    ? `${schedules.length} scheduled tasks today`
                     : `${allSchedules.length} tasks scheduled this month`}
                 </p>
               </div>
@@ -383,7 +383,7 @@ export default function ScheduleManager() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setViewMode("list")}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 ${
+                    className={`flex items-center gap-2  cursor-pointer px-4 py-2.5 rounded-lg transition-all duration-200 ${
                       viewMode === "list"
                         ? "bg-slate-50 text-slate-900 shadow-sm font-semibold"
                         : "text-slate-500 font-medium hover:text-slate-700"
@@ -396,7 +396,7 @@ export default function ScheduleManager() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setViewMode("calendar")}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 ${
+                    className={`flex items-center gap-2 px-4  cursor-pointer py-2.5 rounded-lg transition-all duration-200 ${
                       viewMode === "calendar"
                         ? "bg-slate-50 text-slate-900 shadow-sm font-semibold"
                         : "text-slate-500 font-medium hover:text-slate-700"
@@ -411,7 +411,7 @@ export default function ScheduleManager() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowAddModal(true)}
-                  className="group bg-slate-900 hover:bg-slate-800 text-white px-6 py-3.5 rounded-xl flex items-center gap-2.5 font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="group bg-slate-900 cursor-pointer hover:bg-slate-800 text-white px-6 py-3.5 rounded-xl flex items-center gap-2.5 font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300"
                   type="button"
                 >
                   <motion.div
@@ -446,7 +446,7 @@ export default function ScheduleManager() {
                       whileHover={{ scale: 1.1, x: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => changeDate(-1)}
-                      className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-all duration-200 flex items-center justify-center group"
+                      className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-all duration-200 flex items-center justify-center group"
                     >
                       <ChevronLeft
                         size={20}
@@ -467,7 +467,7 @@ export default function ScheduleManager() {
                       whileHover={{ scale: 1.1, x: 2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => changeDate(1)}
-                      className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-all duration-200 flex items-center justify-center group"
+                      className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-all duration-200 flex items-center justify-center group"
                     >
                       <ChevronRight
                         size={20}
@@ -548,7 +548,7 @@ export default function ScheduleManager() {
                       whileHover={{ scale: 1.1, x: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => changeMonth(-1)}
-                      className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-all duration-200 flex items-center justify-center group"
+                      className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-all duration-200 flex items-center justify-center group"
                     >
                       <ChevronLeft
                         size={20}
@@ -569,7 +569,7 @@ export default function ScheduleManager() {
                       whileHover={{ scale: 1.1, x: 2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => changeMonth(1)}
-                      className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-all duration-200 flex items-center justify-center group"
+                      className="w-10 h-10 hover:bg-slate-100  cursor-pointer rounded-xl transition-all duration-200 flex items-center justify-center group"
                     >
                       <ChevronRight
                         size={20}
@@ -581,7 +581,7 @@ export default function ScheduleManager() {
 
                 {/* Calendar Grid */}
                 {loading ? (
-                  <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden p-8">
+                  <div className="bg-white rounded-2xl  border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden p-8">
                     <div className="flex items-center justify-center py-24">
                       <motion.div
                         animate={{ rotate: 360 }}
@@ -753,7 +753,7 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
         {prevMonthDays.map((day, index) => (
           <div
             key={`prev-${index}`}
-            className="min-h-[120px] p-3 border-b border-r border-slate-100 bg-slate-50/50 opacity-50"
+            className="min-h-[120px] p-3 border-b border-r  border-slate-100 bg-slate-50/50 opacity-50"
           >
             <div className="text-sm text-slate-400 font-medium">{day}</div>
           </div>
@@ -776,7 +776,7 @@ function CalendarGrid({ selectedDate, schedules, onDateClick }) {
               }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onDateClick(new Date(year, month, day))}
-              className={`min-h-[120px] p-3 border-b border-r border-slate-100 text-left transition-all duration-200 group ${
+              className={`min-h-[120px] cursor-pointer p-3 border-b border-r border-slate-100 text-left transition-all duration-200 group ${
                 today
                   ? "bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100"
                   : ""
@@ -958,7 +958,7 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onEdit(schedule)}
-            className="p-2 hover:bg-blue-50 rounded-lg transition-all duration-200 group/edit"
+            className="p-2 hover:bg-blue-50 cursor-pointer rounded-lg transition-all duration-200 group/edit"
             title="Edit schedule"
           >
             <Edit
@@ -972,7 +972,7 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onDelete(schedule.id)}
-            className="p-2 hover:bg-rose-50 rounded-lg transition-all duration-200 group/delete"
+            className="p-2 hover:bg-rose-50 cursor-pointer rounded-lg transition-all duration-200 group/delete"
             title="Delete schedule"
           >
             <Trash2
@@ -1119,8 +1119,12 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
     }
   };
 
+
+   const inputClass2 =
+     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
+
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
+    "w-full px-4 py-3 bg-white cursor-pointer border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
 
   return (
     <motion.div
@@ -1153,7 +1157,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center group"
+            className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex items-center justify-center group"
           >
             <X
               size={20}
@@ -1174,8 +1178,8 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className={inputClass}
-              placeholder="e.g., Morning Rounds, Medication Administration"
+              className={inputClass2}
+              placeholder="e.g. Morning Rounds, Medication Administration"
               required
             />
           </div>
@@ -1194,7 +1198,9 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 className={inputClass}
                 required
               >
-                <option value="">Select a patient</option>
+                <option value="" className="">
+                  Select a patient
+                </option>
                 {patients.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.full_name} - Room {p.room}
@@ -1256,31 +1262,12 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
             </div>
           </div>
 
-          {/* Status */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              Status
-            </label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-              className={inputClass}
-            >
-              <option value="scheduled">Scheduled</option>
-              <option value="in progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
           {/* Required Tasks */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
               Required Tasks
               <span className="ml-2 text-xs text-slate-400 font-normal normal-case tracking-normal">
-                (optional — press Enter or + to add)
+                (optional)
               </span>
             </label>
 
@@ -1291,7 +1278,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 value={taskInput}
                 onChange={(e) => setTaskInput(e.target.value)}
                 onKeyDown={handleTaskKeyDown}
-                className={`${inputClass} flex-1`}
+                className={`${inputClass2} flex-1`}
                 placeholder="e.g. Morning Medication"
               />
               <motion.button
@@ -1300,7 +1287,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                 disabled={!taskInput.trim()}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-5 py-3 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 text-blue-600 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all font-semibold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-5 py-3 bg-gradient-to-br cursor-pointer from-blue-50 to-indigo-50 border border-blue-100 text-blue-600 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all font-semibold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 +
               </motion.button>
@@ -1329,7 +1316,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
                         onClick={() => handleRemoveTask(index)}
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        className="text-slate-400 hover:text-rose-600 transition-colors p-1 opacity-0 group-hover/task:opacity-100"
+                        className="text-slate-400 cursor-pointer hover:text-rose-600 transition-colors p-1 opacity-0 group-hover/task:opacity-100"
                       >
                         <X size={16} strokeWidth={2.5} />
                       </motion.button>
@@ -1366,7 +1353,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               disabled={saving}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="flex-1 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-semibold text-sm"
+              className="flex-1 px-6 py-3.5 cursor-pointer bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-semibold text-sm"
             >
               Cancel
             </motion.button>
@@ -1375,7 +1362,7 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
               disabled={saving}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="flex-1 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-semibold shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="flex-1 px-6 py-3.5 bg-slate-900 cursor-pointer text-white rounded-xl font-semibold shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {saving ? "Adding..." : "Add Schedule"}
             </motion.button>
@@ -1508,8 +1495,13 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
     }
   };
 
-  const inputClass =
+
+  
+  const inputClass2 =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
+
+  const inputClass =
+    "w-full px-4 py-3 bg-white cursor-pointer border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
 
   return (
     <motion.div
@@ -1542,7 +1534,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center group"
+            className="w-10 h-10 cursor-pointer hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center group"
           >
             <X
               size={20}
@@ -1573,13 +1565,13 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className={inputClass}
+                className={inputClass2}
                 required
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+              <div className="">
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                   Patient *
                 </label>
@@ -1652,7 +1644,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
               </div>
             </div>
 
-            <div>
+            <div className="">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Status
               </label>
@@ -1684,7 +1676,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   value={taskInput}
                   onChange={(e) => setTaskInput(e.target.value)}
                   onKeyDown={handleTaskKeyDown}
-                  className={`${inputClass} flex-1`}
+                  className={`${inputClass2} flex-1`}
                   placeholder="e.g. Morning Medication"
                 />
                 <motion.button
@@ -1693,7 +1685,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                   disabled={!taskInput.trim()}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-5 py-3 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 text-blue-600 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all font-semibold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-5 py-3 cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 text-blue-600 rounded-xl hover:from-blue-100 hover:to-indigo-100 transition-all font-semibold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   +
                 </motion.button>
@@ -1720,7 +1712,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                           onClick={() => handleRemoveTask(index)}
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          className="text-slate-400 hover:text-rose-600 transition-colors p-1 opacity-0 group-hover/task:opacity-100"
+                          className="text-slate-400 cursor-pointer hover:text-rose-600 transition-colors p-1 opacity-0 group-hover/task:opacity-100"
                         >
                           <X size={16} strokeWidth={2.5} />
                         </motion.button>
@@ -1755,7 +1747,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 disabled={saving}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="flex-1 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-semibold text-sm"
+                className="flex-1 px-6 py-3.5 bg-slate-100 cursor-pointer text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-semibold text-sm"
               >
                 Cancel
               </motion.button>
@@ -1764,7 +1756,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 disabled={saving}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="flex-1 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-semibold shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 px-6 py-3.5 bg-slate-900 cursor-pointer text-white rounded-xl font-semibold shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </motion.button>

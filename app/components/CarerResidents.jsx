@@ -122,21 +122,21 @@ function ClientCard({ client }) {
   const router = useRouter();
 
   const statusConfig = {
-    Stable: {
+    stable: {
       badge: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
       dot: "bg-emerald-500",
     },
-    Attention: {
+    attention: {
       badge: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
       dot: "bg-amber-500",
     },
-    Critical: {
+    critical: {
       badge: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
       dot: "bg-rose-500 animate-pulse",
     },
   };
 
-  const cfg = statusConfig[client.status] || statusConfig["Stable"];
+  const cfg = statusConfig[client.status] || statusConfig["stable"];
 
   const handleClick = () => {
     router.push(`/carer/myclients/${client.id}`);
@@ -197,7 +197,7 @@ function ClientCard({ client }) {
         </div>
       </div>
 
-      <button className="w-full py-4 bg-white border-2 border-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all flex items-center justify-center gap-2 group/btn">
+      <button className="w-full py-4 cursor-pointer bg-white border-2 border-slate-100 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all flex items-center justify-center gap-2 group/btn">
         <MapPin size={16} strokeWidth={3} />
         Room {client.room || "—"}
         <ArrowUpRight

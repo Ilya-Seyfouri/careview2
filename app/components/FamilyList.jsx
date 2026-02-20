@@ -175,7 +175,7 @@ export default function FamilyList() {
               </div>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                className="bg-slate-900 cursor-pointer  hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
                 type="button"
               >
                 <Plus
@@ -213,8 +213,8 @@ export default function FamilyList() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="bg-slate-50/30 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                        <th className="px-10 py-6">Family Member </th>
-                        <th className="px-10 py-6">Primary Relation</th>
+                        <th className="px-10 py-6">Name </th>
+                        <th className="px-10 py-6">Relation</th>
                         <th className="px-10 py-6">Linked Patient</th>
                         <th className="px-10 py-6">Email</th>
                         <th className="px-10 py-6">Phone</th>
@@ -224,7 +224,7 @@ export default function FamilyList() {
                       {paginatedFamilyMembers.map((family) => (
                         <tr
                           key={family.id}
-                          className="hover:bg-slate-50/50 transition-all cursor-pointer group/row"
+                          className="hover:bg-slate-50/50 transition-all  group/row"
                         >
                           {/* Family Member Identity */}
                           <td className="px-10 py-6">
@@ -311,7 +311,7 @@ export default function FamilyList() {
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-6 py-3 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-white border cursor-pointer border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -320,7 +320,7 @@ export default function FamilyList() {
                         setCurrentPage((p) => Math.min(totalPages, p + 1))
                       }
                       disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-slate-900 text-white  cursor-pointer rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Next Page
                     </button>
@@ -471,6 +471,9 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
     onSuccess();
   };
 
+  const inputClass2 =
+    "w-full px-4 py-3  cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
@@ -495,7 +498,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+            className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex items-center justify-center"
           >
             <X size={20} className="text-slate-500" />
           </button>
@@ -564,7 +567,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+                className="flex-1 px-6 py-4 cursor-pointer bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
@@ -572,7 +575,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+                className="flex-1 px-6 py-4 cursor-pointer bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Creating..." : "Next: Link to Resident"}
               </button>
@@ -598,7 +601,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, patient_id: e.target.value })
                 }
-                className={inputClass}
+                className={inputClass2}
               >
                 <option value="">-- Select a resident --</option>
                 {patients.map((patient) => (
@@ -619,7 +622,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
                 onChange={(e) =>
                   setFormData({ ...formData, relationship: e.target.value })
                 }
-                className={inputClass}
+                className={inputClass2}
               >
                 <option value="">-- Select relationship --</option>
                 <option value="Son">Son</option>
@@ -644,7 +647,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
               <button
                 type="button"
                 onClick={handleSkipLinking}
-                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+                className="flex-1 px-6 py-4 cursor-pointer bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Skip for Now
@@ -654,7 +657,7 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
                 disabled={
                   saving || !formData.patient_id || !formData.relationship
                 }
-                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+                className="flex-1 px-6 py-4 bg-slate-900 cursor-pointer text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
               >
                 {saving ? "Linking..." : "Complete"}
               </button>

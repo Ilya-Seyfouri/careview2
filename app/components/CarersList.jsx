@@ -104,7 +104,7 @@ export default function CarersList() {
               Workforce Management
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-              Staff Directory
+              Care Team
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
               {carers.length} staff members
@@ -129,7 +129,7 @@ export default function CarersList() {
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+              className="bg-slate-900 hover:bg-slate-800 cursor-pointer text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
               type="button"
             >
               <Plus
@@ -137,7 +137,7 @@ export default function CarersList() {
                 strokeWidth={3}
                 className="group-hover:rotate-90 transition-transform"
               />
-              Onboard Carer
+              Create Carer
             </button>
           </div>
 
@@ -322,6 +322,10 @@ function AddCarerModal({ onClose, onSuccess }) {
     }
   };
 
+  
+    const inputClass2 =
+      "w-full px-4 py-3 cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
@@ -341,7 +345,7 @@ function AddCarerModal({ onClose, onSuccess }) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+            className="w-10 h-10 hover:bg-slate-100 cursor-pointer rounded-xl transition-colors flex items-center justify-center"
           >
             <X size={20} className="text-slate-500" />
           </button>
@@ -411,7 +415,7 @@ function AddCarerModal({ onClose, onSuccess }) {
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value })
               }
-              className={inputClass}
+              className={inputClass2}
             >
               <option value="carer">Carer</option>
               <option value="senior_carer">Senior Carer</option>
@@ -431,7 +435,7 @@ function AddCarerModal({ onClose, onSuccess }) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+              className="flex-1 px-6 py-4 cursor-pointer bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
               disabled={saving}
             >
               Cancel
@@ -439,7 +443,7 @@ function AddCarerModal({ onClose, onSuccess }) {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+              className="flex-1 px-6 py-4 bg-slate-900 cursor-pointer text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
             >
               {saving ? "Adding..." : "Add Carer"}
             </button>

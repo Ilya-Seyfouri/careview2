@@ -236,13 +236,13 @@ export default function Messages() {
 
   // Contextual subtitle depending on who is viewing
   const familyPerson = profiles[FAMILY_ID];
-  const headerSubtitle = isCurrentUserCarer
-    ? patient
-      ? `Relative of ${patient.full_name}`
-      : "Family member of assigned resident"
-    : patient
-      ? `Messaging carer assigned to your relative`
-      : "Messaging assigned care staff";
+const headerSubtitle = isCurrentUserCarer
+  ? patient
+    ? `Relative of ${patient.full_name}`
+    : "Family member of assigned resident"
+  : patient
+    ? `Assigned carer for ${patient.full_name}`
+    : "Messaging assigned care staff";
 
   return (
     <motion.section
@@ -397,7 +397,7 @@ export default function Messages() {
                 className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 ${
                   input.trim()
                     ? "bg-gradient-to-br from-cyan-400 to-cyan-600 shadow-md shadow-cyan-500/30 text-white"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-200 text-gray-400  cursor-not-allowed"
                 }`}
               >
                 <Send

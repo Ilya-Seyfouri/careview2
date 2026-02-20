@@ -173,7 +173,7 @@ export default function Emar() {
             Electronic MAR
           </h2>
           <p className="text-slate-500 text-base font-medium mt-1">
-            Medication tracking
+            Medication Schedule
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export default function Emar() {
               <button
                 key={round.label}
                 onClick={() => setActiveRound(round.label)}
-                className={`px-5 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+                className={`px-5 py-2 cursor-pointer rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
                   activeRound === round.label
                     ? "bg-blue-500 text-white shadow-md"
                     : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
@@ -196,7 +196,7 @@ export default function Emar() {
           </div>
           <button
             onClick={() => setShowAuditModal(true)}
-            className="flex items-center gap-2 px-5 py-2 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+            className="flex items-center gap-2 cursor-pointer px-5 py-2 bg-white border border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
           >
             <Clock size={14} />
             Audit MAR
@@ -389,7 +389,7 @@ export default function Emar() {
                                   <button
                                     onClick={(e) => handleAdminister(e, entry)}
                                     disabled={isAdministering}
-                                    className="px-4 py-1.5 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+                                    className="px-4 py-1.5 cursor-pointer bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
                                   >
                                     {isAdministering ? "..." : "Administer"}
                                   </button>
@@ -535,7 +535,7 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
             onClick={onClose}
             className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-slate-500" />
+            <X size={20} className="text-slate-500 cursor-pointer" />
           </button>
         </div>
 
@@ -667,14 +667,14 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+              className="flex-1 px-6 py-4 bg-slate-100 cursor-pointer text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || success}
-              className={`flex-1 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 px-6 py-4 rounded-2xl cursor-pointer font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
                 success
                   ? "bg-emerald-500 text-white"
                   : "bg-slate-900 text-white shadow-2xl shadow-slate-200 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
@@ -689,7 +689,7 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
                 "Saving..."
               ) : (
                 <>
-                  <Plus size={16} />
+                  <Plus size={16} className="" />
                   Add Medication
                 </>
               )}
@@ -738,7 +738,7 @@ function EntryDetailModal({ entry, patient, onClose }) {
             onClick={onClose}
             className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={18} className="text-slate-500" />
+            <X size={18} className="text-slate-500 cursor-pointer" />
           </button>
         </div>
         <div className="space-y-6">
@@ -794,7 +794,7 @@ function EntryDetailModal({ entry, patient, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-8 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+          className="w-full mt-8 px-6 py-4 cursor-pointer bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
         >
           Close
         </button>

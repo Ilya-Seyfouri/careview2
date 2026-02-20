@@ -193,13 +193,13 @@ export default function Analytics() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                  Analytics & Reporting
+                  Analytics & Reports
                 </h2>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowAddReport(true)}
-                  className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+                  className="bg-slate-900 cursor-pointer hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
                 >
                   <Plus
                     size={20}
@@ -550,6 +550,10 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
     }
   };
 
+    const inputClass2 =
+      "w-full px-4 py-3 cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+
+
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
@@ -571,7 +575,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+            className="w-10 h-10 hover:bg-slate-100   cursor-pointer rounded-xl transition-colors flex items-center justify-center"
           >
             <X size={20} className="text-slate-500" />
           </button>
@@ -587,7 +591,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
               onChange={(e) =>
                 setFormData({ ...formData, patient_id: e.target.value })
               }
-              className={inputClass}
+              className={inputClass2}
               required
             >
               <option value="">
@@ -627,7 +631,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
                   key={key}
                   type="button"
                   onClick={() => setFormData({ ...formData, type: key })}
-                  className={`py-3 px-2 rounded-2xl border-2 text-xs font-semibold capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-md` : "bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100"}`}
+                  className={`py-3 px-2 rounded-2xl  cursor-pointer border-2 text-xs font-semibold capitalize transition-all ${formData.type === key ? `${cfg.bg} ${cfg.border} ${cfg.text} shadow-md` : "bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100"}`}
                 >
                   <div
                     className="w-3 h-3 rounded-full mx-auto mb-2"
@@ -672,7 +676,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest disabled:opacity-50"
+              className="flex-1 px-6 py-4 cursor-pointer bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest disabled:opacity-50"
             >
               Cancel
             </button>
@@ -684,7 +688,7 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
                 !formData.title.trim() ||
                 !formData.content.trim()
               }
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
+              className="flex-1 flex items-center  cursor-pointer justify-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-widest"
             >
               <FileText size={16} strokeWidth={3} />
               {saving ? "Saving..." : "Save Report"}

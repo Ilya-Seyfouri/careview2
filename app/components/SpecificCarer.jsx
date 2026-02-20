@@ -226,9 +226,6 @@ export default function SpecificCarer({ params }) {
                   <p className="text-sm text-slate-500 mb-4 capitalize font-bold uppercase tracking-widest">
                     {carer.role || "N/A"}
                   </p>
-                  <span className="inline-flex items-center px-4 py-2 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 uppercase tracking-widest">
-                    Active Carer
-                  </span>
                 </div>
               </div>
 
@@ -321,7 +318,7 @@ export default function SpecificCarer({ params }) {
                   </h3>
                   <button
                     onClick={() => setShowAssignModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+                    className="flex items-center gap-2 cursor-pointer px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
                   >
                     <Plus size={16} strokeWidth={3} />
                     <span>Assign Patient</span>
@@ -370,7 +367,7 @@ export default function SpecificCarer({ params }) {
                             >
                               <Trash2
                                 size={18}
-                                className="text-slate-400 group-hover:text-rose-600"
+                                className="text-slate-400 cursor-pointer group-hover:text-rose-600"
                                 strokeWidth={2.5}
                               />
                             </button>
@@ -422,7 +419,6 @@ export default function SpecificCarer({ params }) {
                               <p className="font-black text-sm text-slate-900 tracking-tight truncate">
                                 {formatDateTime(schedule.start_at)}
                               </p>
-                              
                             </div>
                           </div>
 
@@ -439,7 +435,6 @@ export default function SpecificCarer({ params }) {
                                 </p>
                               </div>
                             )}
-                            
                           </div>
                         </div>
                       </motion.div>
@@ -544,7 +539,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50 pt-24 p-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50 pt-15 p-4">
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -566,7 +561,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
             onClick={onClose}
             className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-slate-500" />
+            <X size={20} className="text-slate-500 cursor-pointer" />
           </button>
         </div>
 
@@ -629,7 +624,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
                         disabled={saving}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="flex-shrink-0 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-shrink-0 px-3 py-1.5 cursor-pointer bg-slate-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {saving ? "..." : "Assign"}
                       </motion.button>
@@ -640,7 +635,7 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
 
               <button
                 onClick={onClose}
-                className="mt-6 w-full px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+                className="mt-6 w-full  cursor-pointer px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
