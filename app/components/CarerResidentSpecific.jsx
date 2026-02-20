@@ -19,6 +19,7 @@ import {
   X,
   Plus,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useDemoUser } from "./DemoContext";
 
 export default function CarerResidentSpecific() {
@@ -158,8 +159,12 @@ export default function CarerResidentSpecific() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
-        <div className="container mx-auto px-6 lg:px-10 py-10">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="min-h-screen bg-slate-50"
+>        <div className="container mx-auto px-6 lg:px-10 py-10">
           <button
             onClick={() => router.push("/carer/myclients")}
             className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-8 font-bold"
@@ -295,7 +300,7 @@ export default function CarerResidentSpecific() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {showAddLog && (
         <AddVisitLogModal
@@ -344,8 +349,12 @@ function OverviewTab({ client }) {
   return (
     <div className="space-y-10">
       {/* Executive Clinical Summary */}
-      <section>
-        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className=""
+>        <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
@@ -362,11 +371,15 @@ function OverviewTab({ client }) {
             </p>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* Emergency Contacts */}
-      <section>
-        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className=""
+>        <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
           Emergency Contacts
         </h4>
         {familyMembers.length === 0 ? (
@@ -422,7 +435,7 @@ function OverviewTab({ client }) {
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
     </div>
   );
 }
@@ -550,8 +563,12 @@ function VisitLogsTab({ visitLogs, onAddLog }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className="space-y-6"
+>      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Visit History
         </h4>
@@ -689,7 +706,7 @@ function VisitLogsTab({ visitLogs, onAddLog }) {
           })}
         </div>
       )}
-    </div>
+    </motion.section>
   );
 }
 
@@ -705,8 +722,12 @@ function ReportsTab({ reports, onViewReport }) {
     });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className="space-y-6"
+>      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Reports
         </h4>
@@ -769,7 +790,7 @@ function ReportsTab({ reports, onViewReport }) {
           ))}
         </div>
       )}
-    </div>
+    </motion.section>
   );
 }
 

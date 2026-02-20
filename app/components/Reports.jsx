@@ -1,6 +1,8 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
 import {
   Activity,
   Users,
@@ -174,7 +176,13 @@ export default function Analytics() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
           {/* Header */}
           <div className="mb-10">
@@ -187,10 +195,8 @@ export default function Analytics() {
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   Analytics & Reporting
                 </h2>
-             
               </div>
               <div className="flex items-center gap-3">
-               
                 <button
                   onClick={() => setShowAddReport(true)}
                   className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
@@ -226,17 +232,7 @@ export default function Analytics() {
                 </span>
               </div>
 
-              {loading ? (
-                <div className="flex items-end justify-center gap-4 h-64 pb-6">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 bg-slate-100 rounded-t-xl animate-pulse"
-                      style={{ height: `${40 + Math.random() * 60}%` }}
-                    />
-                  ))}
-                </div>
-              ) : staffVisitCounts.length === 0 ? (
+              {staffVisitCounts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-300">
                   <AlertCircle size={60} className="mb-4 opacity-10" />
                   <p className="font-black text-lg text-slate-900 tracking-tight">
@@ -263,17 +259,7 @@ export default function Analytics() {
                 </span>
               </div>
 
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <Activity
-                    size={60}
-                    className="mb-4 opacity-10 animate-pulse"
-                  />
-                  <p className="font-black text-lg text-slate-900 tracking-tight">
-                    Loading...
-                  </p>
-                </div>
-              ) : totalReports === 0 ? (
+              {totalReports === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-300">
                   <AlertCircle size={60} className="mb-4 opacity-10" />
                   <p className="font-black text-lg text-slate-900 tracking-tight">
@@ -355,7 +341,7 @@ export default function Analytics() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {showAddReport && (
         <AddReportModal

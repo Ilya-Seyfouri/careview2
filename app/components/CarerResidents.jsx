@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, MapPin, Heart, Activity, ArrowUpRight } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
+import {motion} from "framer-motion"
 
 const DEMO_CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 
@@ -58,8 +59,12 @@ export default function MyClients() {
   const isLoading = userLoading || loading;
 
   return (
-    <section className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="min-h-screen bg-slate-50"
+>      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
         {/* ── Header ── */}
         <div className="mb-10">
           <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
@@ -108,7 +113,7 @@ export default function MyClients() {
           </div>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
 

@@ -12,6 +12,7 @@ import {
   Check,
   Activity,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const TIME_ROUNDS = [
   { label: "Morning", range: ["06:00", "12:00"] },
@@ -23,6 +24,8 @@ const TIME_ROUNDS = [
 export default function Emar() {
   const supabase = createClient();
   const [emarData, setEmarData] = useState([]);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   const [patients, setPatients] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeRound, setActiveRound] = useState("Morning");
@@ -152,7 +155,13 @@ export default function Emar() {
   };
 
   return (
-    <section className="min-h-screen bg-slate-50">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-slate-50"
+    >
+      {" "}
       <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
         {/* Header */}
         <div className="mb-8">
@@ -294,17 +303,7 @@ export default function Emar() {
                 </div>
               </div>
 
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-300">
-                  <Activity
-                    size={64}
-                    className="mb-5 opacity-10 animate-pulse"
-                  />
-                  <p className="font-black text-lg text-slate-900 tracking-tight">
-                    Loading medications...
-                  </p>
-                </div>
-              ) : filteredEntries.length === 0 ? (
+              {filteredEntries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16">
                   <Pill className="text-slate-300 mb-3 opacity-20" size={64} />
                   <p className="font-black text-lg text-slate-900 tracking-tight">
@@ -413,7 +412,6 @@ export default function Emar() {
           </div>
         </div>
       </div>
-
       {selectedEntry && (
         <EntryDetailModal
           entry={selectedEntry}
@@ -421,7 +419,6 @@ export default function Emar() {
           onClose={() => setSelectedEntry(null)}
         />
       )}
-
       {showAuditModal && (
         <AddEmarModal
           patients={Object.values(patients)}
@@ -433,7 +430,7 @@ export default function Emar() {
           supabase={supabase}
         />
       )}
-    </section>
+    </motion.section>
   );
 }
 

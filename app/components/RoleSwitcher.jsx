@@ -14,8 +14,9 @@ const ROLE_IDS = {
   carer: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
   family: "dddddddd-dddd-dddd-dddd-dddddddddddd",
 };
-export default function RoleSwitcher() {
-const { demoUser, loadUserForRole, loadUserById } = useDemoUser();
+
+export default function RoleSwitcher({ isCollapsed }) {
+  const { demoUser, loadUserForRole, loadUserById } = useDemoUser();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
@@ -28,42 +29,54 @@ const { demoUser, loadUserForRole, loadUserById } = useDemoUser();
     router.push(path);
     setIsOpen(false);
   };
+
   const currentRoleLabel =
     roleOptions.find((r) => r.value === demoUser?.role)?.label || "Manager";
 
   return (
-    <div className="p-4 border-t border-white/5">
+    <div className="p-4 border-t border-slate-100">
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all text-muted-foreground hover:text-foreground"
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all ${
+            isCollapsed ? "justify-center" : "justify-between"
+          }`}
           type="button"
+          disabled={isCollapsed}
         >
-          <div className="flex items-center gap-3">
-            <User size={20} />
-            <div className="text-left">
-              <p className="text-xs text-muted-foreground">Viewing as</p>
-              <p className="font-medium text-sm">
-                {demoUser?.full_name || "Loading..."} ({currentRoleLabel})
-              </p>
+          <div className={`flex items-center gap-3 min-w-0`}>
+            <div className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
+              <User size={14} className="text-slate-600" />
             </div>
+            {!isCollapsed && (
+              <div className="text-left min-w-0">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  Viewing as
+                </p>
+                <p className="font-black text-sm text-slate-900 truncate">
+                  {currentRoleLabel}
+                </p>
+              </div>
+            )}
           </div>
-          <ChevronDown
-            size={16}
-            className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-          />
+          {!isCollapsed && (
+            <ChevronDown
+              size={16}
+              className={`text-slate-400 transition-transform flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
+            />
+          )}
         </button>
 
         {isOpen && (
-          <div className="absolute bottom-full left-0 right-0 mb-2 bg-background border border-white/5 rounded-lg shadow-xl overflow-hidden">
+          <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
             {roleOptions.map((role) => (
               <button
                 key={role.value}
                 onClick={() => handleRoleChange(role.value, role.path)}
-                className={`w-full px-4 py-3 text-left hover:bg-white/5 transition-colors ${
+                className={`w-full px-4 py-3 text-left text-sm font-semibold transition-colors ${
                   demoUser?.role === role.value
-                    ? "bg-white/10 text-foreground"
-                    : "text-muted-foreground"
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`}
                 type="button"
               >

@@ -2,6 +2,8 @@
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
 import {
   ArrowLeft,
   Calendar,
@@ -194,7 +196,13 @@ export default function MyLovedOnes() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 py-10">
           {/* Back */}
           <button
@@ -261,7 +269,6 @@ export default function MyLovedOnes() {
                   />
                   <StatRow label="Wing" value={client.wing || "N/A"} />
                   <StatRow label="Blood Type" value={client.blood || "N/A"} />
-               
                 </div>
               </div>
 
@@ -373,7 +380,7 @@ export default function MyLovedOnes() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {showViewReport && (
         <ViewReportModal
@@ -390,8 +397,12 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
 
   return (
     <div className="space-y-10">
-      <section>
-        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className=""
+>        <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <User size={20} />
           </div>
@@ -416,11 +427,15 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
           <InfoField label="Wing" value={client.wing} />
           <InfoField label="Language" value={client.language} />
         </div>
-      </section>
+      </motion.section>
 
       {client.health_summary && (
-        <section>
-          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className=""
+>          <h4 className="font-black text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
               <History size={20} />
             </div>
@@ -431,13 +446,17 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
               {client.health_summary}
             </p>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* Current Vitals */}
       {hasVitals && (
-        <section>
-          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className=""
+>          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
             Current Vitals
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -458,7 +477,7 @@ function OverviewTab({ client, assignedCarers, calculateAge }) {
               />
             )}
           </div>
-        </section>
+        </motion.section>
       )}
     </div>
   );
@@ -570,8 +589,12 @@ function VisitLogsTab({ visitLogs, carerNames }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className="space-y-6"
+>      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Visit History
         </h4>
@@ -713,7 +736,7 @@ function VisitLogsTab({ visitLogs, carerNames }) {
           })}
         </div>
       )}
-    </div>
+    </motion.section>
   );
 }
 
@@ -746,8 +769,12 @@ function ReportsTab({ reports, onViewReport }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+  className="space-y-6"
+>      <div className="flex items-center justify-between">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Reports
         </h4>
@@ -786,17 +813,7 @@ function ReportsTab({ reports, onViewReport }) {
                         <p className="font-black text-lg text-slate-900 truncate tracking-tight">
                           {report.title}
                         </p>
-                        {report.type && (
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest flex-shrink-0 ${typeCfg.color}`}
-                          >
-                            <span
-                              className={`w-2 h-2 rounded-full ${typeCfg.dot}`}
-                            />
-                            {report.type.charAt(0).toUpperCase() +
-                              report.type.slice(1)}
-                          </span>
-                        )}
+                       
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2 font-medium">
                         {report.content || "No content"}
@@ -826,10 +843,33 @@ function ReportsTab({ reports, onViewReport }) {
           })}
         </div>
       )}
-    </div>
+    </motion.section>
   );
 }
-/* ─── Schedules Tab ──────────────────────────────────────────────── */
+const scheduleContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const scheduleItemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 22,
+      stiffness: 280,
+    },
+  },
+};
+
 function SchedulesTab({ patientId }) {
   const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
@@ -889,41 +929,91 @@ function SchedulesTab({ patientId }) {
     },
   };
 
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-24">
+        <p className="font-black text-slate-400 uppercase tracking-widest text-xs animate-pulse">
+          Loading schedules...
+        </p>
+      </div>
+    );
 
+  if (error)
+    return (
+      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6">
+        <p className="text-sm text-rose-700 font-bold">{error}</p>
+      </div>
+    );
+
+  if (schedules.length === 0)
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <CalendarDays size={64} className="text-slate-200 mb-4" />
+        <p className="font-black text-lg text-slate-900 tracking-tight mb-1">
+          No schedules found
+        </p>
+        <p className="text-sm text-slate-400 font-medium">
+          Schedules will appear here once created
+        </p>
+      </div>
+    );
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      variants={scheduleContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+    >
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
         const cfg =
           statusConfig[s.status?.toLowerCase()] || statusConfig.pending;
 
         return (
-          <div
+          <motion.div
             key={s.id}
-            className={`bg-slate-100 hover:border rounded-[24px] p-6 hover:shadow-lg transition-all ${upcoming ? "border-blue-300 ring-2 ring-blue-50" : "border-slate-300"}`}
+            variants={scheduleItemVariants}
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className={`bg-slate-100 border rounded-[24px] p-6 hover:shadow-lg transition-shadow duration-300 ${
+              upcoming
+                ? "border-blue-300 ring-2 ring-blue-50"
+                : "border-slate-200"
+            }`}
           >
+            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 ${
+                  upcoming
+                    ? "bg-gradient-to-br from-blue-500 to-blue-600"
+                    : "bg-gradient-to-br from-slate-400 to-slate-500"
+                }`}
               >
-                <CalendarDays size={26} className="text-white" />
+                <CalendarDays size={22} className="text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-black text-lg text-slate-900 tracking-tight">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-lg text-slate-900 tracking-tight truncate">
                   {s.title}
                 </h3>
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span
+                    className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
+                  >
+                    {cfg.label}
+                  </span>
                   {upcoming && (
-                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
+                    <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Time Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                   <Clock size={12} className="text-blue-500" />
                   Start Time
@@ -932,7 +1022,7 @@ function SchedulesTab({ patientId }) {
                   {fmt(s.start_at)}
                 </p>
               </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                   <Clock size={12} className="text-blue-500" />
                   End Time
@@ -942,25 +1032,32 @@ function SchedulesTab({ patientId }) {
                 </p>
               </div>
             </div>
+
+            {/* Carer */}
             {(s.carer || s.created_by_profile) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
                 {s.carer && (
                   <div className="px-4">
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
                     </p>
-                    <p className="text-base font-black text-slate-900 tracking-tight">
-                      {s.carer.full_name}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                        {s.carer.full_name?.charAt(0) ?? "?"}
+                      </div>
+                      <p className="text-base font-black text-slate-900 tracking-tight">
+                        {s.carer.full_name}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 

@@ -3,6 +3,7 @@ import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { useDemoUser } from "./DemoContext";
 import { Send, Phone, Video, Info, ChevronLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 const CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 const FAMILY_ID = "dddddddd-dddd-dddd-dddd-dddddddddddd";
@@ -244,9 +245,14 @@ export default function Messages() {
       : "Messaging assigned care staff";
 
   return (
-    <section className="h-screen bg-slate-50 flex flex-col overflow-hidden">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="h-screen bg-slate-50 flex flex-col overflow-hidden"
+    >
       {/* ── Page header ── */}
-    
+
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Chat window wrapper */}
         <div className="flex-1 flex flex-col bg-white overflow-hidden">
@@ -403,6 +409,6 @@ export default function Messages() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

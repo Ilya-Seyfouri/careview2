@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function CarerDashboard() {
   const supabase = createClient();
@@ -229,7 +230,13 @@ export default function CarerDashboard() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
           {/* ── Hero Banner ── */}
           <div className="relative overflow-hidden rounded-[32px] mb-8 bg-slate-900 p-8 shadow-2xl shadow-slate-200">
@@ -283,7 +290,6 @@ export default function CarerDashboard() {
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                   Your Schedules
                 </h2>
-               
               </div>
               <button
                 onClick={handleOpenHistory}
@@ -423,7 +429,7 @@ export default function CarerDashboard() {
             )}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── History Modal ── */}
       {showHistory && (
@@ -453,8 +459,6 @@ export default function CarerDashboard() {
     </>
   );
 }
-
-/* ─── History Modal ─────────────────────────────────────────────── */
 function HistoryModal({ history, loading, onClose }) {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-GB", {
@@ -480,21 +484,27 @@ function HistoryModal({ history, loading, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[28px] max-w-lg w-full shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[28px] max-w-2xl w-full p-8 shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col overflow-hidden"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
-              <History size={16} className="text-white" />
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
+              <History size={18} className="text-white" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight">
+              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                Visit History
+              </p>
+              <h2 className="text-lg font-black text-slate-900 tracking-tight">
                 Past Visits
               </h2>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                Completed history
-              </p>
             </div>
           </div>
           <button
@@ -506,21 +516,27 @@ function HistoryModal({ history, loading, onClose }) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto -mx-8 px-8">
           {loading ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-slate-50 border border-slate-100 rounded-xl p-4 animate-pulse h-16"
+                  className="bg-slate-50 border border-slate-100 rounded-xl p-4 animate-pulse h-24"
                 />
               ))}
             </div>
           ) : history.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-              <History size={32} className="mb-3 opacity-20" />
-              <p className="font-bold text-sm">No past visits yet</p>
-              <p className="text-xs mt-1">Completed visits will appear here</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mb-4">
+                <History size={32} className="text-slate-300" />
+              </div>
+              <p className="font-black text-sm text-slate-900">
+                No past visits yet
+              </p>
+              <p className="text-[10px] text-slate-500 mt-1 font-bold uppercase tracking-widest">
+                Completed visits will appear here
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -529,23 +545,19 @@ function HistoryModal({ history, loading, onClose }) {
                 return (
                   <div
                     key={s.id}
-                    className="bg-slate-50 border border-slate-100 rounded-xl p-4 hover:bg-slate-100 transition-all"
+                    className="bg-slate-50 border border-slate-100 rounded-xl p-4 hover:bg-white hover:border-slate-200 transition-all"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                        <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm font-black shadow-sm flex-shrink-0">
                           {s.patient?.full_name?.charAt(0).toUpperCase() || "?"}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-black text-slate-900 text-sm truncate">
                             {s.patient?.full_name || "Unknown Patient"}
                           </p>
                           {s.title && (
-                            <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5 font-bold">
-                              <Stethoscope
-                                size={9}
-                                className="text-slate-400 flex-shrink-0"
-                              />
+                            <p className="text-[10px] text-slate-500 font-bold truncate mt-1">
                               {s.title}
                             </p>
                           )}
@@ -553,27 +565,27 @@ function HistoryModal({ history, loading, onClose }) {
                       </div>
 
                       {duration && (
-                        <div className="flex items-center gap-1 bg-slate-900 rounded-lg px-2 py-1 flex-shrink-0">
-                          <Timer size={10} className="text-white" />
-                          <span className="text-[10px] font-black text-white">
+                        <div className="flex items-center gap-1.5 bg-slate-100 rounded-lg px-2.5 py-1.5 flex-shrink-0 border border-slate-200">
+                          <Timer size={12} className="text-slate-500" />
+                          <span className="text-[10px] font-black text-slate-700">
                             {duration}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-200 text-[10px] text-slate-500 font-bold">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays size={9} className="text-slate-400" />
+                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-200 text-[10px] text-slate-600 font-bold">
+                      <span className="flex items-center gap-1.5">
+                        <CalendarDays size={11} className="text-slate-400" />
                         {formatDate(s.start_at)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Clock size={9} className="text-slate-400" />
+                      <span className="flex items-center gap-1.5">
+                        <Clock size={11} className="text-slate-400" />
                         {formatTime(s.start_at)}
                       </span>
                       {s.patient?.room && (
-                        <span className="flex items-center gap-1">
-                          <MapPin size={9} className="text-slate-400" />
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={11} className="text-slate-400" />
                           Room {s.patient.room}
                         </span>
                       )}
@@ -586,10 +598,10 @@ function HistoryModal({ history, loading, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="pt-6 mt-6 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+            className="w-full px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-black active:scale-95 text-xs uppercase tracking-widest shadow-lg shadow-slate-200"
           >
             Close
           </button>
@@ -642,17 +654,27 @@ function ActiveVisitModal({ schedule, formatTime, onEndVisit, onClose }) {
   const handleEndVisit = () => onEndVisit(checkedTasks);
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[28px] max-w-md w-full p-8 shadow-2xl border border-slate-100">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-[28px] max-w-lg w-full p-8 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto"
+      >
+        {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
               <Clock size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">
-                Visit In Progress
-              </p>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                  In Progress
+                </span>
+              </div>
               <h2 className="text-lg font-black text-slate-900 tracking-tight">
                 Active Visit
               </h2>
@@ -666,136 +688,165 @@ function ActiveVisitModal({ schedule, formatTime, onEndVisit, onClose }) {
           </button>
         </div>
 
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 mb-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white text-base font-black shadow-md flex-shrink-0">
-              {patient?.full_name?.charAt(0).toUpperCase() || "?"}
-            </div>
-            <div>
-              <p className="font-black text-slate-900 text-base">
-                {patient?.full_name || "Unknown"}
-              </p>
-              {patient?.room && (
-                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5 font-bold">
-                  <MapPin size={11} className="text-slate-400" />
-                  Room {patient.room}
+        <div className="space-y-5">
+          {/* Patient Info */}
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm font-black shadow-sm flex-shrink-0">
+                {patient?.full_name?.charAt(0).toUpperCase() || "?"}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-slate-900 text-sm truncate">
+                  {patient?.full_name || "Unknown"}
                 </p>
+                {patient?.room && (
+                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">
+                    Room {patient.room}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2 border-t border-slate-200">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Started At
+                </span>
+                <span className="text-sm font-black text-slate-900">
+                  {formatTime(schedule.start_at)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-2 border-t border-slate-200">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Duration
+                </span>
+                <span className="text-sm font-black text-emerald-600 tabular-nums">
+                  {formatElapsed(elapsed)}
+                </span>
+              </div>
+
+              {schedule.title && (
+                <div className="flex items-center justify-between py-2 border-t border-slate-200">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Visit Type
+                  </span>
+                  <span className="text-sm font-black text-slate-900">
+                    {schedule.title}
+                  </span>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="border-t border-slate-200 pt-3">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-              Visit Started
-            </p>
-            <p className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-              <Clock size={12} className="text-blue-600" />
-              {formatTime(schedule.start_at)}
-              <span className="text-slate-300 mx-1">·</span>
-              <span className="text-blue-600 tabular-nums">
-                {formatElapsed(elapsed)}
-              </span>
-            </p>
-          </div>
+          {/* Tasks */}
+          {parsedTasks.length > 0 && (
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Required Tasks
+                </span>
+                <span className="text-[10px] font-black text-slate-500">
+                  {checkedCount}/{parsedTasks.length}
+                </span>
+              </div>
 
-          {schedule.title && (
-            <div className="border-t border-slate-200 pt-3 mt-3">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                Visit Type
-              </p>
-              <p className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                <Stethoscope size={12} className="text-slate-400" />
-                {schedule.title}
-              </p>
+              {/* Progress Bar */}
+              <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mb-4">
+                <div
+                  className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${parsedTasks.length > 0 ? (checkedCount / parsedTasks.length) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+
+              {/* Task List */}
+              <div className="space-y-2">
+                {parsedTasks.map((task, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => toggleTask(index)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
+                      checkedTasks[index]
+                        ? "bg-emerald-50 border-emerald-200"
+                        : "bg-white border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border-2 transition-all ${
+                        checkedTasks[index]
+                          ? "bg-emerald-500 border-emerald-500"
+                          : "border-slate-300"
+                      }`}
+                    >
+                      {checkedTasks[index] && (
+                        <svg
+                          width="10"
+                          height="8"
+                          viewBox="0 0 10 8"
+                          fill="none"
+                        >
+                          <path
+                            d="M1 4L3.5 6.5L9 1"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span
+                      className={`text-sm font-medium transition-all ${
+                        checkedTasks[index]
+                          ? "text-emerald-700 line-through opacity-70"
+                          : "text-slate-900"
+                      }`}
+                    >
+                      {task}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* All Complete Message */}
+              {allChecked && (
+                <div className="mt-3 flex items-center gap-2 text-emerald-600 text-sm font-black bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                  <CheckCircle2 size={14} />
+                  All tasks completed!
+                </div>
+              )}
             </div>
           )}
-        </div>
 
-        {parsedTasks.length > 0 && (
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 mb-5">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Required Tasks
-              </p>
-              <span className="text-xs font-black text-slate-500">
-                {checkedCount}/{parsedTasks.length}
-              </span>
-            </div>
-            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden mb-4">
-              <div
-                className="h-full bg-slate-900 rounded-full transition-all duration-500"
-                style={{
-                  width: `${parsedTasks.length > 0 ? (checkedCount / parsedTasks.length) * 100 : 0}%`,
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              {parsedTasks.map((task, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => toggleTask(index)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
-                    checkedTasks[index]
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                      : "bg-white border-slate-200 text-slate-900 hover:bg-slate-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border-2 transition-all ${checkedTasks[index] ? "bg-emerald-500 border-emerald-500" : "border-slate-300"}`}
-                  >
-                    {checkedTasks[index] && (
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path
-                          d="M1 4L3.5 6.5L9 1"
-                          stroke="white"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-medium transition-all ${checkedTasks[index] ? "line-through opacity-70" : ""}`}
-                  >
-                    {task}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {allChecked && (
-              <div className="mt-3 flex items-center gap-2 text-emerald-600 text-xs font-black">
-                <CheckCircle2 size={12} />
-                All tasks completed!
-              </div>
-            )}
+          {/* Status */}
+          <div className="flex items-center gap-2 px-1">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <p className="text-[10px] text-slate-600 font-bold">
+              {parsedTasks.length > 0
+                ? `${checkedCount} of ${parsedTasks.length} tasks completed`
+                : "Click End Visit when finished"}
+            </p>
           </div>
-        )}
 
-        <div className="flex items-center gap-2 mb-5 px-1">
-          <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-          <p className="text-xs text-slate-500 font-medium">
-            {parsedTasks.length > 0
-              ? `${checkedCount} of ${parsedTasks.length} tasks done`
-              : "Click End Visit when finished"}
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 text-xs uppercase tracking-widest"
-          >
-            Minimise
-          </button>
-          <button
-            onClick={handleEndVisit}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 text-xs uppercase tracking-widest"
-          >
-            <Square size={12} fill="white" />
-            End Visit
-          </button>
+          {/* Actions */}
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black active:scale-95 text-xs uppercase tracking-widest"
+            >
+              Minimize
+            </button>
+            <button
+              onClick={handleEndVisit}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-900 text-white rounded-xl font-black shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 text-xs uppercase tracking-widest"
+            >
+              <Square size={13} fill="white" />
+              End Visit
+            </button>
+          </div>
         </div>
       </div>
     </div>

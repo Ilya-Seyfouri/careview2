@@ -1,6 +1,7 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -190,8 +191,12 @@ export default function VisitLogDetail({ params }) {
   const appetiteConfig = getAppetiteConfig(visitLog.appetite);
 
   return (
-    <section className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-6 lg:px-10 py-10">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="min-h-screen bg-slate-50"
+>      <div className="container mx-auto px-6 lg:px-10 py-10">
         {/* Back */}
         <button
           onClick={() => router.push(`/residents/${residentId}`)}
@@ -330,7 +335,7 @@ export default function VisitLogDetail({ params }) {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 

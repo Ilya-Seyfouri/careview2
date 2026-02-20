@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useDemoUser } from "./DemoContext";
+import { motion } from "framer-motion";
 
 export default function FamilyDashboard() {
   const supabase = createClient();
@@ -320,8 +321,12 @@ export default function FamilyDashboard() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
-        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10 max-w-5xl">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="min-h-screen bg-slate-50"
+>        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10 max-w-5xl">
           {/* ── Welcome Banner ── */}
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white p-10 rounded-[40px] border border-slate-100 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group mb-10">
             {/* SaaS Glow Accent */}
@@ -598,7 +603,7 @@ export default function FamilyDashboard() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Modals */}
       {selectedLog && (

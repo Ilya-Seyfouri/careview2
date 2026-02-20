@@ -1,6 +1,7 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -88,17 +89,9 @@ export default function SpecificCarer({ params }) {
       const now = new Date().toISOString();
       const { data: schedulesData, error: schedulesError } = await supabase
         .from("schedules")
-        .select(
-          `
-          *,
-          patients (
-            full_name,
-            room
-          )
-        `,
-        )
+        .select(`*, patients (full_name, room)`)
         .eq("carer_id", carerId)
-        .gte("start_at", now)
+        .eq("status", "scheduled")
         .order("start_at", { ascending: true })
         .limit(10);
 
@@ -116,10 +109,6 @@ export default function SpecificCarer({ params }) {
   };
 
   const handleUnassignPatient = async (patientId) => {
-    if (!confirm("Are you sure you want to unassign this patient?")) {
-      return;
-    }
-
     try {
       const { error } = await supabase
         .from("patient_carers")
@@ -202,7 +191,13 @@ export default function SpecificCarer({ params }) {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 py-10">
           {/* Back Button */}
           <button
@@ -408,64 +403,58 @@ export default function SpecificCarer({ params }) {
                   </div>
                   Upcoming Schedules
                 </h3>
+
                 {upcomingSchedules.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {upcomingSchedules.map((schedule) => (
-                      <div
+                      <motion.div
                         key={schedule.id}
-                        className="bg-slate-50 border border-slate-200 p-6 rounded-[24px] hover:shadow-lg transition-all"
+                        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                        className="bg-slate-50 border border-slate-200 rounded-[20px] p-5 hover:shadow-md transition-shadow duration-300"
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
-                                <Clock size={16} className="text-blue-600" />
-                              </div>
-                              <p className="font-black text-base text-slate-900 tracking-tight">
+                        <div className="flex items-center justify-between gap-4">
+                          {/* Left — icon + time */}
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                              <Clock size={16} className="text-white" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-black text-sm text-slate-900 tracking-tight truncate">
                                 {formatDateTime(schedule.start_at)}
                               </p>
+                              
                             </div>
-                            <p className="text-sm text-slate-500 ml-10 font-medium">
-                              to {formatDateTime(schedule.end_at)}
-                            </p>
                           </div>
-                          <span
-                            className={`inline-flex items-center px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ring-1 ${
-                              schedule.status === "scheduled"
-                                ? "bg-blue-50 text-blue-700 ring-blue-100"
-                                : schedule.status === "completed"
-                                  ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-                                  : "bg-amber-50 text-amber-700 ring-amber-100"
-                            }`}
-                          >
-                            {schedule.status || "Pending"}
-                          </span>
+
+                          {/* Right — patient + status */}
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            {schedule.patients && (
+                              <div className="text-right hidden sm:block">
+                                <p className="text-sm font-black text-slate-900 tracking-tight">
+                                  {schedule.patients.full_name}
+                                </p>
+                                <p className="text-xs text-slate-400 font-medium flex items-center justify-end gap-1 mt-0.5">
+                                  <MapPin size={10} />
+                                  Room {schedule.patients.room || "N/A"}
+                                </p>
+                              </div>
+                            )}
+                            
+                          </div>
                         </div>
-                        {schedule.patients && (
-                          <div className="ml-10 pt-4 border-t border-slate-200">
-                            <p className="text-sm text-slate-500 font-medium">
-                              Patient:{" "}
-                              <span className="text-slate-900 font-black">
-                                {schedule.patients.full_name}
-                              </span>
-                            </p>
-                            <p className="text-xs text-slate-400 font-bold mt-1 flex items-center gap-1.5">
-                              <MapPin size={12} />
-                              Room: {schedule.patients.room || "N/A"}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-16 text-slate-300">
-                    <CalendarDays
-                      size={80}
-                      className="mx-auto mb-6 opacity-10"
-                    />
-                    <p className="font-black text-xl text-slate-900 tracking-tight">
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+                      <CalendarDays size={28} className="text-slate-300" />
+                    </div>
+                    <p className="font-black text-lg text-slate-900 tracking-tight mb-1">
                       No upcoming schedules
+                    </p>
+                    <p className="text-sm text-slate-400 font-medium">
+                      Scheduled visits will appear here
                     </p>
                   </div>
                 )}
@@ -473,7 +462,7 @@ export default function SpecificCarer({ params }) {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Assign Patient Modal */}
       {showAssignModal && (
@@ -494,7 +483,6 @@ export default function SpecificCarer({ params }) {
 function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   const supabase = createClient();
   const [allPatients, setAllPatients] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -506,38 +494,25 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   const fetchAvailablePatients = async () => {
     try {
       setLoading(true);
-
-      // Fetch all patients
       const { data: patientsData, error: patientsError } = await supabase
         .from("patients")
         .select("id, full_name, room, status")
         .order("full_name", { ascending: true });
-
       if (patientsError) throw patientsError;
 
-      // Filter out already assigned patients
       const assignedPatientIds = assignedPatients.map((p) => p.id);
       const availablePatients = patientsData.filter(
         (p) => !assignedPatientIds.includes(p.id),
       );
-
       setAllPatients(availablePatients || []);
     } catch (err) {
-      console.error("Error fetching patients:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!selectedPatient) {
-      setError("Please select a patient");
-      return;
-    }
-
+  const handleAssign = async (patientId) => {
     try {
       setSaving(true);
       setError(null);
@@ -546,25 +521,22 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
         .from("patient_carers")
         .insert([
           {
-            patient_id: selectedPatient,
+            patient_id: patientId,
             carer_id: carerId,
             assigned_at: new Date().toISOString(),
           },
         ]);
-
       if (insertError) throw insertError;
 
-      // Audit log: patient assigned to carer
       await supabase.from("audit_logs").insert({
         action_type: "carer_assigned_to_patient",
         actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: selectedPatient,
+        related_to: patientId,
         created_at: new Date().toISOString(),
       });
 
       onSuccess();
     } catch (err) {
-      console.error("Error assigning patient:", err);
       setError(err.message || "Failed to assign patient");
     } finally {
       setSaving(false);
@@ -572,13 +544,24 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] max-w-md w-full p-10 shadow-2xl border border-slate-100">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50 pt-24 p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.98 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-white rounded-[32px] max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            Assign Patient
-          </h2>
+        <div className="flex items-center justify-between p-10 pb-6">
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+              Assign Patient
+            </h2>
+            <p className="text-slate-500 text-sm font-medium mt-1">
+              Select a patient to assign to this carer
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
@@ -587,89 +570,88 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
           </button>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Activity size={60} className="mb-4 opacity-10 animate-pulse" />
-            <p className="font-black text-lg text-slate-900 tracking-tight">
-              Loading patients...
-            </p>
-          </div>
-        ) : allPatients.length === 0 ? (
-          <div className="text-center py-12">
-            <Users
-              size={80}
-              className="mx-auto mb-6 text-slate-300 opacity-10"
-            />
-            <p className="font-black text-lg text-slate-900 tracking-tight mb-2">
-              All Assigned
-            </p>
-            <p className="text-slate-500 mb-6 font-medium">
-              All patients are already assigned to this carer
-            </p>
-            <button
-              onClick={onClose}
-              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
-            >
-              Close
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Patient Selection */}
-            <div>
-              <label className="block text-sm font-black text-slate-900 mb-3 uppercase tracking-widest">
-                Select Patient *
-              </label>
-              <select
-                value={selectedPatient}
-                onChange={(e) => setSelectedPatient(e.target.value)}
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                required
-              >
-                <option value="">Choose a patient...</option>
-                {allPatients.map((patient) => (
-                  <option key={patient.id} value={patient.id}>
-                    {patient.full_name} - Room {patient.room} ({patient.status})
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-slate-400 mt-2 font-bold">
-                {allPatients.length} patient(s) available to assign
+        {/* Body */}
+        <div className="px-10 pb-10">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Activity size={48} className="mb-4 opacity-10 animate-pulse" />
+              <p className="font-black text-lg text-slate-900 tracking-tight">
+                Loading patients...
               </p>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
-                <p className="text-sm text-rose-700 font-bold">{error}</p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+          ) : allPatients.length === 0 ? (
+            <div className="text-center py-16">
+              <Users size={64} className="mx-auto mb-6 text-slate-200" />
+              <p className="font-black text-lg text-slate-900 tracking-tight mb-2">
+                All Assigned
+              </p>
+              <p className="text-slate-500 mb-6 font-medium">
+                All patients are already assigned to this carer
+              </p>
               <button
-                type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+                className="px-6 py-3 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+              >
+                Close
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
+                {allPatients.length} patient{allPatients.length !== 1 && "s"}{" "}
+                available
+              </p>
+
+              {error && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-4">
+                  <p className="text-sm text-rose-700 font-bold">{error}</p>
+                </div>
+              )}
+
+              {/* Patient Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[420px] overflow-y-auto pr-1">
+                {allPatients.map((patient) => (
+                  <div
+                    key={patient.id}
+                    className="bg-white border border-slate-200 rounded-2xl p-4 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-[11px] font-black flex-shrink-0">
+                          {patient.full_name?.charAt(0) ?? "?"}
+                        </div>
+                        <h3 className="text-sm font-black text-slate-900 tracking-tight truncate">
+                          {patient.full_name}
+                        </h3>
+                      </div>
+                      <motion.button
+                        onClick={() => handleAssign(patient.id)}
+                        disabled={saving}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex-shrink-0 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {saving ? "..." : "Assign"}
+                      </motion.button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={onClose}
+                className="mt-6 w-full px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
                 disabled={saving}
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? "Assigning..." : "Assign Patient"}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }
-
 function StatCard({ icon, label, value, color }) {
   const colorClasses = {
     blue: {

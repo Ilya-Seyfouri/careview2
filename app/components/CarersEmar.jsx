@@ -2,6 +2,7 @@
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useDemoUser } from "./DemoContext";
+import { motion } from "framer-motion";
 import {
   Search,
   AlertTriangle,
@@ -186,8 +187,12 @@ export default function CarerEmar() {
   };
 
   return (
-    <section className="min-h-screen bg-slate-50">
-      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
+<motion.section
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+  className="min-h-screen bg-slate-50"
+>      <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
         {/* Header */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-slate-50 text-slate-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 ring-1 ring-slate-100">
@@ -472,7 +477,7 @@ export default function CarerEmar() {
           onClose={() => setSelectedEntry(null)}
         />
       )}
-    </section>
+    </motion.section>
   );
 }
 

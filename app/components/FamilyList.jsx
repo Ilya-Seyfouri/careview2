@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const ITEMS_PER_PAGE = 4;
 
@@ -113,21 +114,6 @@ export default function FamilyList() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  if (loading) {
-    return (
-      <section className="min-h-screen bg-slate-50">
-        <div className="container mx-auto px-6 lg:px-10 py-10">
-          <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-            <Activity size={80} className="mb-6 opacity-10 animate-pulse" />
-            <p className="font-black text-xl text-slate-900 tracking-tight">
-              Loading family members...
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   if (error) {
     return (
       <section className="min-h-screen bg-slate-50">
@@ -144,7 +130,13 @@ export default function FamilyList() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-6">
           {/* Header */}
           <div className="mb-10">
@@ -153,12 +145,11 @@ export default function FamilyList() {
               Extended Care Network
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-            Relatives Of Patients
+              Relatives Of Patients
             </h2>
             <p className="text-slate-500 text-lg font-medium mt-1">
               {familyMembers.length} family members
-              <span className="text-slate-900 font-bold">
-              </span>
+              <span className="text-slate-900 font-bold"></span>
             </p>
           </div>
 
@@ -339,7 +330,7 @@ export default function FamilyList() {
             )}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Add Family Member Modal */}
       {showAddModal && (

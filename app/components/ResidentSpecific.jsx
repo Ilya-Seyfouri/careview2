@@ -2,6 +2,7 @@
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Calendar,
@@ -114,7 +115,13 @@ export default function ResidentSpecific({ params }) {
   }
 
   return (
-    <section className="min-h-screen bg-slate-50">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-slate-50"
+    >
+      {" "}
       <div className="container mx-auto px-6 lg:px-10 py-10">
         <button
           onClick={() => router.push("/residents")}
@@ -269,7 +276,7 @@ export default function ResidentSpecific({ params }) {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -297,10 +304,15 @@ function OverviewTab({ resident }) {
   return (
     <div className="space-y-10">
       {/* Status Badge */}
-      
 
       {/* Executive Clinical Summary */}
-      <section>
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className=""
+      >
+        {" "}
         <h4 className="font-semibold text-xl mb-6 flex items-center gap-3 text-slate-900 tracking-tight">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
             <FileText size={20} />
@@ -318,11 +330,17 @@ function OverviewTab({ resident }) {
             </p>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* Vitals */}
       {hasVitals && (
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className=""
+        >
+          {" "}
           <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 px-1">
             Current Vitals
           </h4>
@@ -344,7 +362,7 @@ function OverviewTab({ resident }) {
               />
             )}
           </div>
-        </section>
+        </motion.section>
       )}
     </div>
   );
@@ -412,7 +430,13 @@ function VisitLogsTab({ visitLogs, residentId }) {
   }
 
   return (
-    <div className="space-y-6">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      {" "}
       <div className="flex justify-between items-center mb-6">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Visit History
@@ -461,7 +485,7 @@ function VisitLogsTab({ visitLogs, residentId }) {
           </div>
         </button>
       ))}
-    </div>
+    </motion.section>
   );
 }
 
@@ -603,8 +627,13 @@ function CareTeamTab({ residentId }) {
   return (
     <div className="space-y-10">
       {/* Carers */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
           <h4 className="font-black text-xl flex items-center gap-3 text-slate-900 tracking-tight">
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
               <UserCheck size={20} />
@@ -612,32 +641,43 @@ function CareTeamTab({ residentId }) {
             Assigned Carers
           </h4>
           <button
-            onClick={() => setShowAvailableCarers(!showAvailableCarers)}
-            className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
+            onClick={() => setShowAvailableCarers((prev) => !prev)}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableCarers ? "Hide" : "View"} Available (
             {availableCarers.length})
+            <motion.svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animate={{ rotate: showAvailableCarers ? 0 : -90 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </motion.svg>
           </button>
         </div>
-        {careTeam.carers.length === 0 ? (
-          <EmptyState
-            icon={<Users size={60} />}
-            label="No carers assigned yet"
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {careTeam.carers.map((a, i) => (
-              <CarerCard
-                key={i}
-                assignment={a}
-                onRemove={() => removeCarer(a.id, a.carer_id)}
-                isLoading={actionLoading === `remove-carer-${a.carer_id}`}
-              />
-            ))}
-          </div>
-        )}
-        {showAvailableCarers && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-[24px] p-8">
+
+        {/* Available Carers — collapses above assigned */}
+        <motion.div
+          initial={false}
+          animate={{
+            height: showAvailableCarers ? "auto" : 0,
+            opacity: showAvailableCarers ? 1 : 0,
+          }}
+          transition={{
+            height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+            opacity: { duration: 0.2 },
+          }}
+          className="overflow-hidden"
+        >
+          <div className="bg-blue-50 border border-blue-200 rounded-[24px] p-8 mb-2">
             <h5 className="font-black text-lg text-slate-900 mb-6 flex items-center gap-2 tracking-tight">
               <Users size={18} className="text-blue-600" />
               Available Carers
@@ -659,12 +699,36 @@ function CareTeamTab({ residentId }) {
               </div>
             )}
           </div>
+        </motion.div>
+
+        {/* Assigned Carers */}
+        {careTeam.carers.length === 0 ? (
+          <EmptyState
+            icon={<Users size={60} />}
+            label="No carers assigned yet"
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {careTeam.carers.map((a, i) => (
+              <CarerCard
+                key={i}
+                assignment={a}
+                onRemove={() => removeCarer(a.id, a.carer_id)}
+                isLoading={actionLoading === `remove-carer-${a.carer_id}`}
+              />
+            ))}
+          </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Family */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+        className="space-y-6"
+      >
+        <div className="flex items-center justify-between">
           <h4 className="font-black text-xl flex items-center gap-3 text-slate-900 tracking-tight">
             <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600">
               <Heart size={20} />
@@ -672,32 +736,43 @@ function CareTeamTab({ residentId }) {
             Family Members
           </h4>
           <button
-            onClick={() => setShowAvailableFamily(!showAvailableFamily)}
-            className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
+            onClick={() => setShowAvailableFamily((prev) => !prev)}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-black uppercase tracking-widest"
           >
             {showAvailableFamily ? "Hide" : "View"} Available (
             {availableFamily.length})
+            <motion.svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animate={{ rotate: showAvailableFamily ? 0 : -90 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </motion.svg>
           </button>
         </div>
-        {careTeam.family.length === 0 ? (
-          <EmptyState
-            icon={<UserCircle size={60} />}
-            label="No family members linked yet"
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {careTeam.family.map((m, i) => (
-              <FamilyCard
-                key={i}
-                member={m}
-                onRemove={() => removeFamily(m.id, m.family_id)}
-                isLoading={actionLoading === `remove-family-${m.family_id}`}
-              />
-            ))}
-          </div>
-        )}
-        {showAvailableFamily && (
-          <div className="mt-6 bg-rose-50 border border-rose-200 rounded-[24px] p-8">
+
+        {/* Available Family — collapses above assigned */}
+        <motion.div
+          initial={false}
+          animate={{
+            height: showAvailableFamily ? "auto" : 0,
+            opacity: showAvailableFamily ? 1 : 0,
+          }}
+          transition={{
+            height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+            opacity: { duration: 0.2 },
+          }}
+          className="overflow-hidden"
+        >
+          <div className="bg-rose-50 border border-rose-200 rounded-[24px] p-8 mb-2">
             <h5 className="font-black text-lg text-slate-900 mb-6 flex items-center gap-2 tracking-tight">
               <UserCircle size={18} className="text-rose-600" />
               Available Family Members
@@ -719,8 +794,27 @@ function CareTeamTab({ residentId }) {
               </div>
             )}
           </div>
+        </motion.div>
+
+        {/* Assigned Family */}
+        {careTeam.family.length === 0 ? (
+          <EmptyState
+            icon={<UserCircle size={60} />}
+            label="No family members linked yet"
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {careTeam.family.map((m, i) => (
+              <FamilyCard
+                key={i}
+                member={m}
+                onRemove={() => removeFamily(m.id, m.family_id)}
+                isLoading={actionLoading === `remove-family-${m.family_id}`}
+              />
+            ))}
+          </div>
         )}
-      </section>
+      </motion.section>
     </div>
   );
 }
@@ -845,6 +939,31 @@ function AvailableCard({ person, onAssign, isLoading }) {
 }
 
 // ─── Schedule Tab ─────────────────────────────────────────────────────────────
+// Animation variants
+const scheduleContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const scheduleItemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      damping: 22,
+      stiffness: 280,
+    },
+  },
+};
+
 function ScheduleTab({ residentId }) {
   const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
@@ -916,40 +1035,61 @@ function ScheduleTab({ residentId }) {
     );
 
   return (
-    <div className="space-y-6">
-      
+    <motion.div
+      variants={scheduleContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-5"
+    >
       {schedules.map((s) => {
         const upcoming = new Date(s.start_at) > new Date();
         const cfg =
           statusConfig[s.status?.toLowerCase()] || statusConfig.pending;
 
         return (
-          <div
+          <motion.div
             key={s.id}
-            className={`bg-slate-100 hover:border   rounded-[24px] p-6 hover:shadow-lg transition-all ${upcoming ? "border-blue-300 ring-2 ring-blue-50" : "border-slate-300"}`}
+            variants={scheduleItemVariants}
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className={`bg-slate-100 border rounded-[24px] p-6 hover:shadow-lg transition-shadow duration-300 ${
+              upcoming
+                ? "border-blue-300 ring-2 ring-blue-50"
+                : "border-slate-200"
+            }`}
           >
+            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${upcoming ? "bg-gradient-to-br from-blue-500 to-blue-600" : "bg-gradient-to-br from-slate-400 to-slate-500"}`}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 ${
+                  upcoming
+                    ? "bg-gradient-to-br from-blue-500 to-blue-600"
+                    : "bg-gradient-to-br from-slate-400 to-slate-500"
+                }`}
               >
-                <CalendarDays size={26} className="text-white" />
+                <CalendarDays size={22} className="text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-black text-lg text-slate-900 tracking-tight">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-black text-lg text-slate-900 tracking-tight truncate">
                   {s.title}
                 </h3>
-                <div className="flex items-center gap-2 mt-2">
-                 
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span
+                    className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
+                  >
+                    {cfg.label}
+                  </span>
                   {upcoming && (
-                    <span className="text-[10px] font-black px-3 py-1.5 rounded-full bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
+                    <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming
                     </span>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Time Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                   <Clock size={12} className="text-blue-500" />
                   Start Time
@@ -958,7 +1098,7 @@ function ScheduleTab({ residentId }) {
                   {fmt(s.start_at)}
                 </p>
               </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                   <Clock size={12} className="text-blue-500" />
                   End Time
@@ -968,29 +1108,34 @@ function ScheduleTab({ residentId }) {
                 </p>
               </div>
             </div>
+
+            {/* Carer */}
             {(s.carer || s.created_by_profile) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
                 {s.carer && (
                   <div className="px-4">
                     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 flex items-center gap-1.5">
                       <UserCheck size={12} className="text-blue-500" />
                       Assigned Carer
                     </p>
-                    <p className="text-base font-black text-slate-900 tracking-tight">
-                      {s.carer.full_name}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                        {s.carer.full_name?.charAt(0) ?? "?"}
+                      </div>
+                      <p className="text-base font-black text-slate-900 tracking-tight">
+                        {s.carer.full_name}
+                      </p>
+                    </div>
                   </div>
                 )}
-                
               </div>
             )}
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
-
 // ─── Reports Tab ──────────────────────────────────────────────────────────────
 function ReportsTab({ residentId }) {
   const supabase = createClient();
@@ -1035,7 +1180,14 @@ function ReportsTab({ residentId }) {
   if (error) return <ErrorState message={error} />;
 
   return (
-    <div className="space-y-6">
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6
+"
+    >
+      {" "}
       <div className="flex justify-between items-center mb-6">
         <h4 className="font-black text-xl text-slate-900 tracking-tight">
           Patient Reports
@@ -1095,7 +1247,6 @@ function ReportsTab({ residentId }) {
           </button>
         ))
       )}
-
       {selected && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-[32px] max-w-3xl w-full p-10 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
@@ -1129,22 +1280,22 @@ function ReportsTab({ residentId }) {
               </button>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-4">
-              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed font-medium text-base">
+              <p className="text-slate-700 p-4 whitespace-pre-wrap leading-relaxed text-lg text-base">
                 {selected.content}
               </p>
             </div>
-            <div className="flex justify-end pt-6">
+            <div className="pt-8 items-center">
               <button
                 onClick={() => setSelected(null)}
-                className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all active:scale-95"
+                className="bg-gray-600 w-full rounded-xl py-2 text-white hover:transition-all hover:bg-gray-500 cursor-pointer active:scale-97"
               >
-                Close
+                <p className="font-semibold">Close</p>
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </motion.section>
   );
 }
 

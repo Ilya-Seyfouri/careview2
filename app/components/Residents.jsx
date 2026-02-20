@@ -1,6 +1,8 @@
 "use client";
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
 import {
   Search,
   Filter,
@@ -75,7 +77,13 @@ export default function Residents() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-6">
           {/* Header */}
           <div className="mb-10">
@@ -92,9 +100,7 @@ export default function Residents() {
               ) : (
                 <>
                   {activeCount} active residents
-                  <span className="text-slate-900 font-bold">
-                    
-                  </span>
+                  <span className="text-slate-900 font-bold"></span>
                 </>
               )}
             </p>
@@ -286,7 +292,7 @@ export default function Residents() {
             )}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {showAddModal && (
         <AddResidentModal

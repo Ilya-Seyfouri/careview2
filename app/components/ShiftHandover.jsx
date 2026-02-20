@@ -2,6 +2,8 @@
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useDemoUser } from "./DemoContext";
+import { motion } from "framer-motion";
+
 import {
   AlertCircle,
   Clock,
@@ -314,6 +316,7 @@ export default function ShiftHandover() {
 
   const generateAIShiftSummary = async () => {
     try {
+      setError("")
       setLoadingAISummary(true);
       setRedFlags([]);
       setShiftSummary("");
@@ -514,14 +517,20 @@ export default function ShiftHandover() {
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-slate-50"
+      >
+        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-16">
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 ring-1 ring-blue-100">
-              <FileText size={10} />
-              Care Transition
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 rounded-full text-xs font-semibold mb-3 shadow-sm">
+              <Sparkles size={14} />
+              AI-Powered Assistant
             </div>
-            <div className="flex items-end justify-between">
+            <div className="flex items-end pt-2 justify-between">
               <div>
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   Shift Handover
@@ -954,7 +963,8 @@ export default function ShiftHandover() {
             </div>
           )}
         </div>
-      </section>
+      </motion.section>
+
       {selectedHandover && (
         <HandoverModal
           handover={selectedHandover}
@@ -1040,8 +1050,19 @@ function HandoverModal({ handover, details, loading, onClose }) {
   const flagStyles = getFlagStyles(shiftLevel);
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[28px] max-w-3xl w-full shadow-2xl border border-slate-100 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 p-6">
+      <div
+        className="
+    bg-white
+    rounded-[28px]
+    w-full
+    max-w-4xl
+    h-[95vh]
+    shadow-2xl
+    border border-slate-100
+    flex flex-col
+  "
+      >
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
@@ -1058,7 +1079,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            className="w-8 h-8 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
           >
             <X size={18} className="text-slate-500" />
           </button>
@@ -1110,7 +1131,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
 
               {shiftLevel && (
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
                     Shift Assessment
                   </p>
                   <div
@@ -1128,7 +1149,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
 
               {shiftSummary && (
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
                     Shift Summary
                   </p>
                   <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
@@ -1142,7 +1163,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
               {/* Resident Red Flags */}
               {details?.items && details.items.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
                     Resident Red Flags
                   </p>
                   <div className="space-y-3">
@@ -1201,7 +1222,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
+            className="w-full py-3 cursor-pointer bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
           >
             Close
           </button>

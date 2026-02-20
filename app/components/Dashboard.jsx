@@ -2,6 +2,9 @@
 import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import CarePriorityAnalysis from "./CarePriorityAnalysis";
+
 import {
   Clock,
   AlertCircle,
@@ -16,9 +19,54 @@ import {
   XCircle,
   CheckCircle,
   AlertTriangle,
+  ArrowRight,
+  User,
 } from "lucide-react";
 
 const MANAGER_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+  },
+};
+
+const modalOverlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.2 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
+};
+
+const modalContentVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: 20 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    y: 10,
+    transition: { duration: 0.2 },
+  },
+};
 
 export default function ManagerDashboard() {
   const supabase = createClient();
@@ -26,13 +74,11 @@ export default function ManagerDashboard() {
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState(null);
   const [priorityList, setPriorityList] = useState([]);
-  // Track which actions have been completed this session: Set of "patient_id::action_type"
   const [completedActions, setCompletedActions] = useState(new Set());
-  // Active modal: { type, patient } or null
   const [activeModal, setActiveModal] = useState(null);
-  // Toast notification
   const [toast, setToast] = useState(null);
   const [showOverdueModal, setShowOverdueModal] = useState(false);
+  const [analysisSectionOpen, setAnalysisSectionOpen] = useState(true);
 
   const showToast = (message) => {
     setToast(message);
@@ -59,10 +105,9 @@ export default function ManagerDashboard() {
 
   useEffect(() => {
     fetchAll();
-    loadLatestAnalysis(); // Rehydrate analysis from DB on mount
+    loadLatestAnalysis();
   }, []);
 
-  // ── Load latest analysis session from DB ──────────────────────────
   const loadLatestAnalysis = async () => {
     try {
       const { data, error } = await supabase
@@ -75,10 +120,7 @@ export default function ManagerDashboard() {
       if (error || !data) return;
 
       const list = data.priority_list || [];
-
-      // Fetch completed actions from DB to filter out already-done items
       const completedSet = await fetchCompletedActions();
-
       const filtered = filterCompletedFromList(list, completedSet);
       setPriorityList(filtered);
       setCompletedActions(completedSet);
@@ -87,18 +129,15 @@ export default function ManagerDashboard() {
     }
   };
 
-  // ── Fetch all completed actions from DB, return as Set ────────────
   const fetchCompletedActions = async () => {
     const { data, error } = await supabase
       .from("completed_care_actions")
       .select("patient_id, action_type");
 
     if (error || !data) return new Set();
-
     return new Set(data.map((r) => `${r.patient_id}::${r.action_type}`));
   };
 
-  // ── Filter priority list — remove completed actions, drop empty patients ──
   const filterCompletedFromList = (list, completedSet) => {
     return list
       .map((patient) => ({
@@ -110,7 +149,6 @@ export default function ManagerDashboard() {
       .filter((patient) => patient.actions.length > 0);
   };
 
-  // ── Mark an action as completed (called by child modals) ──────────
   const handleActionCompleted = async (patientId, actionType) => {
     await supabase.from("completed_care_actions").insert({
       patient_id: patientId,
@@ -395,14 +433,12 @@ export default function ManagerDashboard() {
         const parsed = JSON.parse(data.result);
         const rawList = parsed.priority_list || [];
 
-        // Save full raw result to DB
         await supabase.from("care_analysis_sessions").insert({
           created_by: MANAGER_ID,
           created_at: new Date().toISOString(),
           priority_list: rawList,
         });
 
-        // Fetch latest completed actions and filter before displaying
         const completedSet = await fetchCompletedActions();
         const filtered = filterCompletedFromList(rawList, completedSet);
         setCompletedActions(completedSet);
@@ -435,365 +471,245 @@ export default function ManagerDashboard() {
   const urgencyConfig = {
     IMMEDIATE: {
       gradient: "from-red-500 to-rose-600",
-      glow: "bg-red-400/5 group-hover:bg-red-400/10",
+      glow: "bg-red-50",
       dot: "bg-red-500",
-      badge: "bg-red-50 text-red-600",
+      badge: "bg-red-50 text-red-700 border-red-200",
       label: "Immediate",
+      border: "border-red-100",
     },
     THIS_SHIFT: {
-      gradient: "from-amber-400 to-orange-500",
-      glow: "bg-amber-400/5 group-hover:bg-amber-400/10",
+      gradient: "from-amber-500 to-orange-600",
+      glow: "bg-amber-50",
       dot: "bg-amber-500",
-      badge: "bg-amber-50 text-amber-600",
+      badge: "bg-amber-50 text-amber-700 border-amber-200",
       label: "This Shift",
+      border: "border-amber-100",
     },
     THIS_WEEK: {
-      gradient: "from-emerald-400 to-green-500",
-      glow: "bg-emerald-400/5 group-hover:bg-emerald-400/10",
+      gradient: "from-emerald-500 to-teal-600",
+      glow: "bg-emerald-50",
       dot: "bg-emerald-500",
-      badge: "bg-green-50 text-green-600",
+      badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
       label: "This Week",
+      border: "border-emerald-100",
     },
   };
 
   return (
     <>
-      <section className="min-h-screen bg-slate-50">
-        <div className="container mx-auto px-6 lg:px-10 pt-10 pb-10">
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50"
+      >
+        <div className="container mx-auto px-6 lg:px-10 pt-12 pb-16">
           {/* Header */}
-          <div className="mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 ring-1 ring-blue-100">
-              <Sparkles size={12} className="animate-pulse" />
-              Live Facility Feed
-            </div>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-12"
+          >
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
               <div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-                  Facility Overview
+                <h1 className="text-5xl font-bold text-slate-900 tracking-tight mb-2">
+                  Dashboard
                 </h1>
-                <p className="text-slate-500 text-lg font-medium mt-1">
-                  Operational status for{" "}
-                  <span className="text-slate-900 font-bold">
-                    Greenview Care Home
+                <p className="text-slate-600 text-lg font-medium">
+                  Operational Hub for{" "}
+                  <span className="text-slate-900 font-semibold">
+                    North Senior Care
                   </span>
                 </p>
               </div>
-              <div className="flex flex-wrap gap-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="flex flex-wrap gap-3"
+              >
                 <PillStat
-                  icon={<Users size={20} className="text-emerald-600" />}
-                  iconBg="bg-emerald-50"
+                  icon={<Users size={18} className="text-emerald-600" />}
+                  iconBg="bg-gradient-to-br from-emerald-50 to-teal-50"
                   label="Occupancy"
                   value={loading ? "—" : `${occupancy}/50`}
                 />
                 <PillStat
-                  icon={<TrendingUp size={20} className="text-blue-600" />}
-                  iconBg="bg-blue-50"
+                  icon={<TrendingUp size={18} className="text-blue-600" />}
+                  iconBg="bg-gradient-to-br from-blue-50 to-indigo-50"
                   label="Staff Ratio"
                   value={loading ? "—" : staffRatio}
                 />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* ── Care Priority Analysis ── */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-black text-2xl text-slate-900 tracking-tight">
-                  Care Priority Analysis
-                </h3>
-                <p className="text-slate-400 font-medium text-sm mt-1">
-                  AI-powered patient prioritisation
-                </p>
-              </div>
-              <button
-                onClick={generatePriorityAnalysis}
-                disabled={loadingAnalysis}
-                className="bg-purple-600 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black text-[11px] uppercase tracking-widest shadow-xl shadow-purple-200 hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95"
-              >
-                {loadingAnalysis ? (
-                  <>
-                    <Activity size={16} className="animate-spin" />
-                    Analysing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={16} />
-                    Run Analysis
-                  </>
-                )}
-              </button>
-            </div>
-
-            {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center gap-3 mb-6">
-                <AlertCircle
-                  size={16}
-                  className="text-rose-500 flex-shrink-0"
-                />
-                <p className="text-sm text-rose-600 font-bold">{error}</p>
-              </div>
-            )}
-
-            {loadingAnalysis && (
-              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center py-20">
-                <Activity
-                  size={48}
-                  className="mb-4 text-purple-400 animate-spin"
-                />
-                <p className="font-black text-lg text-slate-900 tracking-tight mb-1">
-                  Analysing patient data...
-                </p>
-                <p className="text-sm text-slate-400 font-medium">
-                  Reviewing vitals, visit logs, reports and medications
-                </p>
-              </div>
-            )}
-
-            {!loadingAnalysis && priorityList.length === 0 && !error && (
-              <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center py-20">
-                <Activity
-                  size={80}
-                  className="mb-6 opacity-10 text-slate-300"
-                />
-                <p className="font-black text-xl text-slate-900 tracking-tight mb-2">
-                  No analysis yet
-                </p>
-                <p className="text-sm text-slate-400 font-medium">
-                  Click Run Analysis to assess all patients
-                </p>
-              </div>
-            )}
-
-            {!loadingAnalysis && priorityList.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {priorityList.map((patient) => {
-                  const cfg =
-                    urgencyConfig[patient.urgency] || urgencyConfig.THIS_WEEK;
-                  if (!patient.actions || patient.actions.length === 0)
-                    return null;
-                  return (
-                    <div
-                      key={patient.patient_id}
-                      className="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-7 flex flex-col gap-5"
-                    >
-                      {/* Patient header */}
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-11 h-11 bg-gradient-to-br ${cfg.gradient} rounded-xl flex items-center justify-center text-white text-sm font-black shadow-sm flex-shrink-0`}
-                        >
-                          {getInitials(patient.patient_name)}
-                        </div>
-                        <div>
-                          <h2 className="text-base font-black text-slate-900 tracking-tight leading-tight">
-                            {patient.patient_name}
-                          </h2>
-                          <span
-                            className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${cfg.badge}`}
-                          >
-                            {cfg.label}
-                          </span>
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const ACTION_KEYS = [
-                          "MAKE_SCHEDULE",
-                          "MAKE_REPORT",
-                          "REASSIGN_EMAR",
-                          "REVIEW_EMAR_PLAN",
-                          "CONTACT_FAMILY",
-                          "URGENCY_LEVEL",
-                        ];
-                        const splitPattern = new RegExp(
-                          `(?=${ACTION_KEYS.join("|")})`,
-                        );
-                        const segments = (patient.reasoning || "")
-                          .split(splitPattern)
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                          .map((seg) => {
-                            const dashIdx = seg.indexOf(" - ");
-                            if (dashIdx !== -1)
-                              return {
-                                label: seg.substring(0, dashIdx).trim(),
-                                text: seg
-                                  .substring(dashIdx + 3)
-                                  .trim()
-                                  .replace(/^—\s*/, ""),
-                              };
-                            const spaceIdx = seg.indexOf(" ");
-                            return {
-                              label: seg.substring(0, spaceIdx).trim(),
-                              text: seg
-                                .substring(spaceIdx + 1)
-                                .trim()
-                                .replace(/^—\s*/, ""),
-                            };
-                          });
-
-                        const actions = segments.filter(
-                          (s) => s.label !== "URGENCY_LEVEL",
-                        );
-                        // Only show segments whose action type hasn't been completed
-                        const visibleActions = actions.filter((seg) =>
-                          patient.actions.some((a) => a.type === seg.label),
-                        );
-
-                        return (
-                          <div className="flex flex-col gap-4 pt-1 border-b border-slate-50">
-                            {visibleActions.map((seg, i) => (
-                              <div key={i} className="flex flex-col gap-1.5">
-                                <button
-                                  onClick={() =>
-                                    setActiveModal({ type: seg.label, patient })
-                                  }
-                                  className={`self-start text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-xl bg-gradient-to-r ${cfg.gradient} text-white shadow-sm hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all whitespace-nowrap`}
-                                >
-                                  {seg.label.replace(/_/g, " ")}
-                                </button>
-                                <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                                  {seg.text}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          {/* ── End Care Priority Analysis ── */}
+          <CarePriorityAnalysis
+            analysisSectionOpen={analysisSectionOpen}
+            setAnalysisSectionOpen={setAnalysisSectionOpen}
+            generatePriorityAnalysis={generatePriorityAnalysis}
+            loadingAnalysis={loadingAnalysis}
+            error={error}
+            priorityList={priorityList}
+            urgencyConfig={urgencyConfig}
+            getInitials={getInitials}
+            setActiveModal={setActiveModal}
+          />
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-            <div className="lg:col-span-2 bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10 relative overflow-hidden">
-              <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-400/5 blur-[80px] rounded-full pointer-events-none" />
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12"
+          >
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/60 shadow-lg shadow-slate-200/50 p-8 relative overflow-hidden backdrop-blur-xl">
+              <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-gradient-to-br from-blue-400/5 to-indigo-400/5 blur-3xl rounded-full pointer-events-none" />
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-10 relative z-10">
                 <div>
-                  <h3 className="font-black text-2xl text-slate-900 tracking-tight">
+                  <h3 className="font-bold text-xl text-slate-900 tracking-tight mb-1">
                     System Performance
                   </h3>
-                  <p className="text-slate-400 font-medium text-sm mt-1">
+                  <p className="text-slate-500 font-medium text-sm">
                     This week — incidents & missed medications
                   </p>
                 </div>
-                <div className="bg-slate-50 p-1.5 rounded-2xl ring-1 ring-slate-100 flex gap-1">
+                <div className="bg-slate-50/80 backdrop-blur-sm p-1 rounded-xl border border-slate-200/50 flex gap-1">
                   {[
                     { key: "both", label: "Both" },
                     { key: "incidents", label: "Incidents" },
                     { key: "emar", label: "Missed EMAR" },
                   ].map(({ key, label }) => (
-                    <button
+                    <motion.button
                       key={key}
                       onClick={() => setChartMetric(key)}
-                      className={`px-5 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
                         chartMetric === key
                           ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-400 hover:text-slate-600"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       {label}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 relative z-10">
-                  <Activity
-                    size={60}
-                    className="mb-4 opacity-10 animate-pulse"
-                  />
-                  <p className="font-black text-lg text-slate-900 tracking-tight">
-                    Loading...
-                  </p>
-                </div>
-              ) : (
-                <div className="relative z-10">
-                  <DualTrendChart
-                    incidentData={trendData}
-                    emarData={emarTrendData}
-                    metric={chartMetric}
-                  />
-                </div>
-              )}
+
+              <div className="relative z-10">
+                <DualTrendChart
+                  incidentData={trendData}
+                  emarData={emarTrendData}
+                  metric={chartMetric}
+                />
+              </div>
             </div>
-            <div className="bg-white rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] p-10 flex flex-col">
-              <h3 className="font-black text-2xl text-slate-900 tracking-tight mb-8">
+            <div className="bg-white rounded-3xl border border-slate-200/60 shadow-lg shadow-slate-200/50 p-8 flex flex-col">
+              <h3 className="font-bold text-xl text-slate-900 tracking-tight mb-8">
                 Shift Metrics
               </h3>
               {loading ? (
                 <div className="space-y-4 flex-1">
                   {[...Array(3)].map((_, i) => (
-                    <div
+                    <motion.div
                       key={i}
-                      className="h-20 bg-slate-100 rounded-3xl animate-pulse"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="h-20 bg-slate-50 rounded-2xl animate-pulse"
                     />
                   ))}
                 </div>
               ) : (
-                <div className="space-y-6 flex-1">
-                  <StaffRow
-                    dot="bg-emerald-500"
-                    ringColor="ring-emerald-100"
-                    label="On Shift"
-                    sublabel="Active"
-                    value={staffStatus.active}
-                  />
-                  <StaffRow
-                    dot="bg-amber-500"
-                    ringColor="ring-amber-100"
-                    label="On Break"
-                    sublabel="Inactive"
-                    value={staffStatus.break}
-                  />
-                  <StaffRow
-                    dot="bg-slate-400"
-                    ringColor="ring-slate-100"
-                    label="Off Duty"
-                    sublabel="Standby"
-                    value={staffStatus.scheduled}
-                  />
-                </div>
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="space-y-4 flex-1"
+                >
+                  <motion.div variants={itemVariants}>
+                    <StaffRow
+                      dot="bg-emerald-500"
+                      ringColor="bg-emerald-50"
+                      label="On Shift"
+                      sublabel="Active"
+                      value={staffStatus.active}
+                    />
+                  </motion.div>
+                  <motion.div variants={itemVariants}>
+                    <StaffRow
+                      dot="bg-amber-500"
+                      ringColor="bg-amber-50"
+                      label="On Break"
+                      sublabel="Inactive"
+                      value={staffStatus.break}
+                    />
+                  </motion.div>
+                  <motion.div variants={itemVariants}>
+                    <StaffRow
+                      dot="bg-slate-400"
+                      ringColor="bg-slate-50"
+                      label="Off Duty"
+                      sublabel="Standby"
+                      value={staffStatus.scheduled}
+                    />
+                  </motion.div>
+                </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Bottom Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pb-10">
-            <AlertCard
-              icon={<Clock size={26} className="text-rose-600" />}
-              iconBg="bg-rose-50"
-              severity="CRITICAL"
-              severityColor="text-rose-600"
-              cardBg="bg-white"
-              borderColor="border-rose-100"
-              value={loading ? "—" : overdueTasks}
-              onCta={() => setShowOverdueModal(true)}
-              valueColor="text-rose-600"
-              label="Overdue Tasks"
-              gradient="from-rose-500 to-red-600"
-            />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12"
+          >
+            <div className="lg:max-w-xl">
+              {" "}
+              {/* 👈 constrain the width */}
+              <AlertCard
+                icon={<Clock size={24} className="text-rose-600" />}
+                iconBg="bg-gradient-to-br from-rose-50 to-red-50"
+                severity="CRITICAL"
+                severityColor="text-rose-700"
+                cardBg="bg-white"
+                borderColor="border-rose-200/60"
+                value={loading ? "—" : overdueTasks}
+                onCta={() => setShowOverdueModal(true)}
+                valueColor="text-rose-600"
+                label="Overdue Tasks"
+                gradient="from-rose-500 to-red-600"
+              />
+            </div>
 
-            <div className="bg-slate-900 rounded-[32px] p-10 text-white shadow-2xl shadow-slate-200 flex flex-col justify-between relative overflow-hidden group">
-              <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all" />
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.2 }}
+              className="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 rounded-3xl p-10 text-white shadow-xl shadow-slate-900/20 flex flex-col justify-between relative overflow-hidden group border border-slate-800/50"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.15, 0.1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 blur-3xl rounded-full"
+              />
               {loading ? (
-                <div className="space-y-4 relative z-10">
-                  <div className="h-24 bg-white/10 rounded-[24px] animate-pulse" />
-                  <div className="h-32 bg-white/10 rounded-[24px] animate-pulse" />
+                <div className="space-y-5 relative z-10">
+                  <div className="h-24 bg-white/5 rounded-2xl animate-pulse" />
+                  <div className="h-32 bg-white/5 rounded-2xl animate-pulse" />
                 </div>
               ) : !latestHandover ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center relative z-10">
-                  <div className="w-16 h-16 bg-white/10 rounded-[24px] flex items-center justify-center mb-4">
+                <div className="flex flex-col items-center justify-center py-20 text-center relative z-10">
+                  <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-5">
                     <FileText size={28} className="text-white/30" />
                   </div>
-                  <p className="text-lg font-black text-white/60 tracking-tight">
+                  <p className="text-lg font-semibold text-white/80 mb-2">
                     No handover notes yet
                   </p>
-                  <p className="text-sm text-white/40 font-medium mt-2">
+                  <p className="text-sm text-white/50 font-medium">
                     Once submitted, it will appear here
                   </p>
                 </div>
@@ -801,21 +717,25 @@ export default function ManagerDashboard() {
                 <>
                   <div className="relative z-10">
                     <div className="flex justify-between items-start mb-10">
-                      <div className="p-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-[24px]">
-                        <Calendar size={28} className="text-blue-400" />
-                      </div>
-                      <div className="px-5 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-500/40">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className="p-3.5 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl"
+                      >
+                        <Calendar size={26} className="text-blue-400" />
+                      </motion.div>
+                      <div className="px-4 py-2 bg-blue-600 text-white text-[10px] font-semibold uppercase tracking-wider rounded-full shadow-lg shadow-blue-500/30">
                         Current Shift: {shiftLabel}
                       </div>
                     </div>
-                    <h3 className="text-3xl font-black mb-4 tracking-tight">
+                    <h3 className="text-3xl font-bold mb-5 tracking-tight">
                       Shift Briefing
                     </h3>
-                    <div className="p-6 bg-white/5 backdrop-blur-md rounded-[32px] border border-white/10 relative mb-6">
-                      <div className="absolute -top-3 left-8 px-3 py-1 bg-slate-800 text-[10px] font-black text-blue-400 uppercase tracking-widest rounded-lg border border-white/5">
+                    <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 relative mb-6">
+                      <div className="absolute -top-3 left-6 px-3 py-1 bg-slate-800 text-[10px] font-semibold text-blue-400 uppercase tracking-wider rounded-lg border border-white/10">
                         Critical Directive
                       </div>
-                      <p className="text-slate-300 text-lg leading-relaxed italic font-medium">
+                      <p className="text-slate-200 text-base leading-relaxed italic font-normal mt-2">
+                        "
                         {latestHandover.notes
                           ? latestHandover.notes.length > 120
                             ? latestHandover.notes.slice(0, 120) + "..."
@@ -826,21 +746,21 @@ export default function ManagerDashboard() {
                     </div>
                     {handoverEntries.length > 0 && (
                       <div className="flex items-center gap-3 mb-8">
-                        <div className="flex -space-x-2">
+                        <div className="flex -space-x-2.5">
                           {handoverEntries.slice(0, 3).map((entry, i) => {
                             const p = handoverPatients[entry.patient_id];
                             return (
                               <div
                                 key={i}
-                                className="w-8 h-8 rounded-full bg-rose-500 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-white"
+                                className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 border-2 border-slate-900 flex items-center justify-center text-[11px] font-bold text-white shadow-lg"
                               >
                                 {p?.full_name?.charAt(0) || "?"}
                               </div>
                             );
                           })}
                         </div>
-                        <p className="text-sm text-slate-400 font-medium">
-                          <span className="font-black text-rose-400">
+                        <p className="text-sm text-slate-300 font-medium">
+                          <span className="font-bold text-rose-300">
                             {handoverEntries.length}
                           </span>{" "}
                           resident{handoverEntries.length !== 1 ? "s" : ""}{" "}
@@ -849,23 +769,26 @@ export default function ManagerDashboard() {
                       </div>
                     )}
                   </div>
-                  <button
+                  <motion.button
                     onClick={() => setShowHandoverModal(true)}
-                    className="relative z-10 w-full py-5 bg-white text-slate-900 font-black text-sm uppercase tracking-widest rounded-[24px] shadow-2xl flex items-center justify-center gap-4 transition-all hover:bg-blue-50 active:scale-95"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative z-10 w-full py-4 bg-white text-slate-900 font-semibold text-sm rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 hover:bg-blue-50 group/btn"
                   >
                     Review Handover Protocol
-                    <ArrowUpRight
-                      size={22}
-                      strokeWidth={3}
+                    <motion.div
                       className="text-blue-600"
-                    />
-                  </button>
+                      whileHover={{ x: 2, y: -2 }}
+                    >
+                      <ArrowUpRight size={20} />
+                    </motion.div>
+                  </motion.button>
                 </>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {showHandoverModal && latestHandover && (
         <HandoverModal
@@ -937,278 +860,71 @@ export default function ManagerDashboard() {
         />
       )}
 
-      {activeModal?.type === "REVIEW_EMAR_PLAN" && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[32px] p-10 max-w-md w-full text-center shadow-2xl">
-            <p className="font-black text-slate-900 text-xl mb-2">
-              Review EMAR Plan
-            </p>
-            <p className="text-slate-400 text-sm mb-6">Coming soon</p>
-            <button
-              onClick={() => setActiveModal(null)}
-              className="px-6 py-3 bg-slate-100 rounded-2xl font-black text-sm uppercase tracking-widest"
+      <AnimatePresence>
+        {activeModal?.type === "REVIEW_EMAR_PLAN" && (
+          <motion.div
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              variants={modalContentVariants}
+              className="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl border border-slate-200"
             >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mx-auto mb-6">
+                <Activity size={32} className="text-slate-400" />
+              </div>
+              <p className="font-semibold text-slate-900 text-xl mb-2">
+                Review EMAR Plan
+              </p>
+              <p className="text-slate-500 text-sm mb-8">Coming soon</p>
+              <motion.button
+                onClick={() => setActiveModal(null)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 rounded-xl font-semibold text-sm transition-colors"
+              >
+                Close
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Toast Notification ── */}
-      <div
-        className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ${toast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"}`}
-      >
-        <div className="flex items-center gap-3 bg-white border border-emerald-100 shadow-2xl shadow-emerald-100 rounded-2xl px-5 py-4">
-          <div className="w-7 h-7 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-            <CheckCircle size={14} className="text-white" strokeWidth={3} />
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-              {toast}
-            </p>
-          </div>
-        </div>
-      </div>
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100]"
+          >
+            <div className="flex items-center gap-3 bg-white border border-emerald-200/60 shadow-2xl shadow-emerald-500/20 rounded-2xl px-6 py-4 backdrop-blur-xl">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0"
+              >
+                <CheckCircle
+                  size={16}
+                  className="text-white"
+                  strokeWidth={2.5}
+                />
+              </motion.div>
+              <p className="text-sm font-semibold text-emerald-700">{toast}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
-/* ─── Handover Modal ─────────────────────────────────────────────── */
-function HandoverModal({ handover, entries, patients, author, onClose }) {
-  const shiftLabel = handover.shift_type === "AM->PM" ? "AM to PM" : "PM to AM";
-  return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Shift Handover
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {new Date(handover.created_at).toLocaleDateString("en-GB", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <X size={20} className="text-slate-500" />
-          </button>
-        </div>
-        <div className="overflow-y-auto flex-1 px-10 py-8 space-y-8">
-          <div className="flex items-center gap-4 p-6 bg-slate-900 rounded-[24px]">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg flex-shrink-0">
-              {author?.full_name?.charAt(0) || "?"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-black text-white text-base tracking-tight">
-                {author?.full_name || "Unknown"}
-              </p>
-              <p className="text-sm text-slate-400 capitalize font-medium">
-                {author?.role || "Staff"}
-              </p>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
-                {shiftLabel} Transition
-              </p>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
-                {new Date(handover.created_at).toLocaleTimeString("en-GB", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
-                <FileText size={18} className="text-blue-600" />
-              </div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                General Observations
-              </p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-6">
-              <p className="text-base text-slate-700 leading-relaxed font-medium">
-                {handover.notes || (
-                  <span className="italic text-slate-400">
-                    No general observations recorded.
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-          {entries.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center">
-                    <AlertCircle size={18} className="text-rose-600" />
-                  </div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                    Resident Red Flags
-                  </p>
-                </div>
-                <span className="text-xs font-black text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-full">
-                  {entries.length} flagged
-                </span>
-              </div>
-              <div className="space-y-4">
-                {entries.map((entry) => {
-                  const patient = patients[entry.patient_id];
-                  return (
-                    <div
-                      key={entry.id}
-                      className="flex items-start gap-4 p-6 bg-rose-50 border border-rose-200 rounded-[24px]"
-                    >
-                      <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-base font-black text-rose-600 flex-shrink-0">
-                        {patient?.full_name?.charAt(0) || "?"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="text-base font-black text-rose-700 tracking-tight">
-                            {patient?.full_name || "Unknown Resident"}
-                          </p>
-                          <span className="text-xs text-rose-500 bg-rose-100 px-2.5 py-1 rounded-full font-bold">
-                            Room {patient?.room || "—"}
-                          </span>
-                          {patient?.wing && (
-                            <span className="text-xs text-slate-500 uppercase tracking-wide font-bold">
-                              {patient.wing}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-rose-700 leading-relaxed font-medium">
-                          {entry.patient_notes || (
-                            <span className="italic text-rose-400">
-                              No specific notes
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="px-10 py-8 border-t border-slate-100 flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="w-full py-4 bg-slate-100 text-slate-700 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Pill Stat ──────────────────────────────────────────────────── */
-function PillStat({ icon, iconBg, label, value }) {
-  return (
-    <div className="bg-white px-5 py-4 rounded-[32px] border border-slate-100 flex items-center gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
-      <div
-        className={`w-12 h-12 rounded-2xl flex items-center justify-center ${iconBg} shadow-inner`}
-      >
-        {icon}
-      </div>
-      <div>
-        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-          {label}
-        </p>
-        <p className="text-xl font-black text-slate-900 tracking-tight">
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Alert Card ─────────────────────────────────────────────────── */
-function AlertCard({
-  icon,
-  iconBg,
-  severity,
-  severityColor,
-  cardBg,
-  borderColor,
-  value,
-  valueColor,
-  label,
-  gradient,
-  onCta,
-}) {
-  return (
-    <div
-      className={`group p-8 rounded-[32px] border shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all relative overflow-hidden ${cardBg} ${borderColor} hover:scale-[1.02]`}
-    >
-      <div
-        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity blur-2xl rounded-full -mr-16 -mt-16`}
-      />
-      <div className="flex justify-between items-start mb-8 relative z-10">
-        <div
-          className={`p-4 ${iconBg} rounded-2xl shadow-sm ring-1 ring-white`}
-        >
-          {icon}
-        </div>
-        <span
-          className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${iconBg} ${severityColor}`}
-        >
-          {severity}
-        </span>
-      </div>
-      <div className="relative z-10">
-        <h3
-          className={`text-6xl font-black mb-2 tracking-tighter ${valueColor}`}
-        >
-          {value}
-        </h3>
-        <p className="text-slate-600 font-bold text-lg mb-8 tracking-tight">
-          {label}
-        </p>
-        <button
-          onClick={onCta}
-          className="w-full py-4 bg-slate-900 text-white hover:bg-slate-800 text-sm font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest"
-        >
-          <ArrowUpRight size={18} strokeWidth={3} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Staff Row ──────────────────────────────────────────────────── */
-function StaffRow({ dot, ringColor, label, sublabel, value }) {
-  return (
-    <div className="group p-5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100/50 rounded-3xl transition-all cursor-default">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className={`w-3 h-3 rounded-full ${dot} ring-4 ${ringColor}`} />
-          <div>
-            <p className="font-black text-sm text-slate-900 uppercase tracking-tight">
-              {label}
-            </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {sublabel}
-            </p>
-          </div>
-        </div>
-        <span className="text-2xl font-black text-slate-900 tracking-tight">
-          {value}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /* ─── Make Report Modal ──────────────────────────────────────────── */
 function MakeReportModal({ patient, onClose, onCompleted }) {
@@ -1232,7 +948,7 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
   });
 
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+    "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1287,146 +1003,191 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ring-1 ring-blue-100">
-              <FileText size={12} />
-              New Report
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Make Report
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {patient.patient_name}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <X size={20} className="text-slate-500" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <div className="overflow-y-auto flex-1 px-10 py-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* AI Generate Button */}
-            <button
-              type="button"
-              onClick={handleGenerateContent}
-              disabled={generating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-purple-200"
-            >
-              {generating ? (
-                <>
-                  <Activity size={14} className="animate-spin" /> Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={14} /> AI Generate Content
-                </>
-              )}
-            </button>
-
-            {/* Title */}
+    <AnimatePresence>
+      <motion.div
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div
+          variants={modalContentVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl w-full max-w-xl shadow-xl border border-slate-200 flex flex-col max-h-[90vh]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                Title *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                className={inputClass}
-                required
-              />
-            </div>
-
-            {/* Type + Date */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Type *
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
-                  className={inputClass}
-                >
-                  <option value="falls">Falls</option>
-                  <option value="medication">Medication</option>
-                  <option value="nutrition">Nutrition</option>
-                  <option value="other">Other</option>
-                </select>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold mb-2">
+                <FileText size={12} />
+                New Report
               </div>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Make Report
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {patient.patient_name}
+              </p>
+            </div>
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-9 h-9 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            >
+              <X size={20} className="text-slate-400" />
+            </motion.button>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-8 py-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* AI Generate Button */}
+              <motion.button
+                type="button"
+                onClick={handleGenerateContent}
+                disabled={generating}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+              >
+                {generating ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    >
+                      <Activity size={16} />
+                    </motion.div>
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={16} />
+                    <span>AI Generate Content</span>
+                  </>
+                )}
+              </motion.button>
+
+              {/* Title */}
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Date *
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Title *
                 </label>
                 <input
-                  type="date"
-                  value={formData.date}
+                  type="text"
+                  value={formData.title}
                   onChange={(e) =>
-                    setFormData({ ...formData, date: e.target.value })
+                    setFormData({ ...formData, title: e.target.value })
                   }
                   className={inputClass}
                   required
                 />
               </div>
-            </div>
 
-            {/* Content */}
-            <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                Report Content *
-              </label>
-              <textarea
-                value={formData.content}
-                onChange={(e) =>
-                  setFormData({ ...formData, content: e.target.value })
-                }
-                className={`${inputClass} resize-none`}
-                rows={7}
-                placeholder="Describe the clinical observations, incidents or concerns..."
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
-                <p className="text-sm text-rose-600 font-bold">{error}</p>
+              {/* Type and Date */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Type *
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="falls">Falls</option>
+                    <option value="medication">Medication</option>
+                    <option value="nutrition">Nutrition</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                    className={inputClass}
+                    required
+                  />
+                </div>
               </div>
-            )}
 
-            <div className="flex gap-4 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={saving}
-                className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest"
-              >
-                {saving ? "Saving..." : "Submit Report"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+              {/* Content */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Report Content *
+                </label>
+                <textarea
+                  value={formData.content}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
+                  className={`${inputClass} resize-none`}
+                  rows={7}
+                  placeholder="Describe the clinical observations, incidents or concerns..."
+                  required
+                />
+              </div>
+
+              {/* Error */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
+                  >
+                    <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-red-700">{error}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2">
+                <motion.button
+                  type="button"
+                  onClick={onClose}
+                  disabled={saving}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  disabled={saving}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="flex-1 px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium text-sm"
+                >
+                  {saving ? "Saving..." : "Submit Report"}
+                </motion.button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -1478,7 +1239,7 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+    "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1519,234 +1280,268 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ring-1 ring-emerald-100">
-              <Calendar size={12} />
-              New Schedule
+    <AnimatePresence>
+      <motion.div
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div
+          variants={modalContentVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl w-full max-w-xl shadow-xl border border-slate-200 flex flex-col max-h-[90vh]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-semibold mb-2">
+                <Calendar size={12} />
+                New Schedule
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Make Schedule
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {patient.patient_name}
+              </p>
             </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Make Schedule
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {patient.patient_name}
-            </p>
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-9 h-9 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            >
+              <X size={20} className="text-slate-400" />
+            </motion.button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <X size={20} className="text-slate-500" />
-          </button>
-        </div>
 
-        {/* Form */}
-        <div className="overflow-y-auto flex-1 px-10 py-8">
-          {loadingCarers ? (
-            <div className="flex items-center justify-center py-20">
-              <Activity size={40} className="animate-pulse opacity-20" />
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* AI Reasoning Banner */}
-              <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex items-start gap-3">
-                <Sparkles
-                  size={16}
-                  className="text-purple-500 mt-0.5 flex-shrink-0"
-                />
-                <p className="text-xs text-purple-700 font-medium leading-relaxed">
-                  {patient.reasoning
-                    ?.split(
-                      /(?=MAKE_SCHEDULE|MAKE_REPORT|REASSIGN_EMAR|REVIEW_EMAR_PLAN|CONTACT_FAMILY|URGENCY_LEVEL)/,
-                    )
-                    .find((s) => s.startsWith("MAKE_SCHEDULE"))
-                    ?.replace(/^MAKE_SCHEDULE\s*[-—]?\s*/i, "")
-                    ?.trim() ||
-                    "Schedule a visit for this patient based on the AI analysis."}
-                </p>
-              </div>
-
-              {/* Title */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className={inputClass}
-                  required
-                />
-              </div>
-
-              {/* Carer */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Assign Carer *
-                </label>
-                <select
-                  value={formData.carer_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, carer_id: e.target.value })
-                  }
-                  className={inputClass}
-                  required
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-8 py-6">
+            {loadingCarers ? (
+              <div className="flex items-center justify-center py-24">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                 >
-                  <option value="">Select a carer</option>
-                  {carers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.full_name}
-                    </option>
-                  ))}
-                </select>
+                  <Activity size={32} className="text-slate-300" />
+                </motion.div>
               </div>
-
-              {/* Start + End */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                    Start Time *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.start_at}
-                    onChange={(e) =>
-                      setFormData({ ...formData, start_at: e.target.value })
-                    }
-                    className={inputClass}
-                    required
-                  />
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* AI Reasoning */}
+                <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 flex items-start gap-3">
+                  <Sparkles size={16} className="text-violet-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-violet-700">
+                    {patient.reasoning
+                      ?.split(
+                        /(?=MAKE_SCHEDULE|MAKE_REPORT|REASSIGN_EMAR|REVIEW_EMAR_PLAN|CONTACT_FAMILY|URGENCY_LEVEL)/,
+                      )
+                      .find((s) => s.startsWith("MAKE_SCHEDULE"))
+                      ?.replace(/^MAKE_SCHEDULE\s*[-—]?\s*/i, "")
+                      ?.trim() ||
+                      "Schedule a visit for this patient based on the AI analysis."}
+                  </p>
                 </div>
+
+                {/* Title */}
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                    End Time *
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Title *
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.end_at}
-                    onChange={(e) =>
-                      setFormData({ ...formData, end_at: e.target.value })
-                    }
-                    className={inputClass}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
-                  }
-                  className={inputClass}
-                >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="in progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-
-              {/* Required Tasks */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Required Tasks
-                  <span className="ml-2 text-xs text-slate-400 font-normal normal-case tracking-normal">
-                    (optional — press Enter or + to add)
-                  </span>
-                </label>
-                <div className="flex gap-2 mb-3">
                   <input
                     type="text"
-                    value={taskInput}
-                    onChange={(e) => setTaskInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTask();
-                      }
-                    }}
-                    className={`${inputClass} flex-1`}
-                    placeholder="e.g. Check blood pressure"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    className={inputClass}
+                    required
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddTask}
-                    disabled={!taskInput.trim()}
-                    className="px-6 py-3 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl hover:bg-blue-100 transition-all font-black text-lg disabled:opacity-30"
+                </div>
+
+                {/* Carer */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Assign Carer *
+                  </label>
+                  <select
+                    value={formData.carer_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, carer_id: e.target.value })
+                    }
+                    className={inputClass}
+                    required
                   >
-                    +
-                  </button>
-                </div>
-                {tasks.length > 0 ? (
-                  <div className="space-y-2">
-                    {tasks.map((task, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0" />
-                          <span className="text-sm text-slate-900 font-medium">
-                            {task}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTask(i)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors p-1"
-                        >
-                          <X size={16} strokeWidth={3} />
-                        </button>
-                      </div>
+                    <option value="">Select a carer</option>
+                    {carers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.full_name}
+                      </option>
                     ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400 italic font-medium">
-                    No tasks added yet
-                  </p>
-                )}
-              </div>
-
-              {error && (
-                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
-                  <p className="text-sm text-rose-600 font-bold">{error}</p>
+                  </select>
                 </div>
-              )}
 
-              <div className="flex gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={saving}
-                  className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest"
-                >
-                  {saving ? "Saving..." : "Create Schedule"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+                {/* Time Range */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Start Time *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.start_at}
+                      onChange={(e) =>
+                        setFormData({ ...formData, start_at: e.target.value })
+                      }
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      End Time *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.end_at}
+                      onChange={(e) =>
+                        setFormData({ ...formData, end_at: e.target.value })
+                      }
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {/* Tasks */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Required Tasks
+                    <span className="ml-2 text-xs text-slate-400 font-normal">
+                      (optional)
+                    </span>
+                  </label>
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={taskInput}
+                      onChange={(e) => setTaskInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddTask();
+                        }
+                      }}
+                      className={`${inputClass} flex-1`}
+                      placeholder="e.g. Check blood pressure"
+                    />
+                    <motion.button
+                      type="button"
+                      onClick={handleAddTask}
+                      disabled={!taskInput.trim()}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-4 py-3 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium disabled:opacity-50"
+                    >
+                      Add
+                    </motion.button>
+                  </div>
+                  <AnimatePresence>
+                    {tasks.length > 0 && (
+                      <div className="space-y-2">
+                        {tasks.map((task, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3"
+                          >
+                            <span className="text-sm text-slate-700">{task}</span>
+                            <motion.button
+                              type="button"
+                              onClick={() => handleRemoveTask(i)}
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="text-slate-400 hover:text-red-600 transition-colors"
+                            >
+                              <X size={16} />
+                            </motion.button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Error */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
+                    >
+                      <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-red-700">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <motion.button
+                    type="button"
+                    onClick={onClose}
+                    disabled={saving}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="submit"
+                    disabled={saving}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="flex-1 px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium text-sm"
+                  >
+                    {saving ? "Saving..." : "Create Schedule"}
+                  </motion.button>
+                </div>
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -1757,7 +1552,6 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
   const [error, setError] = useState(null);
   const [medications, setMedications] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Track which missed meds the manager is reassigning: set of emar row ids
   const [selected, setSelected] = useState(new Set());
 
   useEffect(() => {
@@ -1771,7 +1565,6 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
         (m) => m.status === "missed" || m.status === "skipped",
       );
       setMedications(missed);
-      // Pre-select all missed by default
       setSelected(new Set(missed.map((m) => m.id)));
       setLoading(false);
     };
@@ -1795,7 +1588,6 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
     try {
       setSaving(true);
       setError(null);
-      // Update selected missed meds back to "due" so they appear as pending again
       const { error: updateError } = await supabase
         .from("emar")
         .update({ status: "due" })
@@ -1809,7 +1601,6 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
     }
   };
 
-  // Extract AI reasoning for this action
   const reasoning = patient.reasoning
     ?.split(
       /(?=MAKE_SCHEDULE|MAKE_REPORT|REASSIGN_EMAR|REVIEW_EMAR_PLAN|CONTACT_FAMILY|URGENCY_LEVEL)/,
@@ -1819,178 +1610,201 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
     ?.trim();
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ring-1 ring-amber-100">
-              <AlertCircle size={12} />
-              EMAR
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Reassign Medications
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {patient.patient_name}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <X size={20} className="text-slate-500" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 px-10 py-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Activity size={40} className="animate-pulse opacity-20" />
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* AI Reasoning Banner */}
-              {reasoning && (
-                <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex items-start gap-3">
-                  <Sparkles
-                    size={16}
-                    className="text-purple-500 mt-0.5 flex-shrink-0"
-                  />
-                  <p className="text-xs text-purple-700 font-medium leading-relaxed">
-                    {reasoning}
-                  </p>
-                </div>
-              )}
-
-              {/* Missed medications list */}
-              {medications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <CheckCircle size={40} className="text-emerald-400 mb-3" />
-                  <p className="font-black text-slate-900 text-base">
-                    No missed medications found
-                  </p>
-                  <p className="text-sm text-slate-400 font-medium mt-1">
-                    The EMAR record may have already been updated.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                      Missed Medications — select to reassign
-                    </p>
-                    <div className="space-y-3">
-                      {medications.map((med) => {
-                        const isSelected = selected.has(med.id);
-                        return (
-                          <button
-                            type="button"
-                            key={med.id}
-                            onClick={() => toggleMed(med.id)}
-                            className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
-                              isSelected
-                                ? "border-amber-400 bg-amber-50"
-                                : "border-slate-100 bg-slate-50 hover:border-slate-200"
-                            }`}
-                          >
-                            {/* Checkbox */}
-                            <div
-                              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                                isSelected
-                                  ? "border-amber-500 bg-amber-500"
-                                  : "border-slate-300"
-                              }`}
-                            >
-                              {isSelected && (
-                                <svg
-                                  width="10"
-                                  height="8"
-                                  viewBox="0 0 10 8"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M1 4L3.5 6.5L9 1"
-                                    stroke="white"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-black text-slate-900 text-sm tracking-tight">
-                                {med.medication_name}
-                                {med.medication_mg && (
-                                  <span className="ml-2 text-xs font-bold text-slate-400">
-                                    {med.medication_mg}mg
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-slate-400 font-medium mt-0.5">
-                                Scheduled: {med.time_to_take || "—"}
-                              </p>
-                            </div>
-                            <span
-                              className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
-                                med.status === "missed"
-                                  ? "bg-rose-50 text-rose-600"
-                                  : "bg-amber-50 text-amber-600"
-                              }`}
-                            >
-                              {med.status}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* What happens note */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                      Selected medications will be marked as{" "}
-                      <span className="font-black text-slate-700">due</span>,
-                      making them visible to carers as pending administration
-                      tasks.
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {error && (
-                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4">
-                  <p className="text-sm text-rose-600 font-bold">{error}</p>
-                </div>
-              )}
-
-              <div className="flex gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={saving}
-                  className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
-                >
-                  Cancel
-                </button>
-                {medications.length > 0 && (
-                  <button
-                    type="submit"
-                    disabled={saving || selected.size === 0}
-                    className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest"
-                  >
-                    {saving
-                      ? "Saving..."
-                      : `Reassign ${selected.size} Med${selected.size !== 1 ? "s" : ""}`}
-                  </button>
-                )}
+    <AnimatePresence>
+      <motion.div
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div
+          variants={modalContentVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl w-full max-w-xl shadow-xl border border-slate-200 flex flex-col max-h-[90vh]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 rounded-md text-xs font-semibold mb-2">
+                <AlertCircle size={12} />
+                EMAR
               </div>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Reassign Medications
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {patient.patient_name}
+              </p>
+            </div>
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-9 h-9 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            >
+              <X size={20} className="text-slate-400" />
+            </motion.button>
+          </div>
+
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-8 py-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                >
+                  <Activity size={32} className="text-slate-300" />
+                </motion.div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* AI Reasoning */}
+                {reasoning && (
+                  <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 flex items-start gap-3">
+                    <Sparkles size={16} className="text-violet-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-violet-700">{reasoning}</p>
+                  </div>
+                )}
+
+                {/* Empty or List */}
+                {medications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-16 h-16 rounded-xl bg-emerald-50 flex items-center justify-center mb-4">
+                      <CheckCircle size={32} className="text-emerald-600" />
+                    </div>
+                    <p className="font-semibold text-slate-900 mb-1">
+                      No missed medications found
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      The EMAR record may have already been updated.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-3">
+                        Missed Medications
+                      </label>
+                      <div className="space-y-2">
+                        {medications.map((med) => {
+                          const isSelected = selected.has(med.id);
+                          return (
+                            <motion.button
+                              type="button"
+                              key={med.id}
+                              onClick={() => toggleMed(med.id)}
+                              whileHover={{ scale: 1.01 }}
+                              whileTap={{ scale: 0.99 }}
+                              className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all text-left ${
+                                isSelected
+                                  ? "border-amber-300 bg-amber-50"
+                                  : "border-slate-200 bg-white hover:border-slate-300"
+                              }`}
+                            >
+                              <div
+                                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                  isSelected
+                                    ? "border-amber-500 bg-amber-500"
+                                    : "border-slate-300"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <svg width="12" height="10" viewBox="0 0 10 8" fill="none">
+                                    <path
+                                      d="M1 4L3.5 6.5L9 1"
+                                      stroke="white"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-slate-900">
+                                  {med.medication_name}
+                                  {med.medication_mg && (
+                                    <span className="ml-2 text-sm text-slate-500">
+                                      {med.medication_mg}mg
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  Scheduled: {med.time_to_take || "—"}
+                                </p>
+                              </div>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-rose-100 text-rose-700">
+                                {med.status}
+                              </span>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                      <p className="text-sm text-slate-600">
+                        Selected medications will be marked as{" "}
+                        <span className="font-medium text-slate-900">due</span>,
+                        making them visible to carers.
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* Error */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
+                    >
+                      <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-red-700">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Buttons */}
+                {medications.length > 0 && (
+                  <div className="flex gap-3 pt-2">
+                    <motion.button
+                      type="button"
+                      onClick={onClose}
+                      disabled={saving}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm"
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      type="submit"
+                      disabled={saving || selected.size === 0}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="flex-1 px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium text-sm"
+                    >
+                      {saving
+                        ? "Saving..."
+                        : `Reassign ${selected.size} Med${selected.size !== 1 ? "s" : ""}`}
+                    </motion.button>
+                  </div>
+                )}
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -2000,6 +1814,7 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
   const [loading, setLoading] = useState(true);
   const [familyMember, setFamilyMember] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const [emailData, setEmailData] = useState({
     subject: `Update regarding ${patient.patient_name} — Greenview Care Home`,
@@ -2008,7 +1823,6 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
 
   useEffect(() => {
     const fetchFamily = async () => {
-      // Get first family member linked to this patient
       const { data: linkData } = await supabase
         .from("patient_family")
         .select("family_id, relationship")
@@ -2039,8 +1853,6 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
     };
     fetchFamily();
   }, []);
-
-  const [generating, setGenerating] = useState(false);
 
   const reasoning = patient.reasoning
     ?.split(
@@ -2082,167 +1894,202 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
   };
 
   const inputClass =
-    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
+    "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ring-1 ring-blue-100">
-              <Users size={12} />
-              Family Contact
+    <AnimatePresence>
+      <motion.div
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      >
+        <motion.div
+          variants={modalContentVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl w-full max-w-xl shadow-xl border border-slate-200 flex flex-col max-h-[90vh]"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-semibold mb-2">
+                <Users size={12} />
+                Family Contact
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Contact Family
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {patient.patient_name}
+              </p>
             </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Contact Family
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {patient.patient_name}
-            </p>
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-9 h-9 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+            >
+              <X size={20} className="text-slate-400" />
+            </motion.button>
           </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
-          >
-            <X size={20} className="text-slate-500" />
-          </button>
-        </div>
 
-        <div className="overflow-y-auto flex-1 px-10 py-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Activity size={40} className="animate-pulse opacity-20" />
-            </div>
-          ) : notFound ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <AlertCircle size={40} className="text-amber-400 mb-3" />
-              <p className="font-black text-slate-900 text-base">
-                No family member found
-              </p>
-              <p className="text-sm text-slate-400 font-medium mt-1">
-                No family contact is linked to this patient.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Family member card */}
-              <div className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-lg flex-shrink-0">
-                  {familyMember.full_name?.charAt(0) || "?"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 text-base tracking-tight">
-                    {familyMember.full_name}
-                  </p>
-                  <p className="text-xs text-slate-400 font-medium capitalize mt-0.5">
-                    {familyMember.relationship || "Family"}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
-                    Email
-                  </p>
-                  <p className="text-sm font-bold text-blue-600">
-                    {familyMember.email}
-                  </p>
-                </div>
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-8 py-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                >
+                  <Activity size={32} className="text-slate-300" />
+                </motion.div>
               </div>
-
-              {/* AI Generate Button */}
-              <button
-                type="button"
-                onClick={handleGenerateEmail}
-                disabled={generating}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-purple-200"
-              >
-                {generating ? (
-                  <>
-                    <Activity size={14} className="animate-spin" />{" "}
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} /> AI Generate Content
-                  </>
-                )}
-              </button>
-
-              {/* Subject */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={emailData.subject}
-                  onChange={(e) =>
-                    setEmailData({ ...emailData, subject: e.target.value })
-                  }
-                  className={inputClass}
-                />
-              </div>
-
-              {/* Body */}
-              <div>
-                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                  Message
-                </label>
-                <textarea
-                  value={emailData.body}
-                  onChange={(e) =>
-                    setEmailData({ ...emailData, body: e.target.value })
-                  }
-                  className={`${inputClass} resize-none`}
-                  rows={10}
-                />
-              </div>
-
-              {/* Info note */}
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Clicking{" "}
-                  <span className="font-black text-slate-700">
-                    Open in Mail
-                  </span>{" "}
-                  will open your default mail client with this email pre-filled.
-                  After sending, click{" "}
-                  <span className="font-black text-slate-700">
-                    Mark as Done
-                  </span>{" "}
-                  to complete this action.
+            ) : notFound ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-xl bg-amber-50 flex items-center justify-center mb-4">
+                  <AlertCircle size={32} className="text-amber-600" />
+                </div>
+                <p className="font-semibold text-slate-900 mb-1">
+                  No family member found
+                </p>
+                <p className="text-sm text-slate-500">
+                  No family contact is linked to this patient.
                 </p>
               </div>
+            ) : (
+              <div className="space-y-5">
+                {/* Family Card */}
+                <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+                    {familyMember.full_name?.charAt(0) || "?"}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900">
+                      {familyMember.full_name}
+                    </p>
+                    <p className="text-sm text-slate-500 capitalize">
+                      {familyMember.relationship || "Family"}
+                    </p>
+                  </div>
+                  <div className="text-right text-sm">
+                    <p className="text-slate-500">Email</p>
+                    <p className="font-medium text-blue-600">
+                      {familyMember.email}
+                    </p>
+                  </div>
+                </div>
 
-              {/* Buttons */}
-              <div className="flex gap-4 pt-2">
-                <button
+                {/* Generate Button */}
+                <motion.button
                   type="button"
-                  onClick={onClose}
-                  className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest"
+                  onClick={handleGenerateEmail}
+                  disabled={generating}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenMailto}
-                  className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all active:scale-95 text-xs uppercase tracking-widest"
-                >
-                  Open in Mail
-                </button>
-                <button
-                  type="button"
-                  onClick={onCompleted}
-                  className="flex-1 px-6 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800 transition-all active:scale-95 text-xs uppercase tracking-widest"
-                >
-                  Mark as Done
-                </button>
+                  {generating ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      >
+                        <Activity size={16} />
+                      </motion.div>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={16} />
+                      <span>AI Generate Content</span>
+                    </>
+                  )}
+                </motion.button>
+
+                {/* Subject */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    value={emailData.subject}
+                    onChange={(e) =>
+                      setEmailData({ ...emailData, subject: e.target.value })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Message */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    value={emailData.body}
+                    onChange={(e) =>
+                      setEmailData({ ...emailData, body: e.target.value })
+                    }
+                    className={`${inputClass} resize-none`}
+                    rows={10}
+                  />
+                </div>
+
+                {/* Info */}
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-600">
+                    Clicking <span className="font-medium">Open in Mail</span>{" "}
+                    will open your default mail client. After sending, click{" "}
+                    <span className="font-medium">Mark as Done</span>.
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="grid grid-cols-3 gap-3">
+                  <motion.button
+                    type="button"
+                    onClick={onClose}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={handleOpenMailto}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                  >
+                    Open Mail
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={onCompleted}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium text-sm"
+                  >
+                    Done
+                  </motion.button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -2257,30 +2104,33 @@ function OverdueModal({ onClose }) {
     const fetchOverdue = async () => {
       const now = new Date().toISOString();
 
-      // Fetch overdue schedules
       const { data: schedules } = await supabase
         .from("schedules")
-        .select("id, title, patient_id, carer_id, start_at, end_at, status, required_tasks")
+        .select(
+          "id, title, patient_id, carer_id, start_at, end_at, status, required_tasks",
+        )
         .in("status", ["scheduled", "pending"])
         .lt("end_at", now)
         .order("end_at", { ascending: true });
 
-      // Fetch missed EMAR
       const { data: emars } = await supabase
         .from("emar")
-        .select("id, patient_id, medication_name, medication_mg, time_to_take, status")
+        .select(
+          "id, patient_id, medication_name, medication_mg, time_to_take, status",
+        )
         .eq("status", "missed")
         .order("time_to_take", { ascending: true });
 
       const allSchedules = schedules || [];
       const allEmars = emars || [];
 
-      // Collect all patient IDs
       const patientIds = [
-        ...new Set([
-          ...allSchedules.map((s) => s.patient_id),
-          ...allEmars.map((e) => e.patient_id),
-        ].filter(Boolean)),
+        ...new Set(
+          [
+            ...allSchedules.map((s) => s.patient_id),
+            ...allEmars.map((e) => e.patient_id),
+          ].filter(Boolean),
+        ),
       ];
 
       if (patientIds.length > 0) {
@@ -2302,7 +2152,7 @@ function OverdueModal({ onClose }) {
   }, []);
 
   const formatOverdue = (endAt) => {
-    const diff = Math.floor((new Date() - new Date(endAt)) / 60000); // minutes
+    const diff = Math.floor((new Date() - new Date(endAt)) / 60000);
     if (diff < 60) return `${diff}m overdue`;
     if (diff < 1440) return `${Math.floor(diff / 60)}h overdue`;
     return `${Math.floor(diff / 1440)}d overdue`;
@@ -2311,192 +2161,387 @@ function OverdueModal({ onClose }) {
   const totalCount = overdueSchedules.length + missedEmars.length;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+    <AnimatePresence>
+      <motion.div
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6"
+      >
+        <motion.div
+          variants={modalContentVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl w-full max-w-5xl shadow-2xl border border-slate-200/80 flex flex-col max-h-[90vh]"
+        >
         
+          {/* Content */}
+          <div className="overflow-y-auto flex-1 px-8 py-8">
+            {loading ? (
+              <div className="flex items-center justify-center py-24">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                >
+                  <Activity size={32} className="text-slate-300" />
+                </motion.div>
+              </div>
+            ) : totalCount === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center mb-4">
+                  <CheckCircle size={32} className="text-emerald-600" />
+                </div>
+                <p className="font-semibold text-lg text-slate-900 mb-1">
+                  All clear
+                </p>
+                <p className="text-sm text-slate-500">
+                  No overdue schedules or missed medications
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                {/* Overdue Schedules */}
+                {overdueSchedules.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-11 h-11 bg-gradient-to-br from-rose-50 to-red-50 rounded-xl flex items-center justify-center shadow-sm">
+                        <Clock size={20} className="text-rose-600" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-black pt-2 text-slate-900 tracking-tight">
+                          Overdue Schedules
+                        </p>
+                        <p className="text-xs font-black text-rose-500 uppercase tracking-widest mt-0.5">
+                          {overdueSchedules.length} visit
+                          {overdueSchedules.length !== 1 ? "s" : ""} not
+                          completed
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {overdueSchedules.map((schedule) => {
+                        const patient = patients[schedule.patient_id];
+                        const tasks = (() => {
+                          try {
+                            return JSON.parse(schedule.required_tasks || "[]");
+                          } catch {
+                            return [];
+                          }
+                        })();
+                        return (
+                          <motion.div
+                            key={schedule.id}
+                            whileHover={{ y: -2 }}
+                            className="group p-5 bg-white border border-rose-200 hover:border-rose-300 rounded-xl shadow-sm hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 bg-gradient-to-br from-rose-100 to-rose-200 rounded-xl flex items-center justify-center font-semibold text-rose-900 shadow-sm">
+                                  {patient?.full_name?.charAt(0) || "?"}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-slate-900 truncate">
+                                    {patient?.full_name || "Unknown"}
+                                  </p>
+                                  <p className="text-xs text-slate-500 truncate">
+                                    {schedule.title}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-2 mb-4">
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-medium">
+                                {formatOverdue(schedule.end_at)}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-600">
+                                <span>
+                                  {new Date(schedule.end_at).toLocaleDateString(
+                                    "en-GB",
+                                    {
+                                      day: "numeric",
+                                      month: "short",
+                                    },
+                                  )}{" "}
+                                  {new Date(schedule.end_at).toLocaleTimeString(
+                                    "en-GB",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    },
+                                  )}
+                                </span>
+                                {patient?.room && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span>
+                                      Room {patient.room}
+                                      {patient.wing ? ` ${patient.wing}` : ""}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            {tasks.length > 0 && (
+                              <div className="pt-4 border-t border-slate-100">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {tasks.slice(0, 3).map((task, i) => (
+                                    <span
+                                      key={i}
+                                      className="text-xs text-rose-700 bg-rose-50 px-2 py-1 rounded-md"
+                                    >
+                                      {task}
+                                    </span>
+                                  ))}
+                                  {tasks.length > 3 && (
+                                    <span className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md">
+                                      +{tasks.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Missed Medications */}
+                {missedEmars.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-11 h-11 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl flex items-center justify-center shadow-sm">
+                        <AlertTriangle size={20} className="text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-black pt-5 text-slate-900 tracking-tight">
+                          Missed Medications
+                        </p>
+                        <p className="text-xs font-black text-amber-500 uppercase tracking-widest mt-0.5">
+                          {missedEmars.length} dose
+                          {missedEmars.length !== 1 ? "s" : ""} not administered
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {missedEmars.map((emar) => {
+                        const patient = patients[emar.patient_id];
+                        return (
+                          <motion.div
+                            key={emar.id}
+                            whileHover={{ y: -2 }}
+                            className="group flex items-center gap-4 p-5 bg-white border border-amber-200 hover:border-amber-300 rounded-xl shadow-sm hover:shadow-md transition-all"
+                          >
+                            <div className="w-11 h-11 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center font-semibold text-amber-900 shadow-sm shrink-0">
+                              {patient?.full_name?.charAt(0) || "?"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-900 truncate mb-1">
+                                {patient?.full_name || "Unknown"}
+                              </p>
+                              <p className="text-xs text-slate-600 mb-2">
+                                {emar.medication_name}
+                                {emar.medication_mg
+                                  ? ` ${emar.medication_mg}mg`
+                                  : ""}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">
+                                  Missed
+                                </span>
+                                {emar.time_to_take && (
+                                  <span className="text-xs text-slate-500">
+                                    {emar.time_to_take}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50">
+            <motion.button
+              onClick={onClose}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-medium text-sm shadow-sm"
+            >
+              Close
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+function HandoverModal({ handover, entries, patients, author, onClose }) {
+  const shiftLabel = handover.shift_type === "AM->PM" ? "AM to PM" : "PM to AM";
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 p-6">
+      <div className="bg-white rounded-[28px] w-full max-w-[60vw] h-[95vh] shadow-2xl border border-slate-100 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-10 py-8 border-b border-slate-100 flex-shrink-0">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 ring-1 ring-rose-100">
-              <Clock size={12} />
-              Requires Attention
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
+              <FileText size={18} className="text-white" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              Overdue Tasks
-            </h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">
-              {totalCount} item{totalCount !== 1 ? "s" : ""} requiring immediate action
-            </p>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                Shift Handover
+              </h2>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                {new Date(handover.created_at).toLocaleString("en-GB", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center"
+            className="w-8 h-8 cursor-pointer hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
           >
-            <X size={20} className="text-slate-500" />
+            <X size={18} className="text-slate-500" />
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-10 py-8 space-y-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Activity size={40} className="animate-pulse opacity-20" />
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-5">
+            {/* Meta grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <ArrowRight size={12} className="text-blue-400" />
+                  Shift Type
+                </p>
+                <p className="text-sm font-black text-slate-900 tracking-tight">
+                  {shiftLabel}
+                </p>
+              </div>
+              {author && (
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <User size={12} className="text-blue-400" />
+                    Created By
+                  </p>
+                  <p className="text-sm font-black text-slate-900 tracking-tight">
+                    {author.full_name}
+                  </p>
+                </div>
+              )}
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <AlertCircle size={12} className="text-red-400" />
+                  Red Flags
+                </p>
+                <p className="text-sm font-black text-slate-900 tracking-tight">
+                  {entries.length} Resident{entries.length !== 1 ? "s" : ""}
+                </p>
+              </div>
             </div>
-          ) : totalCount === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <CheckCircle size={48} className="text-emerald-400 mb-4" />
-              <p className="font-black text-xl text-slate-900 tracking-tight mb-1">
-                All clear
+
+            {/* General Notes */}
+            <div>
+              <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
+                General Observations
               </p>
-              <p className="text-sm text-slate-400 font-medium">
-                No overdue schedules or missed medications
-              </p>
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+                {handover.notes ? (
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                    {handover.notes}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-400 italic font-medium">
+                    No general observations recorded.
+                  </p>
+                )}
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Overdue Schedules */}
-              {overdueSchedules.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Clock size={18} className="text-rose-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                        Overdue Schedules
-                      </p>
-                      <p className="text-sm font-black text-slate-900">
-                        {overdueSchedules.length} visit{overdueSchedules.length !== 1 ? "s" : ""} not completed
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {overdueSchedules.map((schedule) => {
-                      const patient = patients[schedule.patient_id];
-                      const tasks = (() => {
-                        try { return JSON.parse(schedule.required_tasks || "[]"); }
-                        catch { return []; }
-                      })();
-                      return (
-                        <div
-                          key={schedule.id}
-                          className="p-5 bg-rose-50 border border-rose-100 rounded-2xl"
-                        >
-                          <div className="flex items-start justify-between gap-3 mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-sm font-black text-rose-600 flex-shrink-0">
-                                {patient?.full_name?.charAt(0) || "?"}
-                              </div>
-                              <div>
-                                <p className="font-black text-slate-900 text-sm tracking-tight">
-                                  {patient?.full_name || "Unknown Patient"}
-                                </p>
-                                <p className="text-xs text-slate-500 font-medium">
-                                  {schedule.title}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-rose-100 text-rose-600">
-                                {formatOverdue(schedule.end_at)}
-                              </span>
-                              {patient?.room && (
-                                <p className="text-xs text-slate-400 font-medium mt-1">
-                                  Room {patient.room}
-                                  {patient.wing ? ` · ${patient.wing}` : ""}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
-                            <span>
-                              Due:{" "}
-                              <span className="font-black text-slate-700">
-                                {new Date(schedule.end_at).toLocaleDateString("en-GB", {
-                                  day: "numeric", month: "short",
-                                })}{" "}
-                                {new Date(schedule.end_at).toLocaleTimeString("en-GB", {
-                                  hour: "2-digit", minute: "2-digit",
-                                })}
-                              </span>
+
+            {/* Red Flags */}
+            {entries.length > 0 && (
+              <div>
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
+                  Resident Red Flags
+                </p>
+                <div className="space-y-3">
+                  {entries.map((entry) => {
+                    const patient = patients[entry.patient_id];
+                    return (
+                      <div
+                        key={entry.id}
+                        className="flex items-start gap-3 p-5 bg-red-50 border border-red-100 rounded-2xl"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-sm font-black flex-shrink-0">
+                          {patient?.full_name?.charAt(0) || "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="text-base font-black text-red-900">
+                              {patient?.full_name || "Unknown Resident"}
+                            </p>
+                            <span className="text-[9px] px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-black uppercase tracking-widest">
+                              Room {patient?.room || "—"}
                             </span>
-                            <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full font-black text-[10px] uppercase tracking-widest">
-                              {schedule.status}
-                            </span>
+                            {patient?.wing && (
+                              <span className="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-black uppercase tracking-widest">
+                                {patient.wing}
+                              </span>
+                            )}
                           </div>
-                          {tasks.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-rose-100 flex flex-wrap gap-2">
-                              {tasks.map((task, i) => (
-                                <span
-                                  key={i}
-                                  className="text-[10px] font-bold text-rose-600 bg-rose-100 px-2.5 py-1 rounded-lg"
-                                >
-                                  {task}
-                                </span>
-                              ))}
-                            </div>
+                          {entry.patient_notes ? (
+                            <p className="text-sm text-red-800 font-medium leading-relaxed whitespace-pre-wrap">
+                              {entry.patient_notes}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-red-400 italic">
+                              No specific notes recorded
+                            </p>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Missed EMAR */}
-              {missedEmars.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <AlertTriangle size={18} className="text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                        Missed Medications
-                      </p>
-                      <p className="text-sm font-black text-slate-900">
-                        {missedEmars.length} dose{missedEmars.length !== 1 ? "s" : ""} not administered
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {missedEmars.map((emar) => {
-                      const patient = patients[emar.patient_id];
-                      return (
-                        <div
-                          key={emar.id}
-                          className="flex items-center gap-4 p-5 bg-amber-50 border border-amber-100 rounded-2xl"
-                        >
-                          <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-sm font-black text-amber-600 flex-shrink-0">
-                            {patient?.full_name?.charAt(0) || "?"}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-black text-slate-900 text-sm tracking-tight">
-                              {patient?.full_name || "Unknown Patient"}
-                            </p>
-                            <p className="text-xs text-slate-500 font-medium mt-0.5">
-                              {emar.medication_name}
-                              {emar.medication_mg ? ` · ${emar.medication_mg}mg` : ""}
-                              {emar.time_to_take ? ` · ${emar.time_to_take}` : ""}
-                            </p>
-                          </div>
-                          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
-                            Missed
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+            {!entries.length && !handover.notes && (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <FileText size={48} className="mb-3 opacity-20" />
+                <p className="font-bold text-sm">No details available</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="px-10 py-8 border-t border-slate-100 flex-shrink-0">
+        <div className="p-4 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="w-full py-4 bg-slate-100 text-slate-700 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-colors"
+            className="w-full py-3 cursor-pointer bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all font-black text-xs uppercase tracking-widest active:scale-95"
           >
             Close
           </button>
@@ -2506,18 +2551,147 @@ function OverdueModal({ onClose }) {
   );
 }
 
+
+/* ─── Pill Stat ──────────────────────────────────────────────────── */
+function PillStat({ icon, iconBg, label, value }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.03, y: -2 }}
+      transition={{ duration: 0.2 }}
+      className="group bg-white px-6 py-4 rounded-2xl border border-slate-200/60 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300"
+    >
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconBg} shadow-sm border border-slate-100/50`}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">
+          {label}
+        </p>
+        <p className="text-xl font-bold text-slate-900 tracking-tight">
+          {value}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Alert Card ─────────────────────────────────────────────────── */
+function AlertCard({
+  icon,
+  iconBg,
+  severity,
+  severityColor,
+  cardBg,
+  borderColor,
+  value,
+  valueColor,
+  label,
+  gradient,
+  onCta,
+}) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.01, y: -2 }}
+      transition={{ duration: 0.2 }}
+      className={`group p-8 rounded-3xl border shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden ${cardBg} ${borderColor}`}
+    >
+      <motion.div
+        animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.06, 0.03] }}
+        transition={{ duration: 3, repeat: Infinity }}
+        className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${gradient} blur-3xl rounded-full -mr-20 -mt-20`}
+      />
+      <div className="flex justify-between items-start mb-10 relative z-10">
+        <motion.div
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          className={`p-4 ${iconBg} rounded-2xl shadow-sm border border-rose-100/50`}
+        >
+          {icon}
+        </motion.div>
+        <span
+          className={`text-[10px] font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full border ${iconBg} ${severityColor} border-rose-200`}
+        >
+          {severity}
+        </span>
+      </div>
+      <div className="relative z-10">
+        <h3
+          className={`text-6xl font-bold mb-3 tracking-tighter ${valueColor}`}
+        >
+          {value}
+        </h3>
+        <p className="text-slate-700 font-semibold text-lg mb-10 tracking-tight">
+          {label}
+        </p>
+        <motion.button
+          onClick={onCta}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="group/btn w-full py-4 bg-slate-900 text-white hover:bg-slate-800 text-sm font-semibold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center gap-3"
+        >
+          <span>View Details</span>
+          <motion.div whileHover={{ x: 2, y: -2 }}>
+            <ArrowUpRight size={18} />
+          </motion.div>
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Staff Row ──────────────────────────────────────────────────── */
+function StaffRow({ dot, ringColor, label, sublabel, value }) {
+  return (
+    <motion.div
+      whileHover={{ x: 4 }}
+      transition={{ duration: 0.2 }}
+      className="group p-7 bg-gradient-to-br from-slate-50 to-slate-100/30 hover:from-slate-100 hover:to-slate-50 border border-slate-200/60 rounded-2xl transition-all duration-300 cursor-default hover:shadow-sm"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div
+              className={`w-3 h-3 rounded-full ${dot} shadow-sm relative z-10`}
+            />
+            <motion.div
+              animate={{ scale: [1, 1.5, 1], opacity: [0.75, 0, 0.75] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className={`absolute inset-0 w-3 h-3 rounded-full ${dot}`}
+            />
+          </div>
+          <div>
+            <p className="font-semibold text-sm text-slate-900 mb-0.5">
+              {label}
+            </p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+              {sublabel}
+            </p>
+          </div>
+        </div>
+        <span className="text-2xl font-bold text-slate-900 tracking-tight">
+          {value}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Dual Trend Chart ───────────────────────────────────────────── */
 function DualTrendChart({ incidentData, emarData, metric }) {
   const [tooltip, setTooltip] = useState(null);
 
   const data = incidentData;
   if (!data || data.length < 2) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-300">
-        <Activity size={60} className="mb-4 opacity-10" />
-        <p className="font-black text-lg text-slate-900 tracking-tight">
+      <div className="flex flex-col items-center justify-center py-24 text-slate-300">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mb-5">
+          <Activity size={32} className="text-slate-300" />
+        </div>
+        <p className="font-semibold text-lg text-slate-900 mb-1">
           Not enough data yet
         </p>
-        <p className="text-sm font-medium text-slate-400 mt-1">
+        <p className="text-sm font-normal text-slate-500">
           Check back after more activity
         </p>
       </div>
@@ -2560,6 +2734,7 @@ function DualTrendChart({ incidentData, emarData, metric }) {
   const inc = buildPath(incidentData);
   const emar = buildPath(emarData);
   const yLabels = [0, 2, 4, 6, 8];
+
   const handleMouseMove = (e) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
@@ -2580,19 +2755,19 @@ function DualTrendChart({ incidentData, emarData, metric }) {
 
   return (
     <div className="w-full relative">
-      <div className="flex items-center gap-6 mb-5">
+      <div className="flex items-center gap-6 mb-6">
         {metric !== "emar" && (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm" />
+            <span className="text-xs font-medium text-slate-600">
               Incidents
             </span>
           </div>
         )}
         {metric !== "incidents" && (
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-rose-400" />
-            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-2.5">
+            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-rose-400 to-red-500 shadow-sm" />
+            <span className="text-xs font-medium text-slate-600">
               Missed EMAR
             </span>
           </div>
@@ -2609,11 +2784,11 @@ function DualTrendChart({ incidentData, emarData, metric }) {
         >
           <defs>
             <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.12} />
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
               <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="emarGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f87171" stopOpacity={0.12} />
+              <stop offset="5%" stopColor="#f87171" stopOpacity={0.15} />
               <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
             </linearGradient>
           </defs>
@@ -2625,8 +2800,8 @@ function DualTrendChart({ incidentData, emarData, metric }) {
                 y1={yScale(v)}
                 x2={W - padR}
                 y2={yScale(v)}
-                stroke="#f1f5f9"
-                strokeWidth="1.5"
+                stroke="#e2e8f0"
+                strokeWidth="1"
               />
               <text
                 x={padL - 8}
@@ -2634,7 +2809,7 @@ function DualTrendChart({ incidentData, emarData, metric }) {
                 textAnchor="end"
                 fontSize="11"
                 fill="#94a3b8"
-                fontWeight="700"
+                fontWeight="600"
               >
                 {v}
               </text>
@@ -2648,7 +2823,7 @@ function DualTrendChart({ incidentData, emarData, metric }) {
                 d={inc.path}
                 fill="none"
                 stroke="#3b82f6"
-                strokeWidth="3.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -2662,7 +2837,7 @@ function DualTrendChart({ incidentData, emarData, metric }) {
                 d={emar.path}
                 fill="none"
                 stroke="#f87171"
-                strokeWidth="3.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -2677,7 +2852,7 @@ function DualTrendChart({ incidentData, emarData, metric }) {
               textAnchor="middle"
               fontSize="11"
               fill="#94a3b8"
-              fontWeight="700"
+              fontWeight="600"
             >
               {d.day}
             </text>
@@ -2719,7 +2894,9 @@ function DualTrendChart({ incidentData, emarData, metric }) {
         </svg>
 
         {tooltip && (
-          <div
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="absolute pointer-events-none z-20"
             style={{
               left: `${(tooltip.x / W) * 100}%`,
@@ -2734,17 +2911,17 @@ function DualTrendChart({ incidentData, emarData, metric }) {
               transform: "translate(-50%, -115%)",
             }}
           >
-            <div className="bg-white border border-slate-100 shadow-xl rounded-2xl px-4 py-3 min-w-[140px]">
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                {tooltip.day}
+            <div className="bg-white border border-slate-200 shadow-2xl rounded-xl px-4 py-3 min-w-[140px]">
+              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                Day {tooltip.day}
               </p>
               {metric !== "emar" && (
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-xs text-slate-600 font-normal">
                     Incidents
                   </span>
-                  <span className="text-xs font-black text-slate-900 ml-auto">
+                  <span className="text-xs font-semibold text-slate-900 ml-auto">
                     {tooltip.incidents}
                   </span>
                 </div>
@@ -2752,16 +2929,16 @@ function DualTrendChart({ incidentData, emarData, metric }) {
               {metric !== "incidents" && (
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-rose-400 flex-shrink-0" />
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-xs text-slate-600 font-normal">
                     Missed EMAR
                   </span>
-                  <span className="text-xs font-black text-slate-900 ml-auto">
+                  <span className="text-xs font-semibold text-slate-900 ml-auto">
                     {tooltip.emar}
                   </span>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
