@@ -252,7 +252,6 @@ export default function ScheduleManager() {
   };
 
   const handleDeleteSchedule = async (scheduleId) => {
-
     try {
       const { error: deleteError } = await supabase
         .from("schedules")
@@ -479,7 +478,7 @@ export default function ScheduleManager() {
 
                 {/* Schedules List */}
                 {loading ? (
-                  <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden">
+                  <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden min-h-[600px]">
                     <div className="divide-y divide-slate-100">
                       {[1, 2, 3].map((i) => (
                         <SkeletonRow key={i} />
@@ -491,7 +490,7 @@ export default function ScheduleManager() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4 }}
-                    className="flex flex-col items-center justify-center py-24 text-slate-300"
+                    className="flex flex-col items-center justify-center py-24 text-slate-300 min-h-[600px]"
                   >
                     <motion.div
                       initial={{ scale: 0 }}
@@ -513,7 +512,7 @@ export default function ScheduleManager() {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden"
+                    className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden min-h-[600px]"
                   >
                     <div className="divide-y divide-slate-100">
                       {filteredSchedules.map((schedule, index) => (
@@ -1119,9 +1118,8 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
     }
   };
 
-
-   const inputClass2 =
-     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
+  const inputClass2 =
+    "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
 
   const inputClass =
     "w-full px-4 py-3 bg-white cursor-pointer border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
@@ -1495,8 +1493,6 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
     }
   };
 
-
-  
   const inputClass2 =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-normal placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm";
 

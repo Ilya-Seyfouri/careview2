@@ -269,7 +269,7 @@ ${JSON.stringify(patients, null, 2)}
         },
       ],
       temperature: 0.5,
-      max_tokens: 6000,
+      max_tokens: 3000,
     });
 
     const result = completion.choices[0]?.message?.content || "";
