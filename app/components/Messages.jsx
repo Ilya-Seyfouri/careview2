@@ -1,8 +1,7 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { useDemoUser } from "./DemoContext";
-import { Send, Phone, Video, Info, ChevronLeft } from "lucide-react";
+import { Send, Phone, Video, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 const CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
@@ -20,7 +19,6 @@ function formatDateDivider(ts) {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-
   if (d.toDateString() === today.toDateString()) return "Today";
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
   return d.toLocaleDateString("en-GB", {
@@ -49,37 +47,26 @@ function groupByDate(messages) {
 }
 
 export default function Messages() {
-  const supabase = createClient();
   const { demoUser, loading: userLoading } = useDemoUser();
 
   const [messages, setMessages] = useState([]);
   const [profiles, setProfiles] = useState({});
-  const [patient, setPatient] = useState(null); // the resident linking carer ↔ family
+  const [patient, setPatient] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  const channelRef = useRef(null);
 
-  // Determine which side the current user is on
   const isCurrentUserCarer = demoUser?.id === CARER_ID;
   const otherPersonId = isCurrentUserCarer ? FAMILY_ID : CARER_ID;
 
   useEffect(() => {
     if (!demoUser?.id) return;
     fetchAll();
-    subscribeToMessages();
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
   }, [demoUser]);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -88,90 +75,24 @@ export default function Messages() {
     try {
       setLoading(true);
 
-      // Fetch profiles for both participants
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .in("id", [CARER_ID, FAMILY_ID]);
+      const [contextRes, messagesRes] = await Promise.all([
+        fetch(
+          `/api/messages/context?carer_id=${CARER_ID}&family_id=${FAMILY_ID}`,
+        ),
+        fetch(`/api/messages?carer_id=${CARER_ID}&family_id=${FAMILY_ID}`),
+      ]);
 
-      const profMap = {};
-      (profs || []).forEach((p) => (profMap[p.id] = p));
-      setProfiles(profMap);
+      const { profiles, patient } = await contextRes.json();
+      const messages = await messagesRes.json();
 
-      // Resolve the patient linking carer ↔ family
-      // Step 1: get patient IDs assigned to the carer
-      const { data: carerAssignments } = await supabase
-        .from("patient_carers")
-        .select("patient_id")
-        .eq("carer_id", CARER_ID);
-
-      const carerPatientIds = (carerAssignments || []).map((a) => a.patient_id);
-
-      // Step 2: get patient IDs linked to the family member
-      const { data: familyLinks } = await supabase
-        .from("patient_family")
-        .select("patient_id")
-        .eq("family_id", FAMILY_ID);
-
-      const familyPatientIds = (familyLinks || []).map((a) => a.patient_id);
-
-      // Step 3: find the shared patient (intersection)
-      const sharedPatientId = carerPatientIds.find((id) =>
-        familyPatientIds.includes(id),
-      );
-
-      if (sharedPatientId) {
-        const { data: pat } = await supabase
-          .from("patients")
-          .select("id, full_name, room, wing")
-          .eq("id", sharedPatientId)
-          .single();
-        setPatient(pat || null);
-      }
-
-      // Fetch messages for this conversation
-      const { data: msgs, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("carer_id", CARER_ID)
-        .eq("family_id", FAMILY_ID)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      setMessages(msgs || []);
+      setProfiles(profiles);
+      setPatient(patient);
+      setMessages(messages);
     } catch (err) {
       console.error("Error fetching messages:", err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const subscribeToMessages = () => {
-    const channel = supabase
-      .channel("messages-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `carer_id=eq.${CARER_ID}`,
-        },
-        (payload) => {
-          // Only add if it belongs to this conversation
-          const msg = payload.new;
-          if (msg.family_id === FAMILY_ID) {
-            setMessages((prev) => {
-              // Avoid duplicates if we already optimistically added it
-              if (prev.find((m) => m.id === msg.id)) return prev;
-              return [...prev, msg];
-            });
-          }
-        },
-      )
-      .subscribe();
-
-    channelRef.current = channel;
   };
 
   const handleSend = async () => {
@@ -194,28 +115,23 @@ export default function Messages() {
 
     try {
       setSending(true);
-      const { data, error } = await supabase
-        .from("messages")
-        .insert([
-          {
-            content: text,
-            sender_id: demoUser.id,
-            carer_id: CARER_ID,
-            family_id: FAMILY_ID,
-          },
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Replace optimistic with real
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: text,
+          sender_id: demoUser.id,
+          carer_id: CARER_ID,
+          family_id: FAMILY_ID,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      const data = await res.json();
       setMessages((prev) =>
         prev.map((m) => (m.id === optimistic.id ? data : m)),
       );
     } catch (err) {
       console.error("Send failed:", err);
-      // Remove optimistic on failure
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
       setInput(text);
     } finally {
@@ -234,15 +150,15 @@ export default function Messages() {
   const grouped = groupByDate(messages);
   const isLoading = userLoading || loading;
 
-  // Contextual subtitle depending on who is viewing
-  const familyPerson = profiles[FAMILY_ID];
-const headerSubtitle = isCurrentUserCarer
-  ? patient
-    ? `Relative of ${patient.full_name}`
-    : "Family member of assigned resident"
-  : patient
-    ? `Assigned carer for ${patient.full_name}`
-    : "Messaging assigned care staff";
+  const headerSubtitle = isCurrentUserCarer
+    ? patient
+      ? `Relative of ${patient.full_name}`
+      : "Family member of assigned resident"
+    : patient
+      ? `Assigned carer for ${patient.full_name}`
+      : "Messaging assigned care staff";
+
+  // JSX stays exactly the same — no changes needed
 
   return (
     <motion.section

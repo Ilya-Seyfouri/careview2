@@ -1,5 +1,4 @@
-import CarerSidebar from "../../components/CarerSidebar";
-import CarerResidents from "@/app/components/CarerResidents";
+import CarerResidents from "../../components/CarerResidents";
 
 export default function Home() {
   return <>

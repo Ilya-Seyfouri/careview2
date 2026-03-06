@@ -32,18 +32,19 @@ export default function Residents() {
     fetchResidentData();
   }, []);
 
-  const fetchResidentData = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from("patients").select("*");
-      if (error) console.log(error);
-      setResidentData(data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchResidentData = async () => {
+   try {
+     setLoading(true);
+     const res = await fetch("/api/patients");
+     if (!res.ok) throw new Error("Failed to fetch patients");
+     const data = await res.json();
+     setResidentData(data || []);
+   } catch (err) {
+     console.error(err);
+   } finally {
+     setLoading(false);
+   }
+ };
 
   const filteredResidents = residentData.filter((resident) =>
     resident.full_name?.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -329,31 +330,17 @@ function AddResidentModal({ onClose, onSuccess }) {
     try {
       setSaving(true);
       setError(null);
-      const { data: newPatient, error: insertError } = await supabase
-        .from("patients")
-        .insert([
-          {
-            full_name: formData.full_name,
-            dob: formData.dob,
-            room: formData.room,
-            status: formData.status,
-            wing: formData.wing,
-            key_health_indicator: formData.key_health_indicator,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
 
-      if (insertError) throw insertError;
-
-      // Audit log: patient created
-      await supabase.from("audit_logs").insert({
-        action_type: "patient_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: newPatient.id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to add resident");
+      }
 
       onSuccess();
     } catch (err) {

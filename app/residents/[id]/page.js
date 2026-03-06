@@ -1,4 +1,3 @@
-import ManagerSidebar from "../../components/ManagerSidebar";
 import ResidentSpecific from "../../components/ResidentSpecific";
 
 export default function Home({ params }) {

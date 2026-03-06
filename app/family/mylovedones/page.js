@@ -1,4 +1,4 @@
-import MyLovedOnes from "@/app/components/MyLovedOnes";
+import MyLovedOnes from "../../components/MyLovedOnes";
 
 
 export default function Home() {

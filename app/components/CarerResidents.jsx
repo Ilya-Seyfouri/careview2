@@ -24,38 +24,17 @@ export default function MyClients() {
     try {
       setLoading(true);
 
-      // 1. Get patient IDs assigned to this carer
-      const { data: assignments, error: assignError } = await supabase
-        .from("patient_carers")
-        .select("patient_id")
-        .eq("carer_id", DEMO_CARER_ID);
+      const res = await fetch(`/api/carer/${DEMO_CARER_ID}/clients`);
+      if (!res.ok) throw new Error("Failed to fetch clients");
+      const data = await res.json();
 
-      if (assignError) throw assignError;
-      if (!assignments || assignments.length === 0) {
-        setClients([]);
-        return;
-      }
-
-      const patientIds = assignments.map((a) => a.patient_id);
-
-      // 2. Fetch patient details including vitals
-      const { data: patients, error: patientsError } = await supabase
-        .from("patients")
-        .select(
-          "id, full_name, room, status, dob, wing, pulse, bp, key_health_indicator",
-        )
-        .in("id", patientIds);
-
-      if (patientsError) throw patientsError;
-
-      setClients(patients || []);
+      setClients(data);
     } catch (err) {
       console.error("Error fetching clients:", err);
     } finally {
       setLoading(false);
     }
   };
-
   const isLoading = userLoading || loading;
 
   return (

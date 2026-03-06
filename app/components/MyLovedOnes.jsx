@@ -49,81 +49,27 @@ export default function MyLovedOnes() {
     try {
       setLoading(true);
 
-      // Get linked patient via patient_family
-      const { data: linkData, error: linkError } = await supabase
-        .from("patient_family")
-        .select("patient_id, relationship")
-        .eq("family_id", familyId);
-
-      if (linkError || !linkData || linkData.length === 0) {
-        setLoading(false);
-        return;
-      }
-
-      // Get the first patient if there are multiple
-      const firstLink = linkData[0];
-      setRelationship(firstLink.relationship);
-      const patientId = firstLink.patient_id;
-
-      // Fetch patient
-      const { data: clientData, error: clientError } = await supabase
-        .from("patients")
-        .select("*")
-        .eq("id", patientId)
-        .single();
-
-      if (clientError) {
+      const res = await fetch(`/api/family/patient/${familyId}`);
+      if (!res.ok) {
         setError("Resident not found");
         return;
       }
-      setClient(clientData);
 
-      // Fetch visit logs
-      const { data: logsData } = await supabase
-        .from("visit_logs")
-        .select("*")
-        .eq("patient_id", patientId)
-        .order("created_at", { ascending: false });
-      const logs = logsData || [];
-      setVisitLogs(logs);
+      const {
+        relationship,
+        client,
+        visitLogs,
+        carerNames,
+        reports,
+        assignedCarers,
+      } = await res.json();
 
-      // Resolve carer names for visit logs
-      const carerIds = [
-        ...new Set(logs.map((l) => l.carer_id).filter(Boolean)),
-      ];
-      if (carerIds.length > 0) {
-        const { data: carersData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", carerIds);
-        const map = {};
-        (carersData || []).forEach((c) => (map[c.id] = c.full_name));
-        setCarerNames(map);
-      }
-
-      // Fetch reports
-      const { data: reportsData } = await supabase
-        .from("reports")
-        .select(
-          "id, title, content, type, created_at, created_by_profile:created_by (id, full_name, role)",
-        )
-        .eq("patient_id", patientId)
-        .order("created_at", { ascending: false });
-      setReports(reportsData || []);
-
-      // Fetch assigned carers via patient_carers
-      const { data: carerLinks } = await supabase
-        .from("patient_carers")
-        .select(
-          `id, assigned_at, carer_id, profiles:carer_id (id, full_name, email, phone, role)`,
-        )
-        .eq("patient_id", patientId);
-
-      const carers = (carerLinks || []).map((link) => ({
-        ...link.profiles,
-        assigned_at: link.assigned_at,
-      }));
-      setAssignedCarers(carers);
+      setRelationship(relationship);
+      setClient(client);
+      setVisitLogs(visitLogs);
+      setCarerNames(carerNames);
+      setReports(reports);
+      setAssignedCarers(assignedCarers);
     } catch (err) {
       console.error(err);
       setError("Failed to load resident details");
@@ -131,7 +77,6 @@ export default function MyLovedOnes() {
       setLoading(false);
     }
   };
-
   const calculateAge = (dob) => {
     if (!dob) return "N/A";
     const birth = new Date(dob);
@@ -854,15 +799,10 @@ function SchedulesTab({ patientId }) {
     const fetchSchedules = async () => {
       try {
         setLoading(true);
-        const { data, error: err } = await supabase
-          .from("schedules")
-          .select(
-            `id, start_at, end_at, status, created_at, title, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
-          )
-          .eq("patient_id", patientId)
-          .order("start_at", { ascending: false });
-        if (err) throw err;
-        setSchedules(data || []);
+        const res = await fetch(`/api/specific-patient/${patientId}/schedules`);
+        if (!res.ok) throw new Error("Failed to fetch schedules");
+        const data = await res.json();
+        setSchedules(data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -1008,7 +948,7 @@ function SchedulesTab({ patientId }) {
             </div>
 
             {/* Carer */}
-            {(s.carer || s.created_by_profile) && (
+            {(s.carer || s.creator) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
                 {s.carer && (
                   <div className="px-4">

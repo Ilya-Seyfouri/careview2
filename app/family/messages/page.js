@@ -1,4 +1,4 @@
-import Messages from "@/app/components/Messages";
+import Messages from "../../components/Messages";
 
 export default function Home() {
   return (

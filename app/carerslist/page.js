@@ -1,5 +1,4 @@
-import ManagerSidebar from "../components/ManagerSidebar";
-import CarersList from "../components/CarersList";
+import CarersList from "../components/CarersList"
 
 
 export default function Home() {

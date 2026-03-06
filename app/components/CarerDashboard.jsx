@@ -45,24 +45,12 @@ export default function CarerDashboard() {
   const fetchSchedules = async (carerId) => {
     try {
       setLoading(true);
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
 
-      const { data, error } = await supabase
-        .from("schedules")
-        .select(
-          `id, start_at, end_at, status, title, required_tasks,
-          patient:patient_id (id, full_name, room, status)`,
-        )
-        .eq("carer_id", carerId)
-        .gte("start_at", todayStart.toISOString())
-        .lte("start_at", todayEnd.toISOString())
-        .order("start_at", { ascending: true });
+      const res = await fetch(`/api/carer/${carerId}`);
+      if (!res.ok) throw new Error("Failed to fetch schedules");
+      const data = await res.json();
 
-      if (error) throw error;
-      setSchedules(data || []);
+      setSchedules(data);
     } catch (err) {
       console.error("Error fetching schedules:", err);
     } finally {
@@ -75,20 +63,10 @@ export default function CarerDashboard() {
   const fetchHistory = async () => {
     try {
       setHistoryLoading(true);
-
-      const { data, error } = await supabase
-        .from("schedules")
-        .select(
-          `id, start_at, end_at, status, title,
-          patient:patient_id (id, full_name, room)`,
-        )
-        .eq("carer_id", JORDAN_REED_ID)
-        .eq("status", "completed")
-        .order("start_at", { ascending: false })
-        .limit(30);
-
-      if (error) throw error;
-      setHistory(data || []);
+      const res = await fetch(`/api/carer/${JORDAN_REED_ID}/history`);
+      if (!res.ok) throw new Error("Failed to fetch history");
+      const data = await res.json();
+      setHistory(data);
     } catch (err) {
       console.error("Error fetching history:", err);
     } finally {
@@ -96,32 +74,25 @@ export default function CarerDashboard() {
     }
   };
 
-  const handleOpenHistory = () => {
-    setShowHistory(true);
-    fetchHistory();
-  };
-
-  // ── Start Visit
   const handleStartVisit = async (schedule) => {
     try {
-      await supabase
-        .from("schedules")
-        .update({ status: "in progress" })
-        .eq("id", schedule.id);
-
-      await supabase.from("audit_logs").insert({
-        action_type: "schedule_started",
-        actor_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-        related_to: schedule.patient?.id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/schedules/status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: schedule.id,
+          status: "in_progress",
+          patient_id: schedule.patient?.id,
+        }),
       });
+      if (!res.ok) throw new Error("Failed to start visit");
 
       setSchedules((prev) =>
         prev.map((s) =>
-          s.id === schedule.id ? { ...s, status: "in progress" } : s,
+          s.id === schedule.id ? { ...s, status: "in_progress" } : s,
         ),
       );
-      setActiveVisit({ ...schedule, status: "in progress" });
+      setActiveVisit({ ...schedule, status: "in_progress" });
       setVisitStep("active");
     } catch (err) {
       console.error("Failed to start visit:", err);
@@ -134,39 +105,36 @@ export default function CarerDashboard() {
   };
 
   const handleSubmitLog = async ({ notes, appetite, mood, checkedTasks }) => {
-    const now = new Date().toISOString();
+    try {
+      const res = await fetch("/api/visit-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: activeVisit.patient?.id,
+          carer_id: demoUser?.id,
+          schedule_id: activeVisit.id,
+          notes,
+          appetite,
+          mood,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to submit visit log");
 
-    const { error: logError } = await supabase.from("visit_logs").insert({
-      patient_id: activeVisit.patient?.id,
-      carer_id: demoUser?.id,
-      schedule_id: activeVisit.id,
-      notes: notes.trim(),
-      appetite,
-      mood,
-      created_at: now,
-    });
-    if (logError) throw logError;
+      setSchedules((prev) =>
+        prev.map((s) =>
+          s.id === activeVisit.id ? { ...s, status: "completed" } : s,
+        ),
+      );
+      setActiveVisit(null);
+      setVisitStep(null);
+    } catch (err) {
+      console.error("Failed to submit log:", err);
+    }
+  };
 
-    const { error: scheduleError } = await supabase
-      .from("schedules")
-      .update({ status: "completed" })
-      .eq("id", activeVisit.id);
-    if (scheduleError) throw scheduleError;
-
-    await supabase.from("audit_logs").insert({
-      action_type: "schedule_completed",
-      actor_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-      related_to: activeVisit.patient?.id,
-      created_at: new Date().toISOString(),
-    });
-
-    setSchedules((prev) =>
-      prev.map((s) =>
-        s.id === activeVisit.id ? { ...s, status: "completed" } : s,
-      ),
-    );
-    setActiveVisit(null);
-    setVisitStep(null);
+  const handleOpenHistory = () => {
+    setShowHistory(true);
+    fetchHistory();
   };
 
   const handleCloseModal = () => {

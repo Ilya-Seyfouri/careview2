@@ -37,94 +37,15 @@ export default function Analytics() {
     try {
       setLoading(true);
 
-      // Total completed visits
-      const { count: visitsCount } = await supabase
-        .from("schedules")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "completed");
-      setTotalVisits(visitsCount || 0);
+      const res = await fetch("/api/reports");
+      if (!res.ok) throw new Error("Failed to fetch analytics");
+      const { totalVisits, totalReports, reportsByType, staffVisitCounts } =
+        await res.json();
 
-      // All reports
-      const { data: reportsData } = await supabase
-        .from("reports")
-        .select("id, type, patient_id, patients(full_name)");
-      const reports = reportsData || [];
-      setTotalReports(reports.length);
-
-      // Group reports by type
-      const typeCounts = { falls: 0, medication: 0, nutrition: 0, other: 0 };
-      reports.forEach((r) => {
-        const t = r.type || "other";
-        typeCounts[t] = (typeCounts[t] || 0) + 1;
-      });
-      const total = reports.length || 1;
-      setReportsByType([
-        {
-          label: "Falls",
-          key: "falls",
-          count: typeCounts.falls,
-          color: "#ef4444",
-          pct: Math.round((typeCounts.falls / total) * 100),
-        },
-        {
-          label: "Medication",
-          key: "medication",
-          count: typeCounts.medication,
-          color: "#f59e0b",
-          pct: Math.round((typeCounts.medication / total) * 100),
-        },
-        {
-          label: "Nutrition",
-          key: "nutrition",
-          count: typeCounts.nutrition,
-          color: "#3b82f6",
-          pct: Math.round((typeCounts.nutrition / total) * 100),
-        },
-        {
-          label: "Other",
-          key: "other",
-          count: typeCounts.other,
-          color: "#94a3b8",
-          pct: Math.round((typeCounts.other / total) * 100),
-        },
-      ]);
-
-      // Staff visit counts
-      const { data: schedulesData } = await supabase
-        .from("schedules")
-        .select("carer_id")
-        .eq("status", "completed");
-      const schedules = schedulesData || [];
-
-      // Count visits per carer
-      const carerMap = {};
-      schedules.forEach((s) => {
-        if (!s.carer_id) return;
-        carerMap[s.carer_id] = (carerMap[s.carer_id] || 0) + 1;
-      });
-
-      // Fetch carer names
-      const carerIds = Object.keys(carerMap);
-      if (carerIds.length > 0) {
-        const { data: carersData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", carerIds)
-          .eq("role", "carer");
-
-        const staffData = (carersData || [])
-          .map((c) => ({
-            id: c.id,
-            name: c.full_name || "Unknown",
-            shortName: c.full_name
-              ? `${c.full_name.split(" ")[0]} ${c.full_name.split(" ").slice(-1)[0]?.[0] || ""}.`
-              : "Unknown",
-            visits: carerMap[c.id] || 0,
-          }))
-          .sort((a, b) => b.visits - a.visits)
-          .slice(0, 3);
-        setStaffVisitCounts(staffData);
-      }
+      setTotalVisits(totalVisits);
+      setTotalReports(totalReports);
+      setReportsByType(reportsByType);
+      setStaffVisitCounts(staffVisitCounts);
     } catch (err) {
       console.error(err);
     } finally {
@@ -468,12 +389,16 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
 
   useEffect(() => {
     const fetchPatients = async () => {
-      const { data } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .order("full_name", { ascending: true });
-      setPatients(data || []);
-      setLoadingPatients(false);
+      try {
+        const res = await fetch("/api/patients");
+        if (!res.ok) throw new Error("Failed to fetch patients");
+        const data = await res.json();
+        setPatients(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingPatients(false);
+      }
     };
     fetchPatients();
   }, []);
@@ -519,28 +444,22 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
       setSaving(true);
       setError(null);
 
-      const { data: newReport, error: insertError } = await supabase
-        .from("reports")
-        .insert({
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           patient_id: formData.patient_id,
           created_by: managerId,
           title: formData.title.trim(),
           type: formData.type,
           content: formData.content.trim(),
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Audit log: report created
-      await supabase.from("audit_logs").insert({
-        action_type: "report_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: formData.patient_id,
-        created_at: new Date().toISOString(),
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save report.");
+      }
 
       onSuccess();
     } catch (err) {
@@ -550,9 +469,8 @@ function AddReportModal({ onClose, onSuccess, managerId }) {
     }
   };
 
-    const inputClass2 =
-      "w-full px-4 py-3 cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
-
+  const inputClass2 =
+    "w-full px-4 py-3 cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";
 
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";

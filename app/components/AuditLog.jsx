@@ -30,55 +30,22 @@ export default function AuditLog() {
     fetchAuditLogs();
   }, []);
 
-  const fetchAuditLogs = async () => {
-    try {
-      setLoading(true);
+ const fetchAuditLogs = async () => {
+   try {
+     setLoading(true);
 
-      const { data: logsData, error: logsError } = await supabase
-        .from("audit_logs")
-        .select("id, actor_id, action_type, related_to, created_at")
-        .order("created_at", { ascending: false });
+     const res = await fetch("/api/audit-logs");
+     if (!res.ok) throw new Error("Failed to fetch audit logs");
+     const data = await res.json();
 
-      if (logsError) throw logsError;
-
-      if (!logsData || logsData.length === 0) {
-        setLogs([]);
-        setLoading(false);
-        return;
-      }
-
-      const actorIds = [...new Set(logsData.map((log) => log.actor_id))];
-
-      const { data: actorsData, error: actorsError } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .in("id", actorIds);
-
-      if (actorsError) throw actorsError;
-
-      const relatedIds = [
-        ...new Set(logsData.map((log) => log.related_to).filter(Boolean)),
-      ];
-
-      const { data: patientsData } = await supabase
-        .from("patients")
-        .select("id, full_name")
-        .in("id", relatedIds);
-
-      const logsWithDetails = logsData.map((log) => ({
-        ...log,
-        actor: actorsData?.find((a) => a.id === log.actor_id) || null,
-        patient: patientsData?.find((p) => p.id === log.related_to) || null,
-      }));
-
-      setLogs(logsWithDetails);
-    } catch (err) {
-      console.error("Error fetching audit logs:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+     setLogs(data);
+   } catch (err) {
+     console.error("Error fetching audit logs:", err);
+     setError(err.message);
+   } finally {
+     setLoading(false);
+   }
+ };
 
   const getActionTypeInfo = (actionType) => {
     const action = actionType?.toLowerCase() || "";

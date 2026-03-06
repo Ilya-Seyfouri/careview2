@@ -53,73 +53,27 @@ export default function FamilyDashboard() {
     try {
       setLoading(true);
 
-      const { data: linkData, error: linkError } = await supabase
-        .from("patient_family")
-        .select("patient_id, relationship")
-        .eq("family_id", familyId);
-
-      if (linkError || !linkData || linkData.length === 0) {
+      const res = await fetch(`/api/family/dashboard/${familyId}`);
+      if (!res.ok) {
         setLoading(false);
         return;
       }
 
-      const firstLink = linkData[0];
-      setRelationship(firstLink.relationship);
-      const patientId = firstLink.patient_id;
+      const {
+        relationship,
+        patient,
+        visitLogs,
+        carerNames,
+        reports,
+        upcomingSchedules,
+      } = await res.json();
 
-      // Patient
-      const { data: patientData } = await supabase
-        .from("patients")
-        .select("*")
-        .eq("id", patientId)
-        .single();
-      setPatient(patientData);
-
-      // Visit logs (last 5)
-      const { data: logsData } = await supabase
-        .from("visit_logs")
-        .select("*")
-        .eq("patient_id", patientId)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      const logs = logsData || [];
-      setVisitLogs(logs);
-
-      // Carer names
-      const carerIds = [
-        ...new Set(logs.map((l) => l.carer_id).filter(Boolean)),
-      ];
-      if (carerIds.length > 0) {
-        const { data: carersData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", carerIds);
-        const map = {};
-        (carersData || []).forEach((c) => (map[c.id] = c.full_name));
-        setCarerNames(map);
-      }
-
-      // Reports (last 5)
-      const { data: reportsData } = await supabase
-        .from("reports")
-        .select(
-          "id, title, content, type, created_at, created_by_profile:created_by (id, full_name)",
-        )
-        .eq("patient_id", patientId)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      setReports(reportsData || []);
-
-      // Upcoming schedules
-      const now = new Date().toISOString();
-      const { data: schedulesData } = await supabase
-        .from("schedules")
-        .select("*")
-        .eq("patient_id", patientId)
-        .gte("start_at", now)
-        .order("start_at", { ascending: true })
-        .limit(3);
-      setUpcomingSchedules(schedulesData || []);
+      setRelationship(relationship);
+      setPatient(patient);
+      setVisitLogs(visitLogs);
+      setCarerNames(carerNames);
+      setReports(reports);
+      setUpcomingSchedules(upcomingSchedules);
     } catch (err) {
       console.error(err);
     } finally {
@@ -129,47 +83,16 @@ export default function FamilyDashboard() {
 
   const fetchArchiveData = async () => {
     if (!patient?.id) return;
-
     try {
       setArchiveLoading(true);
 
-      // Fetch ALL visit logs
-      const { data: allLogsData } = await supabase
-        .from("visit_logs")
-        .select("*")
-        .eq("patient_id", patient.id)
-        .order("created_at", { ascending: false });
+      const res = await fetch(`/api/family/dashboard/${demoUser.id}/archive`);
+      if (!res.ok) throw new Error("Failed to fetch archive");
 
-      const allLogs = allLogsData || [];
+      const { logs, reports, carerNames: newCarerNames } = await res.json();
 
-      // Get all unique carer IDs from archive
-      const allCarerIds = [
-        ...new Set(allLogs.map((l) => l.carer_id).filter(Boolean)),
-      ];
-
-      if (allCarerIds.length > 0) {
-        const { data: carersData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", allCarerIds);
-        const map = { ...carerNames };
-        (carersData || []).forEach((c) => (map[c.id] = c.full_name));
-        setCarerNames(map);
-      }
-
-      // Fetch ALL reports
-      const { data: allReportsData } = await supabase
-        .from("reports")
-        .select(
-          "id, title, content, type, created_at, created_by_profile:created_by (id, full_name)",
-        )
-        .eq("patient_id", patient.id)
-        .order("created_at", { ascending: false });
-
-      setArchiveData({
-        logs: allLogs,
-        reports: allReportsData || [],
-      });
+      setCarerNames((prev) => ({ ...prev, ...newCarerNames }));
+      setArchiveData({ logs, reports });
     } catch (err) {
       console.error("Error fetching archive:", err);
     } finally {
@@ -1156,39 +1079,8 @@ function ReportModal({ report, onClose }) {
 
 /* ─── Schedule Modal ─────────────────────────────────────────────── */
 function ScheduleModal({ schedule, onClose }) {
-  const supabase = createClient();
-  const [carerInfo, setCarerInfo] = useState(null);
-  const [creatorInfo, setCreatorInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        if (schedule.carer_id) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("id, full_name, email, phone")
-            .eq("id", schedule.carer_id)
-            .single();
-          setCarerInfo(data);
-        }
-        if (schedule.created_by) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("id, full_name")
-            .eq("id", schedule.created_by)
-            .single();
-          setCreatorInfo(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDetails();
-  }, [schedule]);
+  const carerInfo = schedule.carer ?? null;
+  const creatorInfo = schedule.creator ?? null;
 
   const fmt = (d) =>
     d
@@ -1271,7 +1163,7 @@ function ScheduleModal({ schedule, onClose }) {
           </div>
 
           {/* Carer and creator info */}
-          {!loading && (carerInfo || creatorInfo) && (
+          { (carerInfo || creatorInfo) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
               {carerInfo && (
                 <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">

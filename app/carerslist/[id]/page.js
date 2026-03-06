@@ -1,5 +1,4 @@
-import SpecificCarer from "@/app/components/SpecificCarer";
-import ManagerSidebar from "@/app/components/ManagerSidebar";
+import SpecificCarer from "../../../app/components/SpecificCarer";
 
 export default function Home({ params }) {
   return (

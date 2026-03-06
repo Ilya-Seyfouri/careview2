@@ -22,13 +22,9 @@ export default function CarersList() {
     try {
       setLoading(true);
 
-      const { data, error: carersError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, phone, role, created_at")
-        .eq("role", "carer")
-        .order("full_name", { ascending: true });
-
-      if (carersError) throw carersError;
+      const res = await fetch("/api/carers-list")
+      if (!res.ok) throw new Error ("Failed to fetch carers")
+      const data = await res.json()
 
       setCarers(data || []);
     } catch (err) {
@@ -289,29 +285,16 @@ function AddCarerModal({ onClose, onSuccess }) {
       setSaving(true);
       setError(null);
 
-      const { data, error: insertError } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            full_name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            role: formData.role,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Audit log: carer created
-      await supabase.from("audit_logs").insert({
-        action_type: "carer_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: data.id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/carers-list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to add carer");
+      }
 
       onSuccess();
     } catch (err) {
@@ -321,7 +304,6 @@ function AddCarerModal({ onClose, onSuccess }) {
       setSaving(false);
     }
   };
-
   
     const inputClass2 =
       "w-full px-4 py-3 cursor-pointer bg-white border border-slate-200 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm shadow-sm";

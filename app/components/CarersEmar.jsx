@@ -41,44 +41,12 @@ export default function CarerEmar() {
     try {
       setLoading(true);
 
-      // 1. Get patient IDs assigned to this carer
-      const { data: assignments, error: assignError } = await supabase
-        .from("patient_carers")
-        .select("patient_id")
-        .eq("carer_id", user.id);
+      const res = await fetch(`/api/carer-emar/${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch EMAR data");
+      const { emar, patients } = await res.json();
 
-      if (assignError) throw assignError;
-
-      if (!assignments || assignments.length === 0) {
-        setPatients({});
-        setEmarData([]);
-        setLoading(false);
-        return;
-      }
-
-      const patientIds = assignments.map((a) => a.patient_id);
-
-      // 2. Fetch patients
-      const { data: pats, error: patsError } = await supabase
-        .from("patients")
-        .select("id, full_name, room, wing")
-        .in("id", patientIds);
-
-      if (patsError) throw patsError;
-
-      const patMap = {};
-      (pats || []).forEach((p) => (patMap[p.id] = p));
-      setPatients(patMap);
-
-      // 3. Fetch EMAR for assigned patients only
-      const { data: emar, error: emarError } = await supabase
-        .from("emar")
-        .select("*")
-        .in("patient_id", patientIds);
-
-      if (emarError) throw emarError;
-
-      setEmarData(emar || []);
+      setPatients(patients);
+      setEmarData(emar);
     } catch (err) {
       console.error("Error fetching EMAR data:", err);
     } finally {
@@ -91,19 +59,13 @@ export default function CarerEmar() {
     try {
       setAdministeringId(entry.id);
 
-      const { error } = await supabase
-        .from("emar")
-        .update({ status: "given" })
-        .eq("id", entry.id);
-
-      if (error) throw error;
-
-      await supabase.from("audit_logs").insert({
-        action_type: "emar_administered",
-        actor_id: demoUser.id,
-        related_to: entry.patient_id,
-        created_at: new Date().toISOString(),
+      const res = await fetch(`/api/carer-emar/${demoUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: entry.id, patient_id: entry.patient_id }),
       });
+
+      if (!res.ok) throw new Error("Failed to administer medication");
 
       setEmarData((prev) =>
         prev.map((r) => (r.id === entry.id ? { ...r, status: "given" } : r)),

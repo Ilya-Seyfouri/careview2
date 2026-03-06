@@ -41,25 +41,19 @@ export default function ResidentSpecific({ params }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data: residentData, error: residentError } = await supabase
-          .from("patients")
-          .select("*")
-          .eq("id", residentId)
-          .single();
 
-        if (residentError) {
-          setError("Resident not found");
+        const res = await fetch(`/api/specific-patient/${residentId}`);
+
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "Resident not found");
           return;
         }
-        setResident(residentData);
 
-        const { data: logsData, error: logsError } = await supabase
-          .from("visit_logs")
-          .select("*")
-          .eq("patient_id", residentId)
-          .order("created_at", { ascending: false });
+        const { resident, visitLogs } = await res.json();
 
-        if (!logsError) setVisitLogs(logsData || []);
+        setResident(resident);
+        setVisitLogs(visitLogs);
       } catch (err) {
         setError("Failed to load data");
       } finally {
@@ -503,30 +497,21 @@ function CareTeamTab({ residentId }) {
 
   useEffect(() => {
     fetchCareTeam();
-    fetchAvailableCarers();
-    fetchAvailableFamily();
   }, [residentId]);
 
   const fetchCareTeam = async () => {
     try {
       setLoading(true);
-      const { data: carers, error: ce } = await supabase
-        .from("patient_carers")
-        .select(
-          `id, assigned_at, carer_id, profiles:carer_id (id, full_name, email, phone, role)`,
-        )
-        .eq("patient_id", residentId);
-      if (ce) throw ce;
+      const res = await fetch(`/api/specific-patient/${residentId}/care-team`);
+      if (!res.ok) throw new Error("Failed to fetch care team");
+      const { carers, family, availableCarers, availableFamily } =
+        await res.json();
 
-      const { data: family, error: fe } = await supabase
-        .from("patient_family")
-        .select(
-          `id, relationship, linked_at, family_id, profiles:family_id (id, full_name, email, phone, role)`,
-        )
-        .eq("patient_id", residentId);
-      if (fe) throw fe;
+      setCareTeam({ carers, family });
+      setAvailableCarers(availableCarers);
+      console.log(availableCarers);
 
-      setCareTeam({ carers: carers || [], family: family || [] });
+      setAvailableFamily(availableFamily);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -534,90 +519,49 @@ function CareTeamTab({ residentId }) {
     }
   };
 
-  const fetchAvailableCarers = async () => {
-    const { data: a } = await supabase
-      .from("patient_carers")
-      .select("carer_id")
-      .eq("patient_id", residentId);
-    const ids = (a || []).map((x) => x.carer_id);
-    let q = supabase
-      .from("profiles")
-      .select("id, full_name, email, phone")
-      .eq("role", "carer");
-    if (ids.length > 0) q = q.not("id", "in", `(${ids.join(",")})`);
-    const { data } = await q;
-    setAvailableCarers(data || []);
-  };
-
-  const fetchAvailableFamily = async () => {
-    const { data: a } = await supabase
-      .from("patient_family")
-      .select("family_id")
-      .eq("patient_id", residentId);
-    const ids = (a || []).map((x) => x.family_id);
-    let q = supabase
-      .from("profiles")
-      .select("id, full_name, email, phone")
-      .eq("role", "family");
-    if (ids.length > 0) q = q.not("id", "in", `(${ids.join(",")})`);
-    const { data } = await q;
-    setAvailableFamily(data || []);
-  };
-
   const assignCarer = async (id) => {
     setActionLoading(`assign-carer-${id}`);
-    await supabase.from("patient_carers").insert({
-      patient_id: residentId,
-      carer_id: id,
-      assigned_at: new Date().toISOString(),
+    await fetch(`/api/specific-patient/${residentId}/care-team`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "carer", profile_id: id }),
     });
-
-    await supabase.from("audit_logs").insert({
-      action_type: "carer_assigned_to_patient",
-      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-      related_to: residentId,
-      created_at: new Date().toISOString(),
-    });
-
     await fetchCareTeam();
-    await fetchAvailableCarers();
     setActionLoading(null);
   };
 
   const removeCarer = async (assignId, carerId) => {
     setActionLoading(`remove-carer-${carerId}`);
-    await supabase.from("patient_carers").delete().eq("id", assignId);
+    await fetch(
+      `/api/specific-patient/${residentId}/care-team?type=carer&assign_id=${assignId}`,
+      {
+        method: "DELETE",
+      },
+    );
     await fetchCareTeam();
-    await fetchAvailableCarers();
     setActionLoading(null);
   };
 
   const assignFamily = async (id) => {
     setActionLoading(`assign-family-${id}`);
-    await supabase.from("patient_family").insert({
-      patient_id: residentId,
-      family_id: id,
-      linked_at: new Date().toISOString(),
-      relationship: "Family Member",
+    await fetch(`/api/specific-patient/${residentId}/care-team`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "family", profile_id: id }),
     });
-
-    await supabase.from("audit_logs").insert({
-      action_type: "family_linked_to_patient",
-      actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-      related_to: residentId,
-      created_at: new Date().toISOString(),
-    });
-
     await fetchCareTeam();
-    await fetchAvailableFamily();
     setActionLoading(null);
   };
 
   const removeFamily = async (assignId, famId) => {
     setActionLoading(`remove-family-${famId}`);
-    await supabase.from("patient_family").delete().eq("id", assignId);
+    await fetch(
+      `/api/specific-patient/${residentId}/care-team?type=family&assign_id=${assignId}`,
+      {
+        method: "DELETE",
+      },
+    );
     await fetchCareTeam();
-    await fetchAvailableFamily();
     setActionLoading(null);
   };
 
@@ -820,7 +764,9 @@ function CareTeamTab({ residentId }) {
 }
 
 function CarerCard({ assignment, onRemove, isLoading }) {
-  const p = assignment.profiles;
+  const p = assignment.carer;
+  if (!p) return null;
+
   return (
     <div className="bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -828,7 +774,6 @@ function CarerCard({ assignment, onRemove, isLoading }) {
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-         
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
@@ -857,7 +802,9 @@ function CarerCard({ assignment, onRemove, isLoading }) {
 }
 
 function FamilyCard({ member, onRemove, isLoading }) {
-  const p = member.profiles;
+  const p = member.family; // ← was member.profiles
+  if (!p) return null;
+
   return (
     <div className="bg-white border border-slate-100 rounded-[24px] p-6 hover:shadow-lg transition-all shadow-sm">
       <div className="flex items-center justify-between mb-4">
@@ -865,7 +812,6 @@ function FamilyCard({ member, onRemove, isLoading }) {
           {p.full_name}
         </h3>
         <div className="flex items-center gap-2">
-         
           <RemoveButton onRemove={onRemove} isLoading={isLoading} />
         </div>
       </div>
@@ -967,25 +913,22 @@ function ScheduleTab({ residentId }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchSchedules = async () => {
       try {
         setLoading(true);
-        const { data, error: err } = await supabase
-          .from("schedules")
-          .select(
-            `id, start_at, end_at, status, created_at, title, carer:carer_id (id, full_name, email, phone), created_by_profile:created_by (id, full_name)`,
-          )
-          .eq("patient_id", residentId)
-          .order("start_at", { ascending: false });
-        if (err) throw err;
-        setSchedules(data || []);
+        const res = await fetch(
+          `/api/specific-patient/${residentId}/schedules`,
+        );
+        if (!res.ok) throw new Error("Failed to fetch schedules");
+        const data = await res.json();
+        setSchedules(data);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetch();
+    fetchSchedules();
   }, [residentId]);
 
   const fmt = (d) =>
@@ -1106,7 +1049,7 @@ function ScheduleTab({ residentId }) {
             </div>
 
             {/* Carer */}
-            {(s.carer || s.created_by_profile) && (
+            {(s.carer || s.creator) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-5 border-t border-slate-200">
                 {s.carer && (
                   <div className="px-4">
@@ -1141,25 +1084,20 @@ function ReportsTab({ residentId }) {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchReports = async () => {
       try {
         setLoading(true);
-        const { data, error: err } = await supabase
-          .from("reports")
-          .select(
-            `id, title, content, created_at, created_by_profile:created_by (id, full_name)`,
-          )
-          .eq("patient_id", residentId)
-          .order("created_at", { ascending: false });
-        if (err) throw err;
-        setReports(data || []);
+        const res = await fetch(`/api/specific-patient/${residentId}/reports`);
+        if (!res.ok) throw new Error("Failed to fetch reports");
+        const data = await res.json();
+        setReports(data);
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetch();
+    fetchReports();
   }, [residentId]);
 
   const fmt = (d) =>
@@ -1224,10 +1162,10 @@ function ReportsTab({ residentId }) {
                   {r.content || "No content available"}
                 </p>
                 <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
-                  {r.created_by_profile && (
+                  {r.creator && (
                     <span className="flex items-center gap-1.5">
                       <User size={12} className="text-blue-500" />
-                      Created by {r.created_by_profile.full_name}
+                      Created by {r.creator?.full_name}
                     </span>
                   )}
                   <span className="flex items-center gap-1.5">
@@ -1252,10 +1190,10 @@ function ReportsTab({ residentId }) {
                   {selected.title}
                 </h3>
                 <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-                  {selected.created_by_profile && (
+                  {selected.creator && (
                     <span className="flex items-center gap-1.5">
                       <User size={14} className="text-blue-500" />
-                      Created by {selected.created_by_profile.full_name}
+                      Created by {selected.creator?.full_name}{" "}
                     </span>
                   )}
                   <span className="flex items-center gap-1.5">

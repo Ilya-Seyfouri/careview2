@@ -1,4 +1,4 @@
-import CarerResidentSpecific from "@/app/components/CarerResidentSpecific"
+import CarerResidentSpecific from "../../../components/CarerResidentSpecific"
 
 export default function Home() {
   return <>

@@ -110,60 +110,13 @@ export default function ScheduleManager() {
     try {
       setLoading(true);
 
-      // Get start and end of selected day
-      const startOfDay = new Date(selectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
+      const res = await fetch(
+        `/api/schedules?date=${new Date(selectedDate).toISOString()}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch schedules");
+      const data = await res.json();
 
-      const endOfDay = new Date(selectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      // Fetch schedules for the selected date
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from("schedules")
-        .select(
-          "id, title, start_at, end_at, status, patient_id, carer_id, created_at",
-        )
-        .gte("start_at", startOfDay.toISOString())
-        .lte("start_at", endOfDay.toISOString())
-        .order("start_at", { ascending: true });
-
-      if (schedulesError) throw schedulesError;
-
-      if (!schedulesData || schedulesData.length === 0) {
-        setSchedules([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get unique patient and carer IDs
-      const patientIds = [...new Set(schedulesData.map((s) => s.patient_id))];
-      const carerIds = [...new Set(schedulesData.map((s) => s.carer_id))];
-
-      // Fetch patient details
-      const { data: patientsData, error: patientsError } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .in("id", patientIds);
-
-      if (patientsError) throw patientsError;
-
-      // Fetch carer details
-      const { data: carersData, error: carersError } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", carerIds);
-
-      if (carersError) throw carersError;
-
-      // Combine schedules with patient and carer data
-      const schedulesWithDetails = schedulesData.map((schedule) => ({
-        ...schedule,
-        patient:
-          patientsData?.find((p) => p.id === schedule.patient_id) || null,
-        carer: carersData?.find((c) => c.id === schedule.carer_id) || null,
-      }));
-
-      setSchedules(schedulesWithDetails);
+      setSchedules(data);
     } catch (err) {
       console.error("Error fetching schedules:", err);
       setError(err.message);
@@ -171,73 +124,17 @@ export default function ScheduleManager() {
       setLoading(false);
     }
   };
-
   const fetchMonthSchedules = async () => {
     try {
       setLoading(true);
 
-      // Get start and end of selected month
-      const startOfMonth = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        1,
+      const res = await fetch(
+        `/api/schedules?month=${selectedDate.toISOString()}`,
       );
-      startOfMonth.setHours(0, 0, 0, 0);
+      if (!res.ok) throw new Error("Failed to fetch schedules");
+      const data = await res.json();
 
-      const endOfMonth = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1,
-        0,
-      );
-      endOfMonth.setHours(23, 59, 59, 999);
-
-      // Fetch schedules for the entire month
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from("schedules")
-        .select(
-          "id, title, start_at, end_at, status, patient_id, carer_id, created_at",
-        )
-        .gte("start_at", startOfMonth.toISOString())
-        .lte("start_at", endOfMonth.toISOString())
-        .order("start_at", { ascending: true });
-
-      if (schedulesError) throw schedulesError;
-
-      if (!schedulesData || schedulesData.length === 0) {
-        setAllSchedules([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get unique patient and carer IDs
-      const patientIds = [...new Set(schedulesData.map((s) => s.patient_id))];
-      const carerIds = [...new Set(schedulesData.map((s) => s.carer_id))];
-
-      // Fetch patient details
-      const { data: patientsData, error: patientsError } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .in("id", patientIds);
-
-      if (patientsError) throw patientsError;
-
-      // Fetch carer details
-      const { data: carersData, error: carersError } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", carerIds);
-
-      if (carersError) throw carersError;
-
-      // Combine schedules with patient and carer data
-      const schedulesWithDetails = schedulesData.map((schedule) => ({
-        ...schedule,
-        patient:
-          patientsData?.find((p) => p.id === schedule.patient_id) || null,
-        carer: carersData?.find((c) => c.id === schedule.carer_id) || null,
-      }));
-
-      setAllSchedules(schedulesWithDetails);
+      setAllSchedules(data);
     } catch (err) {
       console.error("Error fetching schedules:", err);
       setError(err.message);
@@ -253,14 +150,12 @@ export default function ScheduleManager() {
 
   const handleDeleteSchedule = async (scheduleId) => {
     try {
-      const { error: deleteError } = await supabase
-        .from("schedules")
-        .delete()
-        .eq("id", scheduleId);
+      const res = await fetch(`/api/schedules?id=${scheduleId}`, {
+        method: "DELETE",
+      });
 
-      if (deleteError) throw deleteError;
+      if (!res.ok) throw new Error("Failed to delete schedule");
 
-      // Refresh the schedules
       if (viewMode === "list") {
         fetchSchedules();
       } else {
@@ -1021,18 +916,14 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
   const fetchPatientsAndCarers = async () => {
     try {
       setLoadingData(true);
-      const { data: patientsData, error: patientsError } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .order("full_name", { ascending: true });
-      if (patientsError) throw patientsError;
 
-      const { data: carersData, error: carersError } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .eq("role", "carer")
-        .order("full_name", { ascending: true });
-      if (carersError) throw carersError;
+      const [patientsRes, carersRes] = await Promise.all([
+        fetch("/api/patients"),
+        fetch("/api/carers-list"),
+      ]);
+
+      const patientsData = await patientsRes.json();
+      const carersData = await carersRes.json();
 
       setPatients(patientsData || []);
       setCarers(carersData || []);
@@ -1080,35 +971,21 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
     try {
       setSaving(true);
       setError(null);
-      if (!demoUser) throw new Error("No demo user selected.");
 
-      const { data: newSchedule, error: insertError } = await supabase
-        .from("schedules")
-        .insert([
-          {
-            title: formData.title,
-            patient_id: formData.patient_id,
-            carer_id: formData.carer_id,
-            start_at: formData.start_at,
-            end_at: formData.end_at,
-            status: formData.status,
-            required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
-            created_by: demoUser.id,
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Audit log: schedule created
-      await supabase.from("audit_logs").insert({
-        action_type: "schedule_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: formData.patient_id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/schedules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
+          created_by: demoUser?.id ?? null,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to add schedule");
+      }
 
       onSuccess();
     } catch (err) {
@@ -1417,15 +1294,15 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
   const fetchPatientsAndCarers = async () => {
     try {
       setLoadingData(true);
-      const { data: patientsData } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .order("full_name");
-      const { data: carersData } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .eq("role", "carer")
-        .order("full_name");
+
+      const [patientsRes, carersRes] = await Promise.all([
+        fetch("/api/patients"),
+        fetch("/api/carers-list"),
+      ]);
+
+      const patientsData = await patientsRes.json();
+      const carersData = await carersRes.json();
+
       setPatients(patientsData || []);
       setCarers(carersData || []);
     } catch (err) {
@@ -1472,19 +1349,22 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
     try {
       setSaving(true);
       setError(null);
-      const { error: updateError } = await supabase
-        .from("schedules")
-        .update({
-          title: formData.title,
-          patient_id: formData.patient_id,
-          carer_id: formData.carer_id,
-          start_at: formData.start_at,
-          end_at: formData.end_at,
-          status: formData.status,
+
+      const res = await fetch("/api/schedules", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: schedule.id,
+          ...formData,
           required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
-        })
-        .eq("id", schedule.id);
-      if (updateError) throw updateError;
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update schedule");
+      }
+
       onSuccess();
     } catch (err) {
       setError(err.message || "Failed to update schedule");

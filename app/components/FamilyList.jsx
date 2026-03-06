@@ -35,58 +35,11 @@ export default function FamilyList() {
     try {
       setLoading(true);
 
-      // Fetch all family members from profiles
-      const { data: familyData, error: familyError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, phone, created_at")
-        .eq("role", "family")
-        .order("full_name", { ascending: true });
+      const res = await fetch("/api/family");
+      if (!res.ok) throw new Error("Failed to fetch family members");
+      const data = await res.json();
 
-      if (familyError) throw familyError;
-
-      // For each family member, fetch their assigned patients
-      const familyWithPatients = await Promise.all(
-        familyData.map(async (family) => {
-          const { data: patientFamilyData, error: patientFamilyError } =
-            await supabase
-              .from("patient_family")
-              .select("relationship, patient_id, linked_at")
-              .eq("family_id", family.id);
-
-          if (patientFamilyError) {
-            console.error("Error fetching patient family:", patientFamilyError);
-            return { ...family, assignedPatients: [] };
-          }
-
-          // Fetch patient details
-          if (patientFamilyData && patientFamilyData.length > 0) {
-            const patientIds = patientFamilyData.map((pf) => pf.patient_id);
-
-            const { data: patientsData, error: patientsError } = await supabase
-              .from("patients")
-              .select("id, full_name")
-              .in("id", patientIds);
-
-            if (patientsError) {
-              console.error("Error fetching patients:", patientsError);
-              return { ...family, assignedPatients: [] };
-            }
-
-            // Combine patient data with relationship
-            const assignedPatients = patientFamilyData.map((pf) => ({
-              ...patientsData.find((p) => p.id === pf.patient_id),
-              relationship: pf.relationship,
-              linked_at: pf.linked_at,
-            }));
-
-            return { ...family, assignedPatients };
-          }
-
-          return { ...family, assignedPatients: [] };
-        }),
-      );
-
-      setFamilyMembers(familyWithPatients);
+      setFamilyMembers(data);
     } catch (err) {
       console.error("Error fetching family members:", err);
       setError(err.message);
@@ -94,7 +47,6 @@ export default function FamilyList() {
       setLoading(false);
     }
   };
-
   const filteredFamilyMembers = familyMembers.filter((family) =>
     family.full_name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -367,56 +319,33 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
     }
   }, [step]);
 
-  const fetchPatients = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("patients")
-        .select("id, full_name, room")
-        .order("full_name", { ascending: true });
-
-      if (error) throw error;
-      setPatients(data || []);
-    } catch (err) {
-      console.error("Error fetching patients:", err);
-    }
-  };
-
   const handleStep1Submit = async (e) => {
     e.preventDefault();
-
     if (!formData.full_name || !formData.email || !formData.phone) {
       setError("Please fill in all required fields");
       return;
     }
-
     try {
       setSaving(true);
       setError(null);
 
-      const { data, error: insertError } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            full_name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            role: "family",
-            created_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      await supabase.from("audit_logs").insert({
-        action_type: "family_member_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: data.id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: formData.full_name,
+          email: formData.email,
+          phone: formData.phone,
+        }),
       });
 
-      setCreatedFamilyId(data.id);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to add family member");
+      }
+
+      const newFamily = await res.json();
+      setCreatedFamilyId(newFamily.id);
       setStep(2);
     } catch (err) {
       console.error("Error adding family member:", err);
@@ -428,35 +357,28 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
 
   const handleStep2Submit = async (e) => {
     e.preventDefault();
-
     if (!formData.patient_id || !formData.relationship) {
       setError("Please select a resident and relationship");
       return;
     }
-
     try {
       setSaving(true);
       setError(null);
 
-      const { error: linkError } = await supabase
-        .from("patient_family")
-        .insert([
-          {
-            patient_id: formData.patient_id,
-            family_id: createdFamilyId,
-            relationship: formData.relationship,
-            linked_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (linkError) throw linkError;
-
-      await supabase.from("audit_logs").insert({
-        action_type: "family_linked_to_patient",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: formData.patient_id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/family/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: formData.patient_id,
+          family_id: createdFamilyId,
+          relationship: formData.relationship,
+        }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to link family member");
+      }
 
       onSuccess();
     } catch (err) {
@@ -464,6 +386,17 @@ function AddFamilyMemberModal({ onClose, onSuccess }) {
       setError(err.message || "Failed to link family member");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const res = await fetch("/api/patients");
+      if (!res.ok) throw new Error("Failed to fetch patients");
+      const data = await res.json();
+      setPatients(data);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
     }
   };
 

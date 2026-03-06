@@ -1,5 +1,4 @@
-import VisitLogDetail from "@/app/components/VisitLogSpecific";
-import ManagerSidebar from "@/app/components/ManagerSidebar";
+import VisitLogDetail from "../../../components/VisitLogSpecific";
 
 export default function Home({ params }) {
   return (

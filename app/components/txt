@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  carer
+  manager
+  family
+}
+
+enum EmarStatus {
+  due
+  missed
+  given
+}
+
+enum ScheduleStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  action_type String
+  created_at  DateTime @default(now()) @db.Timestamptz
+  actor_id    String?  @db.Uuid
+  related_to  String?  @db.Uuid
+
+  actor       Profile? @relation(fields: [actor_id], references: [id])
+
+  @@map("audit_logs")
+}
+
+model CareAnalysisSession {
+  id            String    @id @default(uuid()) @db.Uuid
+  created_by    String?   @db.Uuid
+  created_at    DateTime? @default(now()) @db.Timestamptz
+  priority_list Json
+
+  creator       Profile?  @relation(fields: [created_by], references: [id])
+
+  @@map("care_analysis_sessions")
+}
+
+model CompletedCareAction {
+  id              String    @id @default(uuid()) @db.Uuid
+  patient_id      String?   @db.Uuid
+  action_type     String
+  completed_by    String?   @db.Uuid
+  completed_at    DateTime? @db.Timestamptz
+  notes           String?
+
+  patient              Patient?  @relation(fields: [patient_id], references: [id])
+  completed_by_profile Profile?  @relation(fields: [completed_by], references: [id])
+
+  @@map("completed_care_actions")
+}
+
+model Emar {
+  id              String      @id @default(uuid()) @db.Uuid
+  patient_id      String?     @db.Uuid
+  medication_name String?
+  medication_mg   Int?
+  time_to_take    String?
+  status          EmarStatus?
+  recorded_at     DateTime?   @db.Timestamptz
+
+  patient         Patient?    @relation(fields: [patient_id], references: [id])
+
+  @@map("emar")
+}
+
+model Message {
+  id         String    @id @default(uuid()) @db.Uuid
+  content    String
+  sender_id  String    @db.Uuid
+  carer_id   String    @db.Uuid
+  family_id  String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz
+
+  sender     Profile   @relation("SenderProfile", fields: [sender_id], references: [id])
+  carer      Profile   @relation("CarerProfile", fields: [carer_id], references: [id])
+  family     Profile   @relation("FamilyProfile", fields: [family_id], references: [id])
+
+  @@map("messages")
+}
+
+model PatientCarer {
+  id          String    @id @default(uuid()) @db.Uuid
+  patient_id  String    @db.Uuid
+  carer_id    String    @db.Uuid
+  assigned_at DateTime? @default(now()) @db.Timestamptz
+
+  patient     Patient   @relation(fields: [patient_id], references: [id])
+  carer       Profile   @relation(fields: [carer_id], references: [id])
+
+  @@map("patient_carers")
+}
+
+model PatientFamily {
+  id           String    @id @default(uuid()) @db.Uuid
+  patient_id   String    @db.Uuid
+  family_id    String    @db.Uuid
+  relationship String?
+  linked_at    DateTime? @default(now()) @db.Timestamptz
+
+  patient      Patient   @relation(fields: [patient_id], references: [id])
+  family       Profile   @relation(fields: [family_id], references: [id])
+
+  @@map("patient_family")
+}
+
+model Patient {
+  id                   String    @id @default(uuid()) @db.Uuid
+  full_name            String
+  dob                  DateTime? @db.Date
+  room                 String?
+  created_at           DateTime? @default(now()) @db.Timestamptz
+  status               String?
+  wing                 String?
+  language             String?
+  blood                String?
+  health_summary       String?
+  pulse                BigInt?
+  bp                   BigInt?
+  key_health_indicator String?
+
+  completed_care_actions CompletedCareAction[]
+  emar                   Emar[]
+  patient_carers         PatientCarer[]
+  patient_family         PatientFamily[]
+  reports                Report[]
+  schedules              Schedule[]
+  shift_handovers        ShiftHandover[]
+  visit_logs             VisitLog[]
+
+  @@map("patients")
+}
+
+model Profile {
+  id         String    @id @default(uuid()) @db.Uuid
+  role       Role
+  full_name  String
+  email      String?
+  phone      String?
+  created_at DateTime? @default(now()) @db.Timestamptz
+  status     String?
+
+  audit_logs             AuditLog[]
+  care_analysis_sessions CareAnalysisSession[]
+  completed_care_actions CompletedCareAction[]
+  messages_sent          Message[]             @relation("SenderProfile")
+  messages_as_carer      Message[]             @relation("CarerProfile")
+  messages_as_family     Message[]             @relation("FamilyProfile")
+  patient_carers         PatientCarer[]
+  patient_family         PatientFamily[]
+  reports_created        Report[]
+  schedules_created      Schedule[]            @relation("ScheduleCreatedBy")
+  schedules_as_carer     Schedule[]            @relation("ScheduleCarer")
+  shift_handovers        ShiftHandover[]
+  visit_logs             VisitLog[]
+
+  @@map("profiles")
+}
+
+model Report {
+  id         String    @id @default(uuid()) @db.Uuid
+  patient_id String    @db.Uuid
+  created_by String    @db.Uuid
+  title      String
+  content    String?
+  created_at DateTime? @default(now()) @db.Timestamptz
+  type       String?
+  date       DateTime? @db.Timestamptz
+
+  patient    Patient   @relation(fields: [patient_id], references: [id])
+  creator    Profile   @relation(fields: [created_by], references: [id])
+
+  @@map("reports")
+}
+
+model Schedule {
+  id             String          @id @default(uuid()) @db.Uuid
+  patient_id     String          @db.Uuid
+  carer_id       String?         @db.Uuid
+  created_by     String?         @db.Uuid
+  start_at       DateTime        @db.Timestamptz
+  end_at         DateTime?       @db.Timestamptz
+  status         ScheduleStatus?
+  created_at     DateTime?       @default(now()) @db.Timestamptz
+  title          String?
+  required_tasks String?
+
+  patient        Patient         @relation(fields: [patient_id], references: [id])
+  carer          Profile?        @relation("ScheduleCarer", fields: [carer_id], references: [id])
+  creator        Profile?        @relation("ScheduleCreatedBy", fields: [created_by], references: [id])
+  visit_logs     VisitLog[]
+
+  @@map("schedules")
+}
+
+model ShiftHandover {
+  id            String    @id @default(uuid()) @db.Uuid
+  shift_type    String
+  notes         String?
+  patient_id    String    @db.Uuid
+  created_by    String    @db.Uuid
+  patient_notes String?
+  created_at    DateTime? @default(now()) @db.Timestamptz
+
+  patient       Patient   @relation(fields: [patient_id], references: [id])
+  creator       Profile   @relation(fields: [created_by], references: [id])
+
+  @@map("shift_handovers")
+}
+
+model VisitLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  schedule_id String?   @db.Uuid
+  patient_id  String    @db.Uuid
+  carer_id    String    @db.Uuid
+  notes       String
+  created_at  DateTime? @default(now()) @db.Timestamptz
+  appetite    String?
+  mood        String?
+
+  schedule    Schedule? @relation(fields: [schedule_id], references: [id])
+  patient     Patient   @relation(fields: [patient_id], references: [id])
+  carer       Profile   @relation(fields: [carer_id], references: [id])
+
+  @@map("visit_logs")
+}

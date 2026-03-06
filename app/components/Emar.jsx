@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import {
   Search,
@@ -22,7 +21,6 @@ const TIME_ROUNDS = [
 ];
 
 export default function Emar() {
-  const supabase = createClient();
   const [emarData, setEmarData] = useState([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -41,14 +39,16 @@ export default function Emar() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [{ data: emar }, { data: pats }] = await Promise.all([
-        supabase.from("emar").select("*"),
-        supabase.from("patients").select("id, full_name, room, wing"),
-      ]);
+
+      const res = await fetch("/api/emar");
+      if (!res.ok) throw new Error("Failed to fetch emar data");
+      const { emar, patients } = await res.json();
+
       const patMap = {};
-      (pats || []).forEach((p) => (patMap[p.id] = p));
+      patients.forEach((p) => (patMap[p.id] = p));
+
       setPatients(patMap);
-      setEmarData(emar || []);
+      setEmarData(emar);
     } catch (err) {
       console.error(err);
     } finally {
@@ -56,34 +56,28 @@ export default function Emar() {
     }
   };
 
-  const handleAdminister = async (e, entry) => {
-    e.stopPropagation();
-    try {
-      setAdministeringId(entry.id);
+const handleAdminister = async (e, entry) => {
+  e.stopPropagation();
+  try {
+    setAdministeringId(entry.id);
 
-      const { error } = await supabase
-        .from("emar")
-        .update({ status: "given" })
-        .eq("id", entry.id);
+    const res = await fetch("/api/emar", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: entry.id, patient_id: entry.patient_id }),
+    });
 
-      if (error) throw error;
+    if (!res.ok) throw new Error("Failed to administer medication");
 
-      await supabase.from("audit_logs").insert({
-        action_type: "emar_administered",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: entry.patient_id,
-        created_at: new Date().toISOString(),
-      });
-
-      setEmarData((prev) =>
-        prev.map((r) => (r.id === entry.id ? { ...r, status: "given" } : r)),
-      );
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAdministeringId(null);
-    }
-  };
+    setEmarData((prev) =>
+      prev.map((r) => (r.id === entry.id ? { ...r, status: "given" } : r)),
+    );
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setAdministeringId(null);
+  }
+};
 
   const isInRound = (time, round) => {
     const [start, end] = round.range;
@@ -427,14 +421,13 @@ export default function Emar() {
             setShowAuditModal(false);
             fetchData();
           }}
-          supabase={supabase}
         />
       )}
     </motion.section>
   );
 }
 
-function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
+function AddEmarModal({ patients, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     patient_id: "",
     medication_name: "",
@@ -445,7 +438,6 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (
@@ -461,28 +453,16 @@ function AddEmarModal({ patients, onClose, onSuccess, supabase }) {
       setSaving(true);
       setError(null);
 
-      const { data: newEmar, error: insertError } = await supabase
-        .from("emar")
-        .insert([
-          {
-            patient_id: formData.patient_id,
-            medication_name: formData.medication_name,
-            medication_mg: parseInt(formData.medication_mg),
-            time_to_take: formData.time_to_take,
-            status: formData.status,
-          },
-        ])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      await supabase.from("audit_logs").insert({
-        action_type: "emar_created",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: formData.patient_id,
-        created_at: new Date().toISOString(),
+      const res = await fetch("/api/emar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to add medication");
+      }
 
       setSuccess(true);
       setTimeout(() => onSuccess(), 800);

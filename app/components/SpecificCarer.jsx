@@ -42,64 +42,19 @@ export default function SpecificCarer({ params }) {
     try {
       setLoading(true);
 
-      // 1. Fetch Carer Profile
-      const { data: carerData, error: carerError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", carerId)
-        .eq("role", "carer")
-        .single();
+      const res = await fetch(`/api/specific-carer/${carerId}`);
 
-      if (carerError) {
-        console.error("Carer Error:", carerError);
-        setError("Carer not found");
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Carer not found");
         return;
       }
 
-      setCarer(carerData);
+      const { carer, assignedPatients, upcomingSchedules } = await res.json();
 
-      // 2. Fetch Assigned Patients via patient_carers join table
-      const { data: patientCarersData, error: patientCarersError } =
-        await supabase
-          .from("patient_carers")
-          .select(
-            `
-            patient_id,
-            patients (
-              id,
-              full_name,
-              room,
-              status
-            )
-          `,
-          )
-          .eq("carer_id", carerId);
-
-      if (patientCarersError) {
-        console.error("Patient Carers Error:", patientCarersError);
-      } else {
-        // Extract patient data from the nested structure
-        const patients = patientCarersData
-          .map((pc) => pc.patients)
-          .filter((p) => p !== null);
-        setAssignedPatients(patients);
-      }
-
-      // 3. Fetch Upcoming Schedules
-      const now = new Date().toISOString();
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from("schedules")
-        .select(`*, patients (full_name, room)`)
-        .eq("carer_id", carerId)
-        .eq("status", "scheduled")
-        .order("start_at", { ascending: true })
-        .limit(10);
-
-      if (schedulesError) {
-        console.error("Schedules Error:", schedulesError);
-      } else {
-        setUpcomingSchedules(schedulesData || []);
-      }
+      setCarer(carer);
+      setAssignedPatients(assignedPatients);
+      setUpcomingSchedules(upcomingSchedules);
     } catch (err) {
       console.error("Fetch Error:", err);
       setError("Failed to load carer information");
@@ -108,23 +63,23 @@ export default function SpecificCarer({ params }) {
     }
   };
 
-  const handleUnassignPatient = async (patientId) => {
-    try {
-      const { error } = await supabase
-        .from("patient_carers")
-        .delete()
-        .eq("carer_id", carerId)
-        .eq("patient_id", patientId);
+const handleUnassignPatient = async (patientId) => {
+  try {
+    const res = await fetch(
+      `/api/carer/${carerId}/clients?patient_id=${patientId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
-      if (error) throw error;
+    if (!res.ok) throw new Error("Failed to unassign patient");
 
-      // Refresh the data
-      await fetchCarerData();
-    } catch (err) {
-      console.error("Error unassigning patient:", err);
-      alert("Failed to unassign patient");
-    }
-  };
+    await fetchCarerData();
+  } catch (err) {
+    console.error("Error unassigning patient:", err);
+    alert("Failed to unassign patient");
+  }
+};
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -489,17 +444,17 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
   const fetchAvailablePatients = async () => {
     try {
       setLoading(true);
-      const { data: patientsData, error: patientsError } = await supabase
-        .from("patients")
-        .select("id, full_name, room, status")
-        .order("full_name", { ascending: true });
-      if (patientsError) throw patientsError;
+
+      const res = await fetch("/api/patients");
+      if (!res.ok) throw new Error("Failed to fetch patients");
+      const patientsData = await res.json();
 
       const assignedPatientIds = assignedPatients.map((p) => p.id);
       const availablePatients = patientsData.filter(
         (p) => !assignedPatientIds.includes(p.id),
       );
-      setAllPatients(availablePatients || []);
+
+      setAllPatients(availablePatients);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -512,23 +467,16 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
       setSaving(true);
       setError(null);
 
-      const { error: insertError } = await supabase
-        .from("patient_carers")
-        .insert([
-          {
-            patient_id: patientId,
-            carer_id: carerId,
-            assigned_at: new Date().toISOString(),
-          },
-        ]);
-      if (insertError) throw insertError;
-
-      await supabase.from("audit_logs").insert({
-        action_type: "carer_assigned_to_patient",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: patientId,
-        created_at: new Date().toISOString(),
+      const res = await fetch(`/api/carer/${carerId}/clients`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_id: patientId }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to assign patient");
+      }
 
       onSuccess();
     } catch (err) {
@@ -537,6 +485,8 @@ function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
       setSaving(false);
     }
   };
+
+
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50 pt-15 p-4">

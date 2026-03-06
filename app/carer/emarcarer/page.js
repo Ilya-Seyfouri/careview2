@@ -1,5 +1,4 @@
-import CarerDashboard from "@/app/components/CarerDashboard"
-import CarersEmar from "@/app/components/CarersEmar"
+import CarersEmar from "../../components/CarersEmar"
 
 export default function Home() {
   return <>

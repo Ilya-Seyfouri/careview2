@@ -33,10 +33,10 @@ export default function CarerResidentSpecific() {
   const [client, setClient] = useState(null);
   const [visitLogs, setVisitLogs] = useState([]);
   const [reports, setReports] = useState([]);
-  const [familyMembers, setFamilyMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [familyMembers, setFamilyMembers] = useState([]); // add this state
 
   const [showAddLog, setShowAddLog] = useState(false);
   const [showViewReport, setShowViewReport] = useState(null);
@@ -50,46 +50,18 @@ export default function CarerResidentSpecific() {
     try {
       setLoading(true);
 
-      const { data: clientData, error: clientError } = await supabase
-        .from("patients")
-        .select("*")
-        .eq("id", clientId)
-        .single();
-
-      if (clientError) {
+      const res = await fetch(`/api/carer-clients/${clientId}`);
+      if (!res.ok) {
         setError("Client not found");
         return;
       }
-      setClient(clientData);
 
-      const { data: logsData } = await supabase
-        .from("visit_logs")
-        .select("*")
-        .eq("patient_id", clientId)
-        .order("created_at", { ascending: false });
-      setVisitLogs(logsData || []);
+      const { client, visitLogs, reports, familyMembers } = await res.json();
 
-      const { data: reportsData } = await supabase
-        .from("reports")
-        .select(
-          `id, title, content, created_at, created_by_profile:created_by (id, full_name, role)`,
-        )
-        .eq("patient_id", clientId)
-        .order("created_at", { ascending: false });
-      setReports(reportsData || []);
-
-      const { data: familyLinks } = await supabase
-        .from("patient_family")
-        .select(
-          `relationship, profiles:family_id (id, full_name, email, phone, role)`,
-        )
-        .eq("patient_id", clientId);
-
-      const family = (familyLinks || []).map((f) => ({
-        ...f.profiles,
-        relationship: f.relationship,
-      }));
-      setFamilyMembers(family);
+      setClient(client);
+      setVisitLogs(visitLogs);
+      setReports(reports);
+      setFamilyMembers(familyMembers); // add this
     } catch (err) {
       console.error(err);
       setError("Failed to load client");
@@ -284,7 +256,12 @@ export default function CarerResidentSpecific() {
                 </div>
 
                 <div className="p-10 flex-1">
-                  {activeTab === "overview" && <OverviewTab client={client} />}
+                  {activeTab === "overview" && (
+                    <OverviewTab
+                      client={client}
+                      familyMembers={familyMembers}
+                    />
+                  )}
                   {activeTab === "visit-logs" && (
                     <VisitLogsTab
                       visitLogs={visitLogs}
@@ -325,28 +302,7 @@ export default function CarerResidentSpecific() {
   );
 }
 /* ─── Overview Tab ───────────────────────────────────────────────── */
-function OverviewTab({ client }) {
-  const [familyMembers, setFamilyMembers] = useState([]);
-  const supabase = createClient();
-
-  useEffect(() => {
-    const fetchFamily = async () => {
-      const { data: familyLinks } = await supabase
-        .from("patient_family")
-        .select(
-          `relationship, profiles:family_id (id, full_name, email, phone, role)`,
-        )
-        .eq("patient_id", client.id);
-
-      const family = (familyLinks || []).map((f) => ({
-        ...f.profiles,
-        relationship: f.relationship,
-      }));
-      setFamilyMembers(family);
-    };
-
-    if (client?.id) fetchFamily();
-  }, [client?.id]);
+function OverviewTab({ client, familyMembers }) {
 
   return (
     <div className="space-y-10">
@@ -775,10 +731,10 @@ function ReportsTab({ reports, onViewReport }) {
                       {report.content || "No content"}
                     </p>
                     <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 font-medium">
-                      {report.created_by_profile && (
+                      {report.creator && (
                         <span className="flex items-center gap-1.5">
                           <User size={12} className="text-blue-500" />
-                          {report.created_by_profile.full_name}
+                          {report.creator.full_name}
                         </span>
                       )}
                       <span className="flex items-center gap-1.5">
@@ -820,15 +776,20 @@ function AddVisitLogModal({ clientId, carerId, onClose, onSuccess }) {
     try {
       setSaving(true);
       setError(null);
-      const { error: insertError } = await supabase.from("visit_logs").insert({
-        patient_id: clientId,
-        carer_id: carerId,
-        notes: notes.trim(),
-        appetite,
-        mood,
-        created_at: new Date().toISOString(),
+
+      const res = await fetch("/api/visit-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: clientId,
+          carer_id: carerId,
+          notes: notes.trim(),
+          appetite,
+          mood,
+        }),
       });
-      if (insertError) throw insertError;
+
+      if (!res.ok) throw new Error("Failed to save visit log");
       onSuccess();
     } catch (err) {
       setError(err.message || "Failed to save visit log");
@@ -836,7 +797,6 @@ function AddVisitLogModal({ clientId, carerId, onClose, onSuccess }) {
       setSaving(false);
     }
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[32px] max-w-lg w-full p-10 shadow-2xl border border-slate-100">
@@ -970,10 +930,10 @@ function ViewReportModal({ report, onClose }) {
               {report.title}
             </h2>
             <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 font-medium">
-              {report.created_by_profile && (
+              {report.creator && (
                 <span className="flex items-center gap-1.5">
                   <User size={12} className="text-blue-500" />
-                  {report.created_by_profile.full_name}
+                  {report.creator.full_name}
                 </span>
               )}
               <span className="flex items-center gap-1.5">

@@ -1,31 +1,22 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import { createClient } from "../lib/supabase/client";
 
 const DemoContext = createContext(null);
 
 export function DemoProvider({ children }) {
-  const supabase = createClient();
   const [demoUser, setDemoUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, load a manager by default
   useEffect(() => {
     loadUserForRole("manager");
   }, []);
 
-
-  
-
   const loadUserById = async (id) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) throw error;
+      const res = await fetch(`/api/demo/${id}`);
+      if (!res.ok) throw new Error("Failed to load user");
+      const data = await res.json();
       setDemoUser(data);
     } catch (err) {
       console.error("Failed to load demo user by id:", id, err);
@@ -38,14 +29,9 @@ export function DemoProvider({ children }) {
   const loadUserForRole = async (role) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("role", role)
-        .limit(1)
-        .single();
-
-      if (error) throw error;
+      const res = await fetch(`/api/demo?role=${role}`);
+      if (!res.ok) throw new Error("Failed to load user");
+      const data = await res.json();
       setDemoUser(data);
     } catch (err) {
       console.error("Failed to load demo user for role:", role, err);
