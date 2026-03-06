@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -23,7 +22,6 @@ import { motion } from "framer-motion";
 import { useDemoUser } from "./DemoContext";
 
 export default function CarerResidentSpecific() {
-  const supabase = createClient();
   const router = useRouter();
   const { demoUser } = useDemoUser();
 
@@ -760,7 +758,6 @@ function ReportsTab({ reports, onViewReport }) {
 
 /* ─── Add Visit Log Modal ────────────────────────────────────────── */
 function AddVisitLogModal({ clientId, carerId, onClose, onSuccess }) {
-  const supabase = createClient();
   const [notes, setNotes] = useState("");
   const [appetite, setAppetite] = useState("normal");
   const [mood, setMood] = useState("happy");

@@ -1,12 +1,10 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UserCheck, Star, Search, X, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function CarersList() {
-  const supabase = createClient();
   const router = useRouter();
   const [carers, setCarers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -263,7 +261,6 @@ function CarerCard({ carer, gradient, initials, onClick }) {
 }
 
 function AddCarerModal({ onClose, onSuccess }) {
-  const supabase = createClient();
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",

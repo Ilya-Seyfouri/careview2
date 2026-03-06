@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,7 +68,6 @@ const modalContentVariants = {
 };
 
 export default function ManagerDashboard() {
-  const supabase = createClient();
   const router = useRouter();
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState(null);
@@ -110,14 +108,10 @@ export default function ManagerDashboard() {
 
   const loadLatestAnalysis = async () => {
     try {
-      const { data, error } = await supabase
-        .from("care_analysis_sessions")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error || !data) return;
+      const res = await fetch("/api/care-analysis");
+      if (!res.ok) return;
+      const { data } = await res.json();
+      if (!data) return;
 
       const list = data.priority_list || [];
       const completedSet = await fetchCompletedActions();
@@ -130,13 +124,16 @@ export default function ManagerDashboard() {
   };
 
   const fetchCompletedActions = async () => {
-    const { data, error } = await supabase
-      .from("completed_care_actions")
-      .select("patient_id, action_type");
-
-    if (error || !data) return new Set();
-    return new Set(data.map((r) => `${r.patient_id}::${r.action_type}`));
-  };
+  try {
+    const res = await fetch('/api/care-analysis/completed');
+    if (!res.ok) return new Set();
+    const { data } = await res.json();
+    if (!data) return new Set();
+    return new Set(data.map((r, any) => `${r.patient_id}::${r.action_type}`));
+  } catch {
+    return new Set();
+  }
+};
 
   const filterCompletedFromList = (list, completedSet) => {
     return list
@@ -150,106 +147,64 @@ export default function ManagerDashboard() {
   };
 
   const handleActionCompleted = async (patientId, actionType) => {
-    await supabase.from("completed_care_actions").insert({
+  await fetch('/api/care-analysis/completed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
       patient_id: patientId,
       action_type: actionType,
       completed_by: MANAGER_ID,
-      completed_at: new Date().toISOString(),
-    });
+    }),
+  });
 
-    const key = `${patientId}::${actionType}`;
-    const newCompleted = new Set(completedActions);
-    newCompleted.add(key);
-    setCompletedActions(newCompleted);
+  const key = `${patientId}::${actionType}`;
+  const newCompleted = new Set(completedActions);
+  newCompleted.add(key);
+  setCompletedActions(newCompleted);
 
-    setPriorityList((prev) =>
-      prev
-        .map((patient) => ({
-          ...patient,
-          actions: patient.actions.filter(
-            (a) => a.type !== actionType || patient.patient_id !== patientId,
-          ),
-        }))
-        .filter((patient) => patient.actions.length > 0),
-    );
+  setPriorityList((prev) =>
+    prev
+      .map((patient) => ({
+        ...patient,
+        actions: patient.actions.filter(
+          (a) => a.type !== actionType || patient.patient_id !== patientId,
+        ),
+      }))
+      .filter((patient) => patient.actions.length > 0),
+  );
 
-    showToast(`Completed ${actionType.replace(/_/g, " ")}`);
-  };
+  showToast(`Completed ${actionType.replace(/_/g, ' ')}`);
+};
+const fetchAll = async () => {
+  try {
+    setLoading(true);
+    const now = new Date();
+    const daysInMonth = now.getDate();
 
-  const fetchAll = async () => {
-    try {
-      setLoading(true);
-      const now = new Date();
+    const res = await fetch('/api/manager/dashboard');
+    if (!res.ok) throw new Error('Failed to fetch dashboard');
 
-      const { count: patientCount } = await supabase
-        .from("patients")
-        .select("*", { count: "exact", head: true });
-      setOccupancy(patientCount || 0);
+    const {
+      occupancy,
+      overdueTasks,
+      staffStatus,
+      latestHandover,
+      handoverEntries,
+      handoverPatients,
+      handoverAuthor,
+    } = await res.json();
 
-      const [{ data: overdueData }, { data: missedEmarData }] =
-        await Promise.all([
-          supabase
-            .from("schedules")
-            .select("id")
-            .in("status", ["scheduled", "pending"])
-            .lt("end_at", now.toISOString()),
-          supabase.from("emar").select("id").eq("status", "missed"),
-        ]);
-      setOverdueTasks(
-        (overdueData || []).length + (missedEmarData || []).length,
-      );
+    setOccupancy(occupancy);
+    setOverdueTasks(overdueTasks);
+    setStaffStatus(staffStatus);
+    setLatestHandover(latestHandover);
+    setHandoverEntries(handoverEntries);
+    setHandoverPatients(handoverPatients);
+    setHandoverAuthor(handoverAuthor);
 
-      const { data: carersData } = await supabase
-        .from("profiles")
-        .select("id, status, role")
-        .eq("role", "carer");
-      const carers = carersData || [];
-      setStaffStatus({
-        active: carers.filter((c) => c.status === "active").length,
-        break: carers.filter((c) => c.status === "break").length,
-        scheduled: carers.filter((c) => c.status === "scheduled").length,
-      });
-
-      const daysInMonth = now.getDate();
-
-      setTrendData(
-        [
-          { day: 1, count: 4 },
-          { day: 2, count: 2 },
-          { day: 3, count: 2 },
-          { day: 4, count: 8 },
-          { day: 5, count: 8 },
-          { day: 6, count: 0 },
-          { day: 7, count: 0 },
-          { day: 8, count: 6 },
-          { day: 9, count: 6 },
-          { day: 10, count: 2 },
-          { day: 11, count: 2 },
-          { day: 12, count: 5 },
-          { day: 13, count: 5 },
-          { day: 14, count: 7 },
-          { day: 15, count: 7 },
-          { day: 16, count: 1 },
-          { day: 17, count: 1 },
-          { day: 18, count: 3 },
-          { day: 19, count: 3 },
-          { day: 20, count: 8 },
-          { day: 21, count: 8 },
-          { day: 22, count: 4 },
-          { day: 23, count: 6 },
-          { day: 24, count: 4 },
-          { day: 25, count: 5 },
-          { day: 26, count: 3 },
-          { day: 27, count: 4 },
-          { day: 28, count: 3 },
-          { day: 29, count: 4 },
-          { day: 30, count: 3 },
-        ].filter((d) => d.day <= daysInMonth),
-      );
-
-      setEmarTrendData(
-        [
-          { day: 1, count: 2 },
+    // Trend data stays hardcoded as before
+        setTrendData(
+      [   { day: 1, count: 2 },
           { day: 2, count: 0 },
           { day: 3, count: 0 },
           { day: 4, count: 4 },
@@ -278,56 +233,46 @@ export default function ManagerDashboard() {
           { day: 27, count: 6 },
           { day: 28, count: 8 },
           { day: 29, count: 7 },
-          { day: 30, count: 6 },
-        ].filter((d) => d.day <= daysInMonth),
-      );
-
-      const { data: latestRows } = await supabase
-        .from("shift_handovers")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1);
-      if (latestRows && latestRows.length > 0) {
-        const latest = latestRows[0];
-        setLatestHandover(latest);
-        const batchStart = new Date(
-          new Date(latest.created_at).getTime() - 2 * 60 * 1000,
-        ).toISOString();
-        const { data: batchRows } = await supabase
-          .from("shift_handovers")
-          .select("*")
-          .eq("shift_type", latest.shift_type)
-          .eq("created_by", latest.created_by)
-          .gte("created_at", batchStart)
-          .order("created_at", { ascending: true });
-        setHandoverEntries(batchRows || []);
-        const patIds = [
-          ...new Set(
-            (batchRows || []).map((r) => r.patient_id).filter(Boolean),
-          ),
-        ];
-        if (patIds.length > 0) {
-          const { data: pats } = await supabase
-            .from("patients")
-            .select("id, full_name, room, wing")
-            .in("id", patIds);
-          const pm = {};
-          (pats || []).forEach((p) => (pm[p.id] = p));
-          setHandoverPatients(pm);
-        }
-        const { data: authorData } = await supabase
-          .from("profiles")
-          .select("id, full_name, role")
-          .eq("id", latest.created_by)
-          .single();
-        setHandoverAuthor(authorData || null);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+          { day: 30, count: 6 }, ].filter((d) => d.day <= daysInMonth)
+    );
+    setEmarTrendData(
+      [ { day: 1, count: 4 },
+          { day: 2, count: 2 },
+          { day: 3, count: 2 },
+          { day: 4, count: 8 },
+          { day: 5, count: 8 },
+          { day: 6, count: 0 },
+          { day: 7, count: 0 },
+          { day: 8, count: 6 },
+          { day: 9, count: 6 },
+          { day: 10, count: 2 },
+          { day: 11, count: 2 },
+          { day: 12, count: 5 },
+          { day: 13, count: 5 },
+          { day: 14, count: 7 },
+          { day: 15, count: 7 },
+          { day: 16, count: 1 },
+          { day: 17, count: 1 },
+          { day: 18, count: 3 },
+          { day: 19, count: 3 },
+          { day: 20, count: 8 },
+          { day: 21, count: 8 },
+          { day: 22, count: 4 },
+          { day: 23, count: 6 },
+          { day: 24, count: 4 },
+          { day: 25, count: 5 },
+          { day: 26, count: 3 },
+          { day: 27, count: 4 },
+          { day: 28, count: 3 },
+          { day: 29, count: 4 },
+          { day: 30, count: 3 }].filter((d) => d.day <= daysInMonth)
+    );
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const daysSince = (dateString) => {
     if (!dateString) return null;
@@ -335,122 +280,52 @@ export default function ManagerDashboard() {
       (new Date() - new Date(dateString)) / (1000 * 60 * 60 * 24),
     );
   };
-
-  const fetchAndFormatPatients = async () => {
-    const FEATURE1_IDS = [
-      "00000000-0000-0000-0000-000000000001",
-      "00000000-0000-0000-0000-000000000002",
-      "00000000-0000-0000-0000-000000000003",
-    ];
-    const { data: patients, error: patError } = await supabase
-      .from("patients")
-      .select("id, full_name, bp, pulse, health_summary, key_health_indicator");
-    if (patError) {
-      console.error(patError);
-      return;
-    }
-    const enriched = await Promise.all(
-      patients
-        .filter((p) => !FEATURE1_IDS.includes(p.id))
-        .map(async (patient) => {
-          const [visitLogsRes, reportsRes, schedulesRes, emarRes] =
-            await Promise.all([
-              supabase
-                .from("visit_logs")
-                .select("notes, appetite, mood, created_at")
-                .eq("patient_id", patient.id)
-                .order("created_at", { ascending: false })
-                .limit(2),
-              supabase
-                .from("reports")
-                .select("type, content, created_at")
-                .eq("patient_id", patient.id)
-                .order("created_at", { ascending: false })
-                .limit(2),
-              supabase
-                .from("schedules")
-                .select("start_at")
-                .eq("patient_id", patient.id)
-                .order("start_at", { ascending: false })
-                .limit(1),
-              supabase
-                .from("emar")
-                .select("medication_name, medication_mg, time_to_take, status")
-                .eq("patient_id", patient.id),
-            ]);
-          const emar = emarRes.data || [];
-          return {
-            patient_id: patient.id,
-            patient_name: patient.full_name,
-            bp: patient.bp,
-            pulse: patient.pulse,
-            health_summary: patient.health_summary,
-            days_since_last_visit:
-              daysSince(schedulesRes.data?.[0]?.start_at) ??
-              "No visit on record",
-            visit_logs: (visitLogsRes.data || []).map((l) => ({
-              notes: l.notes,
-              appetite: l.appetite,
-              mood: l.mood,
-            })),
-            reports: (reportsRes.data || []).map((r) => ({
-              type: r.type,
-              content: r.content,
-            })),
-            emar: {
-              missed_count: emar.filter(
-                (e) => e.status === "missed" || e.status === "skipped",
-              ).length,
-              medications: emar.map((e) => ({
-                medication_name: e.medication_name,
-                medication_mg: e.medication_mg,
-                time_to_take: e.time_to_take,
-                status: e.status,
-              })),
-            },
-          };
-        }),
-    );
-    return enriched;
-  };
+const fetchAndFormatPatients = async () => {
+  const res = await fetch('/api/manager/patients-enriched');
+  if (!res.ok) {
+    console.error('Failed to fetch enriched patients');
+    return;
+  }
+  return await res.json();
+};
 
   const generatePriorityAnalysis = async () => {
-    try {
-      setLoadingAnalysis(true);
-      setError(null);
-      setPriorityList([]);
+  try {
+    setLoadingAnalysis(true);
+    setError(null);
+    setPriorityList([]);
 
-      const patients = await fetchAndFormatPatients();
-      const response = await fetch("/api/generate-dashboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patients }),
+    const patients = await fetchAndFormatPatients();
+    const response = await fetch('/api/generate-dashboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patients }),
+    });
+    if (!response.ok) throw new Error('Failed to generate analysis');
+    const data = await response.json();
+
+    if (data.success && data.result) {
+      const parsed = JSON.parse(data.result);
+      const rawList = parsed.priority_list || [];
+
+      await fetch('/api/care-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priority_list: rawList, created_by: MANAGER_ID }),
       });
-      if (!response.ok) throw new Error("Failed to generate analysis");
-      const data = await response.json();
 
-      if (data.success && data.result) {
-        const parsed = JSON.parse(data.result);
-        const rawList = parsed.priority_list || [];
-
-        await supabase.from("care_analysis_sessions").insert({
-          created_by: MANAGER_ID,
-          created_at: new Date().toISOString(),
-          priority_list: rawList,
-        });
-
-        const completedSet = await fetchCompletedActions();
-        const filtered = filterCompletedFromList(rawList, completedSet);
-        setCompletedActions(completedSet);
-        setPriorityList(filtered);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to generate analysis.");
-    } finally {
-      setLoadingAnalysis(false);
+      const completedSet = await fetchCompletedActions();
+      const filtered = filterCompletedFromList(rawList, completedSet);
+      setCompletedActions(completedSet);
+      setPriorityList(filtered);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError('Failed to generate analysis.');
+  } finally {
+    setLoadingAnalysis(false);
+  }
+};
 
   const staffRatio =
     staffStatus.active > 0
@@ -930,7 +805,6 @@ export default function ManagerDashboard() {
 
 /* ─── Make Report Modal ──────────────────────────────────────────── */
 function MakeReportModal({ patient, onClose, onCompleted }) {
-  const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -952,32 +826,38 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.title || !formData.content) {
-      setError("Title and content are required.");
-      return;
-    }
-    try {
-      setSaving(true);
-      setError(null);
-      const { error: insertError } = await supabase.from("reports").insert({
+
+    const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!formData.title || !formData.content) {
+    setError('Title and content are required.');
+    return;
+  }
+  try {
+    setSaving(true);
+    setError(null);
+
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         patient_id: patient.patient_id,
         created_by: MANAGER_ID,
         title: formData.title,
         type: formData.type,
         content: formData.content,
         date: formData.date,
-        created_at: new Date().toISOString(),
-      });
-      if (insertError) throw insertError;
-      onCompleted();
-    } catch (err) {
-      setError(err.message || "Failed to save report.");
-    } finally {
-      setSaving(false);
-    }
-  };
+      }),
+    });
+
+    if (!res.ok) throw new Error('Failed to save report.');
+    onCompleted();
+  } catch (err) {
+    setError(err.message || 'Failed to save report.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const [generating, setGenerating] = useState(false);
 
@@ -1195,7 +1075,6 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
 
 /* ─── Make Schedule Modal ────────────────────────────────────────── */
 function MakeScheduleModal({ patient, onClose, onCompleted }) {
-  const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [carers, setCarers] = useState([]);
@@ -1217,17 +1096,14 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   });
 
   useEffect(() => {
-    const fetchCarers = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("role", "carer")
-        .order("full_name");
-      setCarers(data || []);
-      setLoadingCarers(false);
-    };
-    fetchCarers();
-  }, []);
+  const fetchCarers = async () => {
+    const res = await fetch('/api/carers-list');
+    const data = await res.json();
+    setCarers(data || []);
+    setLoadingCarers(false);
+  };
+  fetchCarers();
+}, []);
 
   const handleAddTask = () => {
     const trimmed = taskInput.trim();
@@ -1243,25 +1119,24 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (
-      !formData.title ||
-      !formData.carer_id ||
-      !formData.start_at ||
-      !formData.end_at
-    ) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-    if (new Date(formData.end_at) <= new Date(formData.start_at)) {
-      setError("End time must be after start time.");
-      return;
-    }
-    try {
-      setSaving(true);
-      setError(null);
-      const { error: insertError } = await supabase.from("schedules").insert({
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!formData.title || !formData.carer_id || !formData.start_at || !formData.end_at) {
+    setError('Please fill in all required fields.');
+    return;
+  }
+  if (new Date(formData.end_at) <= new Date(formData.start_at)) {
+    setError('End time must be after start time.');
+    return;
+  }
+  try {
+    setSaving(true);
+    setError(null);
+
+    const res = await fetch('/api/schedules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         title: formData.title,
         patient_id: patient.patient_id,
         carer_id: formData.carer_id,
@@ -1270,17 +1145,17 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
         status: formData.status,
         created_by: MANAGER_ID,
         required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
-        created_at: new Date().toISOString(),
-      });
-      if (insertError) throw insertError;
-      onCompleted();
-    } catch (err) {
-      setError(err.message || "Failed to create schedule.");
-    } finally {
-      setSaving(false);
-    }
-  };
+      }),
+    });
 
+    if (!res.ok) throw new Error('Failed to create schedule.');
+    onCompleted();
+  } catch (err) {
+    setError(err.message || 'Failed to create schedule.');
+  } finally {
+    setSaving(false);
+  }
+};
   return (
     <AnimatePresence>
       <motion.div
@@ -1549,29 +1424,24 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
 
 /* ─── Reassign EMAR Modal ────────────────────────────────────────── */
 function ReassignEmarModal({ patient, onClose, onCompleted }) {
-  const supabase = createClient();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [medications, setMedications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(new Set());
 
-  useEffect(() => {
-    const fetchMeds = async () => {
-      const { data } = await supabase
-        .from("emar")
-        .select("id, medication_name, medication_mg, time_to_take, status")
-        .eq("patient_id", patient.patient_id);
-      const all = data || [];
-      const missed = all.filter(
-        (m) => m.status === "missed" || m.status === "skipped",
-      );
-      setMedications(missed);
-      setSelected(new Set(missed.map((m) => m.id)));
-      setLoading(false);
-    };
-    fetchMeds();
-  }, []);
+ useEffect(() => {
+  const fetchMeds = async () => {
+    const res = await fetch(`/api/emar?patient_id=${patient.patient_id}`);
+    const data = await res.json();
+    const all = data.emar || [];
+    const missed = all.filter((m) => m.status === 'missed' || m.status === 'skipped');
+    setMedications(missed);
+    setSelected(new Set(missed.map((m) => m.id)));
+    setLoading(false);
+  };
+  fetchMeds();
+}, []);
 
   const toggleMed = (id) => {
     setSelected((prev) => {
@@ -1582,26 +1452,32 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (selected.size === 0) {
-      setError("Select at least one medication to reassign.");
-      return;
-    }
-    try {
-      setSaving(true);
-      setError(null);
-      const { error: updateError } = await supabase
-        .from("emar")
-        .update({ status: "due" })
-        .in("id", [...selected]);
-      if (updateError) throw updateError;
-      onCompleted();
-    } catch (err) {
-      setError(err.message || "Failed to reassign medications.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  e.preventDefault();
+  if (selected.size === 0) {
+    setError('Select at least one medication to reassign.');
+    return;
+  }
+  try {
+    setSaving(true);
+    setError(null);
+
+    const res = await fetch('/api/emar', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ids: [...selected],
+        status: 'due',
+      }),
+    });
+
+    if (!res.ok) throw new Error('Failed to reassign medications.');
+    onCompleted();
+  } catch (err) {
+    setError(err.message || 'Failed to reassign medications.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const reasoning = patient.reasoning
     ?.split(
@@ -1812,7 +1688,6 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
 
 /* ─── Contact Family Modal ───────────────────────────────────────── */
 function ContactFamilyModal({ patient, onClose, onCompleted }) {
-  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [familyMember, setFamilyMember] = useState(null);
   const [notFound, setNotFound] = useState(false);
@@ -1824,38 +1699,33 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
   });
 
   useEffect(() => {
-    const fetchFamily = async () => {
-      const { data: linkData } = await supabase
-        .from("patient_family")
-        .select("family_id, relationship")
-        .eq("patient_id", patient.patient_id)
-        .limit(1)
-        .single();
-
-      if (!linkData) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .eq("id", linkData.family_id)
-        .single();
-
-      if (!profileData) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
-      setFamilyMember({ ...profileData, relationship: linkData.relationship });
+  const fetchFamily = async () => {
+    const res = await fetch(`/api/specific-patient/${patient.patient_id}/care-team`);
+    if (!res.ok) {
+      setNotFound(true);
       setLoading(false);
-    };
-    fetchFamily();
-  }, []);
+      return;
+    }
 
+    const { family } = await res.json();
+    const firstFamily = family?.[0];
+
+    if (!firstFamily) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
+
+    setFamilyMember({
+      id: firstFamily.family_id,
+      full_name: firstFamily.family?.full_name,
+      email: firstFamily.family?.email,
+      relationship: firstFamily.relationship,
+    });
+    setLoading(false);
+  };
+  fetchFamily();
+}, []);
   const reasoning = patient.reasoning
     ?.split(
       /(?=MAKE_SCHEDULE|MAKE_REPORT|REASSIGN_EMAR|REVIEW_EMAR_PLAN|CONTACT_FAMILY|URGENCY_LEVEL)/,
@@ -2096,62 +1966,27 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
 }
 
 function OverdueModal({ onClose }) {
-  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [overdueSchedules, setOverdueSchedules] = useState([]);
   const [missedEmars, setMissedEmars] = useState([]);
   const [patients, setPatients] = useState({});
 
   useEffect(() => {
-    const fetchOverdue = async () => {
-      const now = new Date().toISOString();
-
-      const { data: schedules } = await supabase
-        .from("schedules")
-        .select(
-          "id, title, patient_id, carer_id, start_at, end_at, status, required_tasks",
-        )
-        .in("status", ["scheduled", "pending"])
-        .lt("end_at", now)
-        .order("end_at", { ascending: true });
-
-      const { data: emars } = await supabase
-        .from("emar")
-        .select(
-          "id, patient_id, medication_name, medication_mg, time_to_take, status",
-        )
-        .eq("status", "missed")
-        .order("time_to_take", { ascending: true });
-
-      const allSchedules = schedules || [];
-      const allEmars = emars || [];
-
-      const patientIds = [
-        ...new Set(
-          [
-            ...allSchedules.map((s) => s.patient_id),
-            ...allEmars.map((e) => e.patient_id),
-          ].filter(Boolean),
-        ),
-      ];
-
-      if (patientIds.length > 0) {
-        const { data: pats } = await supabase
-          .from("patients")
-          .select("id, full_name, room, wing")
-          .in("id", patientIds);
-        const map = {};
-        (pats || []).forEach((p) => (map[p.id] = p));
-        setPatients(map);
-      }
-
-      setOverdueSchedules(allSchedules);
-      setMissedEmars(allEmars);
+  const fetchOverdue = async () => {
+    const res = await fetch('/api/manager/overdue');
+    if (!res.ok) {
       setLoading(false);
-    };
+      return;
+    }
+    const { schedules, emars, patients } = await res.json();
+    setOverdueSchedules(schedules || []);
+    setMissedEmars(emars || []);
+    setPatients(patients || {});
+    setLoading(false);
+  };
 
-    fetchOverdue();
-  }, []);
+  fetchOverdue();
+}, []);
 
   const formatOverdue = (endAt) => {
     const diff = Math.floor((new Date() - new Date(endAt)) / 60000);

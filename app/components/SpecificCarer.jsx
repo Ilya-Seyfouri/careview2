@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -21,7 +20,6 @@ import {
 } from "lucide-react";
 
 export default function SpecificCarer({ params }) {
-  const supabase = createClient();
   const router = useRouter();
   const [carer, setCarer] = useState(null);
   const [assignedPatients, setAssignedPatients] = useState([]);
@@ -431,7 +429,6 @@ const handleUnassignPatient = async (patientId) => {
 }
 
 function AssignPatientModal({ carerId, assignedPatients, onClose, onSuccess }) {
-  const supabase = createClient();
   const [allPatients, setAllPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

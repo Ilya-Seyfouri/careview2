@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -26,7 +25,6 @@ import {
 import { useDemoUser } from "./DemoContext";
 
 export default function MyLovedOnes() {
-  const supabase = createClient();
   const router = useRouter();
   const { demoUser, loading: userLoading } = useDemoUser();
 
@@ -790,7 +788,6 @@ const scheduleItemVariants = {
 };
 
 function SchedulesTab({ patientId }) {
-  const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

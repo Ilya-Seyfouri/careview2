@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -19,7 +18,6 @@ import {
 import { useDemoUser } from "./DemoContext";
 
 export default function Analytics() {
-  const supabase = createClient();
   const { demoUser } = useDemoUser();
   const [loading, setLoading] = useState(true);
   const [totalVisits, setTotalVisits] = useState(0);
@@ -375,7 +373,6 @@ function StaffBarChart({ data, tooltip, setTooltip }) {
 
 /* ─── Add Report Modal ───────────────────────────────────────────── */
 function AddReportModal({ onClose, onSuccess, managerId }) {
-  const supabase = createClient();
   const [patients, setPatients] = useState([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [saving, setSaving] = useState(false);

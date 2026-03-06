@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useDemoUser } from "./DemoContext";
 import { motion } from "framer-motion";
@@ -20,7 +19,6 @@ const TIME_ROUNDS = [
 ];
 
 export default function CarerEmar() {
-  const supabase = createClient();
   const { demoUser, loading: userLoading } = useDemoUser();
 
   const [emarData, setEmarData] = useState([]);

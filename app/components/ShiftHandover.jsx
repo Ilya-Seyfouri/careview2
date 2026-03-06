@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useDemoUser } from "./DemoContext";
 import { motion } from "framer-motion";
@@ -111,7 +110,6 @@ const getFlagStyles = (level) => {
 };
 
 export default function ShiftHandover() {
-  const supabase = createClient();
   const { demoUser, loading: userLoading } = useDemoUser();
   const [patients, setPatients] = useState([]);
   const [pastHandovers, setPastHandovers] = useState([]);
@@ -138,83 +136,32 @@ export default function ShiftHandover() {
   const fetchData = async (user) => {
     try {
       setLoading(true);
-      let patientIds = null;
-      if (user.role === "carer") {
-        const { data: assignments } = await supabase
-          .from("patient_carers")
-          .select("patient_id")
-          .eq("carer_id", user.id);
-        patientIds = (assignments || []).map((a) => a.patient_id);
-      }
-      let patQuery = supabase
-        .from("patients")
-        .select("id, full_name, room, wing");
-      if (patientIds !== null) patQuery = patQuery.in("id", patientIds);
-      const { data: pats } = await patQuery;
-      setPatients(pats || []);
-      const { data: past } = await supabase
-        .from("shift_handovers")
-        .select("id, shift_type, created_at")
-        .order("created_at", { ascending: false })
-        .limit(25);
-      const seen = new Set();
-      const dedupedPast = (past || [])
-        .filter((h) => {
-          if (seen.has(h.created_at)) return false;
-          seen.add(h.created_at);
-          return true;
-        })
-        .slice(0, 5);
-      setPastHandovers(dedupedPast);
+      const res = await fetch(
+        `/api/shift-handover?user_id=${user.id}&role=${user.role}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch");
+      const { patients, pastHandovers } = await res.json();
+      setPatients(patients);
+      setPastHandovers(pastHandovers);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
-
-  const fetchHandoverDetails = async (handoverId, createdAt) => {
-    try {
-      setHandoverLoading(true);
-      const { data: handoverGroup, error: handoverError } = await supabase
-        .from("shift_handovers")
-        .select(
-          `
-          id,
-          shift_type,
-          notes,
-          patient_notes,
-          created_at,
-          created_by,
-          patient:patient_id (id, full_name, room, wing)
-        `,
-        )
-        .eq("created_at", createdAt)
-        .order("patient_id", { ascending: true });
-      if (handoverError) throw handoverError;
-      const createdBy = handoverGroup?.[0]?.created_by;
-      let creatorInfo = null;
-      if (createdBy) {
-        const { data: creator } = await supabase
-          .from("profiles")
-          .select("id, full_name, role")
-          .eq("id", createdBy)
-          .single();
-        creatorInfo = creator;
-      }
-      setHandoverDetails({
-        items: handoverGroup || [],
-        creator: creatorInfo,
-        shiftType: handoverGroup?.[0]?.shift_type,
-        generalNotes: handoverGroup?.[0]?.notes,
-        createdAt: handoverGroup?.[0]?.created_at,
-      });
-    } catch (err) {
-      console.error("Error fetching handover details:", err);
-    } finally {
-      setHandoverLoading(false);
-    }
-  };
+const fetchHandoverDetails = async (handoverId) => {
+  try {
+    setHandoverLoading(true);
+    const res = await fetch(`/api/shift-handover/${handoverId}`);
+    if (!res.ok) throw new Error("Failed to fetch handover details");
+    const data = await res.json();
+    setHandoverDetails(data);
+  } catch (err) {
+    console.error("Error fetching handover details:", err);
+  } finally {
+    setHandoverLoading(false);
+  }
+};
 
   const handleOpenHandover = (handover) => {
     setSelectedHandover(handover);
@@ -240,29 +187,25 @@ export default function ShiftHandover() {
     }
     try {
       setSaving(true);
-      const rows = redFlags.map((flag) => ({
-        patient_id: flag.patient_id,
-        shift_type: shiftType,
-        notes: generalNotes || null,
-        patient_notes: flag.patient_notes || null,
-        created_by: demoUser.id,
-      }));
-      const { data: insertedHandovers, error: insertError } = await supabase
-        .from("shift_handovers")
-        .insert(rows)
-        .select();
-      if (insertError) throw insertError;
+
       const actorId =
         demoUser.role === "carer"
           ? "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
           : "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-      const auditLogs = insertedHandovers.map((handover) => ({
-        action_type: "shift_handover_created",
-        actor_id: actorId,
-        related_to: handover.patient_id,
-        created_at: new Date().toISOString(),
-      }));
-      await supabase.from("audit_logs").insert(auditLogs);
+
+      const res = await fetch("/api/shift-handover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          redFlags,
+          shiftType,
+          generalNotes,
+          actor_id: actorId,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save handover");
+
       setSaved(true);
       setTimeout(() => {
         setGeneralNotes("");
@@ -315,66 +258,28 @@ export default function ShiftHandover() {
       setShiftSummary("");
       setShiftAssessment(null);
 
-      const { data: visitLogs } = await supabase
-        .from("visit_logs")
-        .select(
-          `id, notes, appetite, mood, patient_id, created_at, patients (full_name, health_summary)`,
-        )
-        .order("created_at", { ascending: false })
-        .limit(3);
-      const { data: reports } = await supabase
-        .from("reports")
-        .select(
-          `id, content, type, patient_id, created_at, patients (full_name, health_summary)`,
-        )
-        .order("created_at", { ascending: false })
-        .limit(3);
-
-      const formattedVisitLogs = (visitLogs || []).map((log, index) => ({
-        visit: index + 1,
-        patient_id: log.patient_id,
-        patient_name: log.patients?.full_name || "Unknown",
-        health_summary: log.patients?.health_summary || "Not available",
-        notes: log.notes || "No notes recorded",
-        appetite: log.appetite || "Not recorded",
-        mood: log.mood || "Not recorded",
-      }));
-      const formattedReports = (reports || []).map((report, index) => ({
-        report: index + 1,
-        patient_id: report.patient_id,
-        patient_name: report.patients?.full_name || "Unknown",
-        health_summary: report.patients?.health_summary || "Not available",
-        type: report.type || "General",
-        content: report.content || "No content",
-      }));
+      const dataRes = await fetch("/api/shift-handover/summary-data");
+      if (!dataRes.ok) throw new Error("Failed to fetch shift data");
+      const { visitLogs, reports } = await dataRes.json();
 
       const response = await fetch("/api/generate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          visitLogs: formattedVisitLogs,
-          reports: formattedReports,
-        }),
+        body: JSON.stringify({ visitLogs, reports }),
       });
       if (!response.ok) throw new Error("Failed to generate summary");
 
       const result = await response.json();
       if (result.success && result.summary) {
         const summary = JSON.parse(result.summary);
-        const newFlags = parseAISummary(summary);
-        setRedFlags(newFlags);
-
+        setRedFlags(parseAISummary(summary));
         if (summary.shift_assessment) {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
+          setGeneralNotes(
+            "SHIFT SUMMARY:\n\n" + summary.shift_assessment.summary,
+          );
         }
-
-        let notesText = "";
-        if (summary.shift_assessment) {
-          notesText += "SHIFT SUMMARY:\n\n";
-          notesText += summary.shift_assessment.summary;
-        }
-        setGeneralNotes(notesText);
       }
     } catch (error) {
       console.error(error);
@@ -392,64 +297,36 @@ export default function ShiftHandover() {
       setRedFlags([]);
 
       const testIds = TEST_DATA[testMode];
-      const { data: visitLogs } = await supabase
-        .from("visit_logs")
-        .select(
-          `id, notes, appetite, mood, patient_id, created_at, patients (full_name, health_summary)`,
-        )
-        .in("id", testIds.visitLogIds);
-      const { data: reports } = await supabase
-        .from("reports")
-        .select(
-          `id, content, type, patient_id, created_at, patients (full_name, health_summary)`,
-        )
-        .in("id", testIds.reportIds);
 
-      const formattedVisitLogs = (visitLogs || []).map((log, index) => ({
-        visit: index + 1,
-        patient_id: log.patient_id,
-        patient_name: log.patients?.full_name || "Unknown",
-        health_summary: log.patients?.health_summary || "Not available",
-        notes: log.notes || "No notes recorded",
-        appetite: log.appetite || "Not recorded",
-        mood: log.mood || "Not recorded",
-      }));
-      const formattedReports = (reports || []).map((report, index) => ({
-        report: index + 1,
-        patient_id: report.patient_id,
-        patient_name: report.patients?.full_name || "Unknown",
-        health_summary: report.patients?.health_summary || "Not available",
-        type: report.type || "General",
-        content: report.content || "No content",
-      }));
+      const dataRes = await fetch("/api/shift-handover/summary-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          visitLogIds: testIds.visitLogIds,
+          reportIds: testIds.reportIds,
+        }),
+      });
+      if (!dataRes.ok) throw new Error("Failed to fetch test data");
+      const { visitLogs, reports } = await dataRes.json();
 
       const response = await fetch("/api/generate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          visitLogs: formattedVisitLogs,
-          reports: formattedReports,
-        }),
+        body: JSON.stringify({ visitLogs, reports }),
       });
       if (!response.ok) throw new Error("Failed to generate summary");
 
       const result = await response.json();
       if (result.success && result.summary) {
         const summary = JSON.parse(result.summary);
-        const newFlags = parseAISummary(summary);
-        setRedFlags(newFlags);
-
+        setRedFlags(parseAISummary(summary));
         if (summary.shift_assessment) {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
+          setGeneralNotes(
+            "SHIFT SUMMARY:\n\n" + summary.shift_assessment.summary,
+          );
         }
-
-        let notesText = "";
-        if (summary.shift_assessment) {
-          notesText += "SHIFT SUMMARY:\n\n";
-          notesText += summary.shift_assessment.summary;
-        }
-        setGeneralNotes(notesText);
       }
     } catch (error) {
       console.error(error);
@@ -458,7 +335,6 @@ export default function ShiftHandover() {
       setLoadingAISummary(false);
     }
   };
-
   const getAssessmentIcon = (level) => {
     switch (level) {
       case "GOOD":

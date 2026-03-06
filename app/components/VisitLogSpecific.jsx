@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -17,7 +16,6 @@ import {
 } from "lucide-react";
 
 export default function VisitLogDetail({ params }) {
-  const supabase = createClient();
   const router = useRouter();
   const [visitLog, setVisitLog] = useState(null);
   const [resident, setResident] = useState(null);
@@ -38,37 +36,18 @@ export default function VisitLogDetail({ params }) {
     try {
       setLoading(true);
 
-      const { data: logData, error: logError } = await supabase
-        .from("visit_logs")
-        .select("*")
-        .eq("id", logId)
-        .eq("patient_id", residentId)
-        .single();
-
-      if (logError) {
+      const res = await fetch(
+        `/api/visit-logs/${logId}?patient_id=${residentId}`,
+      );
+      if (!res.ok) {
         setError("Visit log not found");
         return;
       }
 
-      setVisitLog(logData);
-
-      // Fetch resident
-      const { data: residentData } = await supabase
-        .from("patients")
-        .select("full_name")
-        .eq("id", residentId)
-        .single();
-      if (residentData) setResident(residentData);
-
-      // Fetch carer name from profiles
-      if (logData.carer_id) {
-        const { data: carerData } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", logData.carer_id)
-          .single();
-        if (carerData) setCarer(carerData);
-      }
+      const { log, patient, carer } = await res.json();
+      setVisitLog(log);
+      if (patient) setResident(patient);
+      if (carer) setCarer(carer);
     } catch (err) {
       console.error(err);
       setError("Failed to load visit log");
@@ -76,7 +55,6 @@ export default function VisitLogDetail({ params }) {
       setLoading(false);
     }
   };
-
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-GB", {
       weekday: "long",

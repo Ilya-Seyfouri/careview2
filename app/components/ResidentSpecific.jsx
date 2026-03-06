@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -25,7 +24,6 @@ import {
 } from "lucide-react";
 
 export default function ResidentSpecific({ params }) {
-  const supabase = createClient();
   const router = useRouter();
   const [resident, setResident] = useState(null);
   const [visitLogs, setVisitLogs] = useState([]);
@@ -485,7 +483,6 @@ function VisitLogsTab({ visitLogs, residentId }) {
 
 // ─── Care Team Tab ────────────────────────────────────────────────────────────
 function CareTeamTab({ residentId }) {
-  const supabase = createClient();
   const [careTeam, setCareTeam] = useState({ carers: [], family: [] });
   const [availableCarers, setAvailableCarers] = useState([]);
   const [availableFamily, setAvailableFamily] = useState([]);
@@ -907,7 +904,6 @@ const scheduleItemVariants = {
 };
 
 function ScheduleTab({ residentId }) {
-  const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1077,7 +1073,6 @@ function ScheduleTab({ residentId }) {
 }
 // ─── Reports Tab ──────────────────────────────────────────────────────────────
 function ReportsTab({ residentId }) {
-  const supabase = createClient();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

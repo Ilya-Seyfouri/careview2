@@ -72,26 +72,37 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, patient_id } = body;
+    const { id, ids, status, patient_id, recorded_at } = body;
 
-    const updated = await prisma.emar.update({
-      where: { id },
-      data: { status: "given" },
-    });
+    const whereIds = ids ?? (id ? [id] : []);
 
-    await prisma.auditLog.create({
+    if (whereIds.length === 0) {
+      return NextResponse.json({ error: "No id(s) provided" }, { status: 400 });
+    }
+
+    await prisma.emar.updateMany({
+      where: { id: { in: whereIds } },
       data: {
-        action_type: "emar_administered",
-        actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        related_to: patient_id,
+        status: status ?? "given",
+        ...(recorded_at && { recorded_at: new Date(recorded_at) }),
       },
     });
 
-    return NextResponse.json(updated);
+    if (patient_id) {
+      await prisma.auditLog.create({
+        data: {
+          action_type: "emar_administered",
+          actor_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          related_to: patient_id,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Error administering emar:", err);
     return NextResponse.json(
-      { error: "Failed to administer medication" },
+      { error: "Failed to update medication" },
       { status: 500 },
     );
   }

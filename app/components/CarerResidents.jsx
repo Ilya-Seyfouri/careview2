@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Users, MapPin, Heart, Activity, ArrowUpRight } from "lucide-react";
@@ -9,7 +8,6 @@ import {motion} from "framer-motion"
 const DEMO_CARER_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 
 export default function MyClients() {
-  const supabase = createClient();
   const router = useRouter();
   const { demoUser, loading: userLoading } = useDemoUser();
 

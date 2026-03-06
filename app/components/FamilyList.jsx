@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import {
   User,
@@ -19,7 +18,6 @@ import { motion } from "framer-motion";
 const ITEMS_PER_PAGE = 4;
 
 export default function FamilyList() {
-  const supabase = createClient();
   const [familyMembers, setFamilyMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -299,7 +297,6 @@ export default function FamilyList() {
 }
 
 function AddFamilyMemberModal({ onClose, onSuccess }) {
-  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [createdFamilyId, setCreatedFamilyId] = useState(null);
   const [patients, setPatients] = useState([]);

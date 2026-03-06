@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -86,7 +85,6 @@ const modalContentVariants = {
 };
 
 export default function ScheduleManager() {
-  const supabase = createClient();
   const [schedules, setSchedules] = useState([]);
   const [allSchedules, setAllSchedules] = useState([]); // For calendar view
   const [loading, setLoading] = useState(true);
@@ -881,7 +879,6 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
 }
 
 function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
-  const supabase = createClient();
   const { demoUser } = useDemoUser();
 
   const formatDateForInput = (date) => {
@@ -1249,7 +1246,6 @@ function AddScheduleModal({ onClose, onSuccess, selectedDate }) {
 }
 
 function EditScheduleModal({ schedule, onClose, onSuccess }) {
-  const supabase = createClient();
 
   const formatDateForInput = (dateString) => {
     const date = new Date(dateString);

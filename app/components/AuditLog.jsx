@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import {
   FileText,
@@ -17,7 +16,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AuditLog() {
-  const supabase = createClient();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

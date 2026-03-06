@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -24,7 +23,6 @@ import { useDemoUser } from "./DemoContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function CarerDashboard() {
-  const supabase = createClient();
   const router = useRouter();
   const { demoUser, loading: userLoading } = useDemoUser();
 

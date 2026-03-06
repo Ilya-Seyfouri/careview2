@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -25,7 +24,6 @@ import { useDemoUser } from "./DemoContext";
 import { motion } from "framer-motion";
 
 export default function FamilyDashboard() {
-  const supabase = createClient();
   const router = useRouter();
   const { demoUser, loading: userLoading } = useDemoUser();
 

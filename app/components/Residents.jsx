@@ -1,5 +1,4 @@
 "use client";
-import { createClient } from "../lib/supabase/client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -20,7 +19,6 @@ import { useRouter } from "next/navigation";
 const ITEMS_PER_PAGE = 4;
 
 export default function Residents() {
-  const supabase = createClient();
   const [residentData, setResidentData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -309,7 +307,6 @@ export default function Residents() {
 }
 
 function AddResidentModal({ onClose, onSuccess }) {
-  const supabase = createClient();
   const [formData, setFormData] = useState({
     full_name: "",
     dob: "",
