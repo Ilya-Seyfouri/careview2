@@ -5,12 +5,9 @@ An AI-assisted care home management system I built for North Senior Care during 
 🔗 [Live Demo](https://careview-847694957064.europe-west2.run.app/)
 
 ---
-
-![Dashboard](screenshots/dashboard.png)
-
-![Analytics](screenshots/analytics.png)
-
-![EMAR](screenshots/emar.png)
+| Dashboard | Analytics |
+|-----------|-----------|
+| ![Dashboard](screenshots/dashboard.png) | ![Analytics](screenshots/analytics.png) |
 ---
 
 ## Features
