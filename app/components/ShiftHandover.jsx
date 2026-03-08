@@ -149,19 +149,20 @@ export default function ShiftHandover() {
       setLoading(false);
     }
   };
-const fetchHandoverDetails = async (handoverId) => {
-  try {
-    setHandoverLoading(true);
-    const res = await fetch(`/api/shift-handover/${handoverId}`);
-    if (!res.ok) throw new Error("Failed to fetch handover details");
-    const data = await res.json();
-    setHandoverDetails(data);
-  } catch (err) {
-    console.error("Error fetching handover details:", err);
-  } finally {
-    setHandoverLoading(false);
-  }
-};
+
+  const fetchHandoverDetails = async (handoverId) => {
+    try {
+      setHandoverLoading(true);
+      const res = await fetch(`/api/shift-handover/${handoverId}`);
+      if (!res.ok) throw new Error("Failed to fetch handover details");
+      const data = await res.json();
+      setHandoverDetails(data);
+    } catch (err) {
+      console.error("Error fetching handover details:", err);
+    } finally {
+      setHandoverLoading(false);
+    }
+  };
 
   const handleOpenHandover = (handover) => {
     setSelectedHandover(handover);
@@ -261,8 +262,6 @@ const fetchHandoverDetails = async (handoverId) => {
       const dataRes = await fetch("/api/shift-handover/summary-data");
       if (!dataRes.ok) throw new Error("Failed to fetch shift data");
       const { visitLogs, reports } = await dataRes.json();
-      console.log('SHIFT DATA SENT TO AI:', JSON.stringify({ visitLogs, reports }, null, 2)); // ADD THIS
-
 
       const response = await fetch("/api/generate-summary", {
         method: "POST",
@@ -279,7 +278,7 @@ const fetchHandoverDetails = async (handoverId) => {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
           setGeneralNotes(
-            "SHIFT SUMMARY:\n\n" + summary.shift_assessment.summary,
+            `SHIFT SUMMARY:\n\nLEVEL: ${summary.shift_assessment.level}\n\n${summary.shift_assessment.summary}`,
           );
         }
       }
@@ -326,7 +325,7 @@ const fetchHandoverDetails = async (handoverId) => {
           setShiftSummary(summary.shift_assessment.summary);
           setShiftAssessment(summary.shift_assessment);
           setGeneralNotes(
-            "SHIFT SUMMARY:\n\n" + summary.shift_assessment.summary,
+            `SHIFT SUMMARY:\n\nLEVEL: ${summary.shift_assessment.level}\n\n${summary.shift_assessment.summary}`,
           );
         }
       }
@@ -337,6 +336,7 @@ const fetchHandoverDetails = async (handoverId) => {
       setLoadingAISummary(false);
     }
   };
+
   const getAssessmentIcon = (level) => {
     switch (level) {
       case "GOOD":
@@ -393,7 +393,6 @@ const fetchHandoverDetails = async (handoverId) => {
         transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className="min-h-screen bg-slate-50"
       >
-        {" "}
         <div className="container mx-auto px-6 lg:px-10 pt-10 pb-16">
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-violet-50 to-purple-50 text-violet-700 rounded-full text-xs font-semibold mb-3 shadow-sm">
@@ -454,7 +453,7 @@ const fetchHandoverDetails = async (handoverId) => {
                       <button
                         key={shift.value}
                         onClick={() => setShiftType(shift.value)}
-                        className={`py-3 px-4 rounded-xl  cursor-pointer text-sm font-black border-2 transition-all flex items-center justify-center gap-2 ${
+                        className={`py-3 px-4 rounded-xl cursor-pointer text-sm font-black border-2 transition-all flex items-center justify-center gap-2 ${
                           shiftType === shift.value
                             ? "bg-blue-50 border-blue-400 text-blue-700"
                             : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
@@ -471,6 +470,34 @@ const fetchHandoverDetails = async (handoverId) => {
                     ))}
                   </div>
                 </div>
+
+                {/* Shift Assessment Banner */}
+                {shiftAssessment && (
+                  <div
+                    className={`p-4 border-2 rounded-xl ${getAssessmentColor(shiftAssessment.level)}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {getAssessmentIcon(shiftAssessment.level)}
+                      <span className="text-md font-bold uppercase tracking-widest text-black">
+                        Shift Assessment: {shiftAssessment.level}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Shift Summary */}
+                {shiftSummary && (
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                      Shift Summary
+                    </p>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                        {shiftSummary}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Resident Red Flags */}
                 <div className="bg-white border border-slate-100 rounded-[28px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
@@ -669,34 +696,6 @@ const fetchHandoverDetails = async (handoverId) => {
                   </div>
                 </div>
 
-                {/* Shift Assessment Banner */}
-                {shiftAssessment && (
-                  <div
-                    className={`mt-4 p-4 border-2 rounded-xl ${getAssessmentColor(shiftAssessment.level)}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {getAssessmentIcon(shiftAssessment.level)}
-                      <span className="text-md font-bold uppercase tracking-widest text-black">
-                        Shift Assessment: {shiftAssessment.level}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Shift Summary */}
-                {shiftSummary && (
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                      Shift Summary
-                    </p>
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                        {shiftSummary}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {error && (
                   <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center gap-3">
                     <AlertCircle
@@ -866,25 +865,12 @@ function HandoverModal({ handover, details, loading, onClose }) {
 
   const parseGeneralNotes = (notes) => {
     if (!notes) return { shiftSummary: "", shiftLevel: null };
-    const summaryMatch = notes.match(/SHIFT SUMMARY:\n\n([\s\S]*)/);
-    const shiftSummary = summaryMatch ? summaryMatch[1].trim() : notes.trim();
-
-    let shiftLevel = null;
-    const lower = shiftSummary.toLowerCase();
-    if (lower.includes("critical") || lower.includes("severe")) {
-      shiftLevel = "CRITICAL";
-    } else if (
-      lower.includes("concerning") ||
-      lower.includes("notable issues")
-    ) {
-      shiftLevel = "CONCERNING";
-    } else if (
-      lower.includes("routine") ||
-      lower.includes("stable") ||
-      lower.includes("no incidents")
-    ) {
-      shiftLevel = "GOOD";
-    }
+    const levelMatch = notes.match(/LEVEL:\s*(GOOD|CONCERNING|CRITICAL)/);
+    const shiftLevel = levelMatch ? levelMatch[1] : null;
+    const summaryMatch = notes.match(/LEVEL:[^\n]+\n\n([\s\S]*)/);
+    const shiftSummary = summaryMatch
+      ? summaryMatch[1].trim()
+      : notes.replace(/SHIFT SUMMARY:\n\n/, "").trim();
     return { shiftSummary, shiftLevel };
   };
 
@@ -920,18 +906,7 @@ function HandoverModal({ handover, details, loading, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 p-6">
-      <div
-        className="
-    bg-white
-    rounded-[28px]
-    w-full
-    max-w-4xl
-    h-[95vh]
-    shadow-2xl
-    border border-slate-100
-    flex flex-col
-  "
-      >
+      <div className="bg-white rounded-[28px] w-full max-w-4xl h-[95vh] shadow-2xl border border-slate-100 flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200">
@@ -965,6 +940,40 @@ function HandoverModal({ handover, details, loading, onClose }) {
             </div>
           ) : (
             <div className="space-y-5">
+              {/* Shift Assessment */}
+              {shiftLevel && (
+                <div>
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
+                    Shift Assessment
+                  </p>
+                  <div
+                    className={`p-4 border-2 rounded-xl ${getAssessmentColor(shiftLevel)}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {getAssessmentIcon(shiftLevel)}
+                      <span className="text-sm font-bold uppercase tracking-widest text-slate-900">
+                        {shiftLevel}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Shift Summary */}
+              {shiftSummary && (
+                <div>
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
+                    Shift Summary
+                  </p>
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                      {shiftSummary}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Meta grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
@@ -997,37 +1006,6 @@ function HandoverModal({ handover, details, loading, onClose }) {
                   </p>
                 </div>
               </div>
-
-              {shiftLevel && (
-                <div>
-                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
-                    Shift Assessment
-                  </p>
-                  <div
-                    className={`p-4 border-2 rounded-xl ${getAssessmentColor(shiftLevel)}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {getAssessmentIcon(shiftLevel)}
-                      <span className="text-sm font-bold uppercase tracking-widest text-slate-900">
-                        {shiftLevel}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {shiftSummary && (
-                <div>
-                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">
-                    Shift Summary
-                  </p>
-                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                    <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                      {shiftSummary}
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* Resident Red Flags */}
               {details?.items && details.items.length > 0 && (

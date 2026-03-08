@@ -124,16 +124,16 @@ export default function ManagerDashboard() {
   };
 
   const fetchCompletedActions = async () => {
-  try {
-    const res = await fetch('/api/care-analysis/completed');
-    if (!res.ok) return new Set();
-    const { data } = await res.json();
-    if (!data) return new Set();
-    return new Set(data.map((r, any) => `${r.patient_id}::${r.action_type}`));
-  } catch {
-    return new Set();
-  }
-};
+    try {
+      const res = await fetch("/api/care-analysis/completed");
+      if (!res.ok) return new Set();
+      const { data } = await res.json();
+      if (!data) return new Set();
+      return new Set(data.map((r, any) => `${r.patient_id}::${r.action_type}`));
+    } catch {
+      return new Set();
+    }
+  };
 
   const filterCompletedFromList = (list, completedSet) => {
     return list
@@ -147,64 +147,65 @@ export default function ManagerDashboard() {
   };
 
   const handleActionCompleted = async (patientId, actionType) => {
-  await fetch('/api/care-analysis/completed', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      patient_id: patientId,
-      action_type: actionType,
-      completed_by: MANAGER_ID,
-    }),
-  });
+    await fetch("/api/care-analysis/completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        patient_id: patientId,
+        action_type: actionType,
+        completed_by: MANAGER_ID,
+      }),
+    });
 
-  const key = `${patientId}::${actionType}`;
-  const newCompleted = new Set(completedActions);
-  newCompleted.add(key);
-  setCompletedActions(newCompleted);
+    const key = `${patientId}::${actionType}`;
+    const newCompleted = new Set(completedActions);
+    newCompleted.add(key);
+    setCompletedActions(newCompleted);
 
-  setPriorityList((prev) =>
-    prev
-      .map((patient) => ({
-        ...patient,
-        actions: patient.actions.filter(
-          (a) => a.type !== actionType || patient.patient_id !== patientId,
-        ),
-      }))
-      .filter((patient) => patient.actions.length > 0),
-  );
+    setPriorityList((prev) =>
+      prev
+        .map((patient) => ({
+          ...patient,
+          actions: patient.actions.filter(
+            (a) => a.type !== actionType || patient.patient_id !== patientId,
+          ),
+        }))
+        .filter((patient) => patient.actions.length > 0),
+    );
 
-  showToast(`Completed ${actionType.replace(/_/g, ' ')}`);
-};
-const fetchAll = async () => {
-  try {
-    setLoading(true);
-    const now = new Date();
-    const daysInMonth = now.getDate();
+    showToast(`Completed ${actionType.replace(/_/g, " ")}`);
+  };
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+      const now = new Date();
+      const daysInMonth = now.getDate();
 
-    const res = await fetch('/api/manager/dashboard');
-    if (!res.ok) throw new Error('Failed to fetch dashboard');
+      const res = await fetch("/api/manager/dashboard");
+      if (!res.ok) throw new Error("Failed to fetch dashboard");
 
-    const {
-      occupancy,
-      overdueTasks,
-      staffStatus,
-      latestHandover,
-      handoverEntries,
-      handoverPatients,
-      handoverAuthor,
-    } = await res.json();
+      const {
+        occupancy,
+        overdueTasks,
+        staffStatus,
+        latestHandover,
+        handoverEntries,
+        handoverPatients,
+        handoverAuthor,
+      } = await res.json();
 
-    setOccupancy(occupancy);
-    setOverdueTasks(overdueTasks);
-    setStaffStatus(staffStatus);
-    setLatestHandover(latestHandover);
-    setHandoverEntries(handoverEntries);
-    setHandoverPatients(handoverPatients);
-    setHandoverAuthor(handoverAuthor);
+      setOccupancy(occupancy);
+      setOverdueTasks(overdueTasks);
+      setStaffStatus(staffStatus);
+      setLatestHandover(latestHandover);
+      setHandoverEntries(handoverEntries);
+      setHandoverPatients(handoverPatients);
+      setHandoverAuthor(handoverAuthor);
 
-    // Trend data stays hardcoded as before
-        setTrendData(
-      [   { day: 1, count: 2 },
+      // Trend data stays hardcoded as before
+      setTrendData(
+        [
+          { day: 1, count: 2 },
           { day: 2, count: 0 },
           { day: 3, count: 0 },
           { day: 4, count: 4 },
@@ -233,10 +234,12 @@ const fetchAll = async () => {
           { day: 27, count: 6 },
           { day: 28, count: 8 },
           { day: 29, count: 7 },
-          { day: 30, count: 6 }, ].filter((d) => d.day <= daysInMonth)
-    );
-    setEmarTrendData(
-      [ { day: 1, count: 4 },
+          { day: 30, count: 6 },
+        ].filter((d) => d.day <= daysInMonth),
+      );
+      setEmarTrendData(
+        [
+          { day: 1, count: 4 },
           { day: 2, count: 2 },
           { day: 3, count: 2 },
           { day: 4, count: 8 },
@@ -265,14 +268,15 @@ const fetchAll = async () => {
           { day: 27, count: 4 },
           { day: 28, count: 3 },
           { day: 29, count: 4 },
-          { day: 30, count: 3 }].filter((d) => d.day <= daysInMonth)
-    );
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+          { day: 30, count: 3 },
+        ].filter((d) => d.day <= daysInMonth),
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const daysSince = (dateString) => {
     if (!dateString) return null;
@@ -280,58 +284,57 @@ const fetchAll = async () => {
       (new Date() - new Date(dateString)) / (1000 * 60 * 60 * 24),
     );
   };
-const fetchAndFormatPatients = async () => {
-
-  const res = await fetch("/api/manager/patients-enriched");
-  if (!res.ok) {
-    console.error("Failed to fetch enriched patients");
-    return;
-  }
-  return await res.json();
-};
+  const fetchAndFormatPatients = async () => {
+    const res = await fetch("/api/manager/patients-enriched");
+    if (!res.ok) {
+      console.error("Failed to fetch enriched patients");
+      return;
+    }
+    return await res.json();
+  };
 
   const generatePriorityAnalysis = async () => {
-  try {
-    setLoadingAnalysis(true);
-    setError(null);
-    setPriorityList([]);
+    try {
+      setLoadingAnalysis(true);
+      setError(null);
+      setPriorityList([]);
 
-    const patients = await fetchAndFormatPatients();
-    console.log("PATIENTS SENT TO AI:", JSON.stringify(patients, null, 2)); // ADD THIS
+      const patients = await fetchAndFormatPatients();
+      console.log("PATIENTS SENT TO AI:", JSON.stringify(patients, null, 2)); // ADD THIS
 
-    const response = await fetch("/api/generate-dashboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patients }),
-    });
-    if (!response.ok) throw new Error("Failed to generate analysis");
-    const data = await response.json();
-
-    if (data.success && data.result) {
-      const parsed = JSON.parse(data.result);
-      const rawList = parsed.priority_list || [];
-
-      await fetch("/api/care-analysis", {
+      const response = await fetch("/api/generate-dashboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          priority_list: rawList,
-          created_by: MANAGER_ID,
-        }),
+        body: JSON.stringify({ patients }),
       });
+      if (!response.ok) throw new Error("Failed to generate analysis");
+      const data = await response.json();
 
-      const completedSet = await fetchCompletedActions();
-      const filtered = filterCompletedFromList(rawList, completedSet);
-      setCompletedActions(completedSet);
-      setPriorityList(filtered);
+      if (data.success && data.result) {
+        const parsed = JSON.parse(data.result);
+        const rawList = parsed.priority_list || [];
+
+        await fetch("/api/care-analysis", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            priority_list: rawList,
+            created_by: MANAGER_ID,
+          }),
+        });
+
+        const completedSet = await fetchCompletedActions();
+        const filtered = filterCompletedFromList(rawList, completedSet);
+        setCompletedActions(completedSet);
+        setPriorityList(filtered);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to generate analysis.");
+    } finally {
+      setLoadingAnalysis(false);
     }
-  } catch (err) {
-    console.error(err);
-    setError('Failed to generate analysis.');
-  } finally {
-    setLoadingAnalysis(false);
-  }
-};
+  };
 
   const staffRatio =
     staffStatus.active > 0
@@ -414,7 +417,7 @@ const fetchAndFormatPatients = async () => {
                   icon={<Users size={18} className="text-emerald-600" />}
                   iconBg="bg-gradient-to-br from-emerald-50 to-teal-50"
                   label="Occupancy"
-                  value={loading ? "—" : `${occupancy}/50`}
+                  value={loading ? "—" : `${occupancy}/25`}
                 />
                 <PillStat
                   icon={<TrendingUp size={18} className="text-blue-600" />}
@@ -808,7 +811,6 @@ const fetchAndFormatPatients = async () => {
   );
 }
 
-
 /* ─── Make Report Modal ──────────────────────────────────────────── */
 function MakeReportModal({ patient, onClose, onCompleted }) {
   const [saving, setSaving] = useState(false);
@@ -832,38 +834,37 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.title || !formData.content) {
+      setError("Title and content are required.");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError(null);
 
-    const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!formData.title || !formData.content) {
-    setError('Title and content are required.');
-    return;
-  }
-  try {
-    setSaving(true);
-    setError(null);
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_id: patient.patient_id,
+          created_by: MANAGER_ID,
+          title: formData.title,
+          type: formData.type,
+          content: formData.content,
+          date: formData.date,
+        }),
+      });
 
-    const res = await fetch('/api/reports', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        patient_id: patient.patient_id,
-        created_by: MANAGER_ID,
-        title: formData.title,
-        type: formData.type,
-        content: formData.content,
-        date: formData.date,
-      }),
-    });
-
-    if (!res.ok) throw new Error('Failed to save report.');
-    onCompleted();
-  } catch (err) {
-    setError(err.message || 'Failed to save report.');
-  } finally {
-    setSaving(false);
-  }
-};
+      if (!res.ok) throw new Error("Failed to save report.");
+      onCompleted();
+    } catch (err) {
+      setError(err.message || "Failed to save report.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const [generating, setGenerating] = useState(false);
 
@@ -1043,7 +1044,10 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
                     exit={{ opacity: 0, y: -10 }}
                     className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
                   >
-                    <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <AlertCircle
+                      size={16}
+                      className="text-red-600 mt-0.5 flex-shrink-0"
+                    />
                     <p className="text-sm text-red-700">{error}</p>
                   </motion.div>
                 )}
@@ -1102,14 +1106,14 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   });
 
   useEffect(() => {
-  const fetchCarers = async () => {
-    const res = await fetch('/api/carers-list');
-    const data = await res.json();
-    setCarers(data || []);
-    setLoadingCarers(false);
-  };
-  fetchCarers();
-}, []);
+    const fetchCarers = async () => {
+      const res = await fetch("/api/carers-list");
+      const data = await res.json();
+      setCarers(data || []);
+      setLoadingCarers(false);
+    };
+    fetchCarers();
+  }, []);
 
   const handleAddTask = () => {
     const trimmed = taskInput.trim();
@@ -1125,43 +1129,48 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
   const inputClass =
     "w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-sm";
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!formData.title || !formData.carer_id || !formData.start_at || !formData.end_at) {
-    setError('Please fill in all required fields.');
-    return;
-  }
-  if (new Date(formData.end_at) <= new Date(formData.start_at)) {
-    setError('End time must be after start time.');
-    return;
-  }
-  try {
-    setSaving(true);
-    setError(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (
+      !formData.title ||
+      !formData.carer_id ||
+      !formData.start_at ||
+      !formData.end_at
+    ) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+    if (new Date(formData.end_at) <= new Date(formData.start_at)) {
+      setError("End time must be after start time.");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError(null);
 
-    const res = await fetch('/api/schedules', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: formData.title,
-        patient_id: patient.patient_id,
-        carer_id: formData.carer_id,
-        start_at: formData.start_at,
-        end_at: formData.end_at,
-        status: formData.status,
-        created_by: MANAGER_ID,
-        required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
-      }),
-    });
+      const res = await fetch("/api/schedules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.title,
+          patient_id: patient.patient_id,
+          carer_id: formData.carer_id,
+          start_at: formData.start_at,
+          end_at: formData.end_at,
+          status: formData.status,
+          created_by: MANAGER_ID,
+          required_tasks: tasks.length > 0 ? JSON.stringify(tasks) : null,
+        }),
+      });
 
-    if (!res.ok) throw new Error('Failed to create schedule.');
-    onCompleted();
-  } catch (err) {
-    setError(err.message || 'Failed to create schedule.');
-  } finally {
-    setSaving(false);
-  }
-};
+      if (!res.ok) throw new Error("Failed to create schedule.");
+      onCompleted();
+    } catch (err) {
+      setError(err.message || "Failed to create schedule.");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <AnimatePresence>
       <motion.div
@@ -1210,7 +1219,11 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
               <div className="flex items-center justify-center py-24">
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 >
                   <Activity size={32} className="text-slate-300" />
                 </motion.div>
@@ -1219,7 +1232,10 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* AI Reasoning */}
                 <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 flex items-start gap-3">
-                  <Sparkles size={16} className="text-violet-600 mt-0.5 flex-shrink-0" />
+                  <Sparkles
+                    size={16}
+                    className="text-violet-600 mt-0.5 flex-shrink-0"
+                  />
                   <p className="text-sm text-violet-700">
                     {patient.reasoning
                       ?.split(
@@ -1315,7 +1331,7 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
                     className={inputClass}
                   >
                     <option value="scheduled">Scheduled</option>
-                    <option value="in progress">In Progress</option>
+                    <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
@@ -1365,7 +1381,9 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
                             exit={{ opacity: 0, height: 0 }}
                             className="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3"
                           >
-                            <span className="text-sm text-slate-700">{task}</span>
+                            <span className="text-sm text-slate-700">
+                              {task}
+                            </span>
                             <motion.button
                               type="button"
                               onClick={() => handleRemoveTask(i)}
@@ -1391,7 +1409,10 @@ function MakeScheduleModal({ patient, onClose, onCompleted }) {
                       exit={{ opacity: 0, y: -10 }}
                       className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
                     >
-                      <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle
+                        size={16}
+                        className="text-red-600 mt-0.5 flex-shrink-0"
+                      />
                       <p className="text-sm text-red-700">{error}</p>
                     </motion.div>
                   )}
@@ -1436,18 +1457,20 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(new Set());
 
- useEffect(() => {
-  const fetchMeds = async () => {
-    const res = await fetch(`/api/emar?patient_id=${patient.patient_id}`);
-    const data = await res.json();
-    const all = data.emar || [];
-    const missed = all.filter((m) => m.status === 'missed' || m.status === 'skipped');
-    setMedications(missed);
-    setSelected(new Set(missed.map((m) => m.id)));
-    setLoading(false);
-  };
-  fetchMeds();
-}, []);
+  useEffect(() => {
+    const fetchMeds = async () => {
+      const res = await fetch(`/api/emar?patient_id=${patient.patient_id}`);
+      const data = await res.json();
+      const all = data.emar || [];
+      const missed = all.filter(
+        (m) => m.status === "missed" || m.status === "skipped",
+      );
+      setMedications(missed);
+      setSelected(new Set(missed.map((m) => m.id)));
+      setLoading(false);
+    };
+    fetchMeds();
+  }, []);
 
   const toggleMed = (id) => {
     setSelected((prev) => {
@@ -1458,32 +1481,32 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (selected.size === 0) {
-    setError('Select at least one medication to reassign.');
-    return;
-  }
-  try {
-    setSaving(true);
-    setError(null);
+    e.preventDefault();
+    if (selected.size === 0) {
+      setError("Select at least one medication to reassign.");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError(null);
 
-    const res = await fetch('/api/emar', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ids: [...selected],
-        status: 'due',
-      }),
-    });
+      const res = await fetch("/api/emar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: [...selected],
+          status: "due",
+        }),
+      });
 
-    if (!res.ok) throw new Error('Failed to reassign medications.');
-    onCompleted();
-  } catch (err) {
-    setError(err.message || 'Failed to reassign medications.');
-  } finally {
-    setSaving(false);
-  }
-};
+      if (!res.ok) throw new Error("Failed to reassign medications.");
+      onCompleted();
+    } catch (err) {
+      setError(err.message || "Failed to reassign medications.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const reasoning = patient.reasoning
     ?.split(
@@ -1541,7 +1564,11 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
               <div className="flex items-center justify-center py-24">
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 >
                   <Activity size={32} className="text-slate-300" />
                 </motion.div>
@@ -1551,7 +1578,10 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
                 {/* AI Reasoning */}
                 {reasoning && (
                   <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 flex items-start gap-3">
-                    <Sparkles size={16} className="text-violet-600 mt-0.5 flex-shrink-0" />
+                    <Sparkles
+                      size={16}
+                      className="text-violet-600 mt-0.5 flex-shrink-0"
+                    />
                     <p className="text-sm text-violet-700">{reasoning}</p>
                   </div>
                 )}
@@ -1599,7 +1629,12 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
                                 }`}
                               >
                                 {isSelected && (
-                                  <svg width="12" height="10" viewBox="0 0 10 8" fill="none">
+                                  <svg
+                                    width="12"
+                                    height="10"
+                                    viewBox="0 0 10 8"
+                                    fill="none"
+                                  >
                                     <path
                                       d="M1 4L3.5 6.5L9 1"
                                       stroke="white"
@@ -1651,7 +1686,10 @@ function ReassignEmarModal({ patient, onClose, onCompleted }) {
                       exit={{ opacity: 0, y: -10 }}
                       className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2"
                     >
-                      <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                      <AlertCircle
+                        size={16}
+                        className="text-red-600 mt-0.5 flex-shrink-0"
+                      />
                       <p className="text-sm text-red-700">{error}</p>
                     </motion.div>
                   )}
@@ -1705,33 +1743,35 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
   });
 
   useEffect(() => {
-  const fetchFamily = async () => {
-    const res = await fetch(`/api/specific-patient/${patient.patient_id}/care-team`);
-    if (!res.ok) {
-      setNotFound(true);
+    const fetchFamily = async () => {
+      const res = await fetch(
+        `/api/specific-patient/${patient.patient_id}/care-team`,
+      );
+      if (!res.ok) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      const { family } = await res.json();
+      const firstFamily = family?.[0];
+
+      if (!firstFamily) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      setFamilyMember({
+        id: firstFamily.family_id,
+        full_name: firstFamily.family?.full_name,
+        email: firstFamily.family?.email,
+        relationship: firstFamily.relationship,
+      });
       setLoading(false);
-      return;
-    }
-
-    const { family } = await res.json();
-    const firstFamily = family?.[0];
-
-    if (!firstFamily) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-
-    setFamilyMember({
-      id: firstFamily.family_id,
-      full_name: firstFamily.family?.full_name,
-      email: firstFamily.family?.email,
-      relationship: firstFamily.relationship,
-    });
-    setLoading(false);
-  };
-  fetchFamily();
-}, []);
+    };
+    fetchFamily();
+  }, []);
   const reasoning = patient.reasoning
     ?.split(
       /(?=MAKE_SCHEDULE|MAKE_REPORT|REASSIGN_EMAR|REVIEW_EMAR_PLAN|CONTACT_FAMILY|URGENCY_LEVEL)/,
@@ -1822,7 +1862,11 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
               <div className="flex items-center justify-center py-24">
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 >
                   <Activity size={32} className="text-slate-300" />
                 </motion.div>
@@ -1978,21 +2022,21 @@ function OverdueModal({ onClose }) {
   const [patients, setPatients] = useState({});
 
   useEffect(() => {
-  const fetchOverdue = async () => {
-    const res = await fetch('/api/manager/overdue');
-    if (!res.ok) {
+    const fetchOverdue = async () => {
+      const res = await fetch("/api/manager/overdue");
+      if (!res.ok) {
+        setLoading(false);
+        return;
+      }
+      const { schedules, emars, patients } = await res.json();
+      setOverdueSchedules(schedules || []);
+      setMissedEmars(emars || []);
+      setPatients(patients || {});
       setLoading(false);
-      return;
-    }
-    const { schedules, emars, patients } = await res.json();
-    setOverdueSchedules(schedules || []);
-    setMissedEmars(emars || []);
-    setPatients(patients || {});
-    setLoading(false);
-  };
+    };
 
-  fetchOverdue();
-}, []);
+    fetchOverdue();
+  }, []);
 
   const formatOverdue = (endAt) => {
     const diff = Math.floor((new Date() - new Date(endAt)) / 60000);
@@ -2021,7 +2065,6 @@ function OverdueModal({ onClose }) {
           onClick={(e) => e.stopPropagation()}
           className="bg-white rounded-2xl w-full max-w-5xl shadow-2xl border border-slate-200/80 flex flex-col max-h-[90vh]"
         >
-        
           {/* Content */}
           <div className="overflow-y-auto flex-1 px-8 py-8">
             {loading ? (
@@ -2051,7 +2094,64 @@ function OverdueModal({ onClose }) {
               </div>
             ) : (
               <div className="space-y-10">
-                {/* Overdue Schedules */}
+                {/* Missed Medications — now first */}
+                {missedEmars.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-11 h-11 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl flex items-center justify-center shadow-sm">
+                        <AlertTriangle size={20} className="text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-black pt-5 text-slate-900 tracking-tight">
+                          Missed Medications
+                        </p>
+                        <p className="text-xs font-black text-amber-500 uppercase tracking-widest mt-0.5">
+                          {missedEmars.length} dose
+                          {missedEmars.length !== 1 ? "s" : ""} not administered
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {missedEmars.map((emar) => {
+                        const patient = patients[emar.patient_id];
+                        return (
+                          <motion.div
+                            key={emar.id}
+                            whileHover={{ y: -2 }}
+                            className="group flex items-center gap-4 p-5 bg-white border border-amber-200 hover:border-amber-300 rounded-xl shadow-sm hover:shadow-md transition-all"
+                          >
+                            <div className="w-11 h-11 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center font-semibold text-amber-900 shadow-sm shrink-0">
+                              {patient?.full_name?.charAt(0) || "?"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-slate-900 truncate mb-1">
+                                {patient?.full_name || "Unknown"}
+                              </p>
+                              <p className="text-xs text-slate-600 mb-2">
+                                {emar.medication_name}
+                                {emar.medication_mg
+                                  ? ` ${emar.medication_mg}mg`
+                                  : ""}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">
+                                  Missed
+                                </span>
+                                {emar.time_to_take && (
+                                  <span className="text-xs text-slate-500">
+                                    {emar.time_to_take}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overdue Schedules — now second */}
                 {overdueSchedules.length > 0 && (
                   <div>
                     <div className="flex items-center gap-3 mb-6">
@@ -2151,63 +2251,6 @@ function OverdueModal({ onClose }) {
                                 </div>
                               </div>
                             )}
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Missed Medications */}
-                {missedEmars.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-11 h-11 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl flex items-center justify-center shadow-sm">
-                        <AlertTriangle size={20} className="text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-xl font-black pt-5 text-slate-900 tracking-tight">
-                          Missed Medications
-                        </p>
-                        <p className="text-xs font-black text-amber-500 uppercase tracking-widest mt-0.5">
-                          {missedEmars.length} dose
-                          {missedEmars.length !== 1 ? "s" : ""} not administered
-                        </p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {missedEmars.map((emar) => {
-                        const patient = patients[emar.patient_id];
-                        return (
-                          <motion.div
-                            key={emar.id}
-                            whileHover={{ y: -2 }}
-                            className="group flex items-center gap-4 p-5 bg-white border border-amber-200 hover:border-amber-300 rounded-xl shadow-sm hover:shadow-md transition-all"
-                          >
-                            <div className="w-11 h-11 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl flex items-center justify-center font-semibold text-amber-900 shadow-sm shrink-0">
-                              {patient?.full_name?.charAt(0) || "?"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-slate-900 truncate mb-1">
-                                {patient?.full_name || "Unknown"}
-                              </p>
-                              <p className="text-xs text-slate-600 mb-2">
-                                {emar.medication_name}
-                                {emar.medication_mg
-                                  ? ` ${emar.medication_mg}mg`
-                                  : ""}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <span className="inline-flex text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">
-                                  Missed
-                                </span>
-                                {emar.time_to_take && (
-                                  <span className="text-xs text-slate-500">
-                                    {emar.time_to_take}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
                           </motion.div>
                         );
                       })}
@@ -2393,7 +2436,6 @@ function HandoverModal({ handover, entries, patients, author, onClose }) {
     </div>
   );
 }
-
 
 /* ─── Pill Stat ──────────────────────────────────────────────────── */
 function PillStat({ icon, iconBg, label, value }) {

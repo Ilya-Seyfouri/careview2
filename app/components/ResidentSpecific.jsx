@@ -952,7 +952,7 @@ function ScheduleTab({ residentId }) {
       label: "Cancelled",
       color: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
     },
-    "in progress": {
+    in_progress: {
       label: "In Progress",
       color: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
     },
@@ -1008,11 +1008,13 @@ function ScheduleTab({ residentId }) {
                   {s.title}
                 </h3>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span
-                    className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
-                  >
-                    {cfg.label}
-                  </span>
+                  {!upcoming && (
+                    <span
+                      className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
+                    >
+                      {cfg.label}
+                    </span>
+                  )}
                   {upcoming && (
                     <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
                       Upcoming

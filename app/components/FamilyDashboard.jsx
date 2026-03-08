@@ -1096,7 +1096,7 @@ function ScheduleModal({ schedule, onClose }) {
       completed: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100",
       pending: "bg-amber-50 text-amber-600 ring-1 ring-amber-100",
       cancelled: "bg-rose-50 text-rose-600 ring-1 ring-rose-100",
-      "in progress": "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
+      in_progress: "bg-blue-50 text-blue-600 ring-1 ring-blue-100",
     })[s?.toLowerCase()] || "bg-slate-50 text-slate-600 ring-1 ring-slate-100";
 
   const upcoming = new Date(schedule.start_at) > new Date();

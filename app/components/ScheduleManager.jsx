@@ -762,7 +762,7 @@ function ScheduleRow({ schedule, onEdit, onDelete }) {
           borderColor: "border-slate-200",
           icon: Clock,
         };
-      case "in progress":
+      case "in_progress":
         return {
           text: "In Progress",
           color: "text-amber-700",
@@ -1528,7 +1528,7 @@ function EditScheduleModal({ schedule, onClose, onSuccess }) {
                 className={inputClass}
               >
                 <option value="scheduled">Scheduled</option>
-                <option value="in progress">In Progress</option>
+                <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>

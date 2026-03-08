@@ -173,7 +173,7 @@ export default function CarerDashboard() {
           badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
           label: "Completed",
         };
-      case "in progress":
+      case "in_progress":
         return {
           dot: "bg-blue-400 animate-pulse",
           badge: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
@@ -293,7 +293,7 @@ export default function CarerDashboard() {
                   const isCancelled =
                     schedule.status?.toLowerCase() === "cancelled";
                   const isInProgress =
-                    schedule.status?.toLowerCase() === "in progress";
+                    schedule.status?.toLowerCase() === "in_progress";
 
                   return (
                     <div

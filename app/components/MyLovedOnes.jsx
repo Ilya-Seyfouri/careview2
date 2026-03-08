@@ -908,16 +908,20 @@ function SchedulesTab({ patientId }) {
                   {s.title}
                 </h3>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span
-                    className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
-                  >
-                    {cfg.label}
-                  </span>
-                  {upcoming && (
-                    <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
-                      Upcoming
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    {!upcoming && (
+                      <span
+                        className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${cfg.color}`}
+                      >
+                        {cfg.label}
+                      </span>
+                    )}
+                    {upcoming && (
+                      <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-200 text-blue-700 ring-1 ring-blue-100 uppercase tracking-widest">
+                        Upcoming
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

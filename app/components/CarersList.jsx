@@ -384,23 +384,7 @@ function AddCarerModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Role */}
-          <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-              Role
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className={inputClass2}
-            >
-              <option value="carer">Carer</option>
-              <option value="senior_carer">Senior Carer</option>
-              <option value="nurse">Nurse</option>
-            </select>
-          </div>
+         
 
           {/* Error Message */}
           {error && (

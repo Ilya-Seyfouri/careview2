@@ -581,6 +581,58 @@ async function main() {
     },
   });
 
+  // Overdue schedules — appear in the Overdue Tasks modal
+  await prisma.schedule.create({
+    data: {
+      patient_id: patient1.id,
+      carer_id: carer1.id,
+      created_by: manager.id,
+      start_at: daysAgo(1, 14),
+      end_at: daysAgo(1, 15),
+      status: "scheduled",
+      title: "Afternoon BP Monitoring",
+      required_tasks: JSON.stringify([
+        "Blood pressure check",
+        "Medication compliance review",
+        "Document readings",
+      ]),
+    },
+  });
+
+  await prisma.schedule.create({
+    data: {
+      patient_id: patient2.id,
+      carer_id: carer1.id,
+      created_by: manager.id,
+      start_at: daysAgo(0, 11),
+      end_at: daysAgo(0, 12),
+      status: "scheduled",
+      title: "Post-Wandering Behavioural Check",
+      required_tasks: JSON.stringify([
+        "Mood and orientation assessment",
+        "Risperidone compliance check",
+        "Document any further wandering risk",
+      ]),
+    },
+  });
+
+  await prisma.schedule.create({
+    data: {
+      patient_id: patient4.id,
+      carer_id: carer1.id,
+      created_by: manager.id,
+      start_at: daysAgo(0, 16),
+      end_at: daysAgo(0, 17),
+      status: "scheduled",
+      title: "Post-Fall Welfare Check",
+      required_tasks: JSON.stringify([
+        "Fall risk reassessment",
+        "Bruising review",
+        "Mobility check",
+      ]),
+    },
+  });
+
   console.log("✅ Schedules created");
 
   // ─── VISIT LOGS ───────────────────────────────────────────────────────────────
@@ -615,7 +667,6 @@ async function main() {
         created_at: today(11, 30),
       },
 
-      
       {
         patient_id: patient2.id,
         carer_id: carer1.id,
@@ -724,8 +775,6 @@ async function main() {
           "Patient Betty Collins had a near-fall in the corridor. No injury sustained. Fall risk assessment updated. Grab rails checked and confirmed secure. Family informed at time of incident.",
         created_at: daysAgo(14),
       },
-
-      
 
       // ── Arthur — 30 days ago: stable quarterly review ─────────────────────
       {
