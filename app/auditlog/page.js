@@ -1,5 +1,4 @@
 import AuditLog from "../components/AuditLog";
-import ManagerSidebar from "../components/ManagerSidebar";
 
 export default function Home() {
   return (

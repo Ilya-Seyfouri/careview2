@@ -3,16 +3,16 @@ import { prisma } from "../../../lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ logId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { logId } = await params;
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const patient_id = searchParams.get("patient_id");
 
     const log = await prisma.visitLog.findFirst({
       where: {
-        id: logId,
+        id: id,
         ...(patient_id && { patient_id }),
       },
     });

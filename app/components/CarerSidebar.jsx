@@ -24,7 +24,7 @@ const menuItems = [
   { id: "emar", label: "eMAR Round", icon: Pill, href: "/carer/emarcarer" },
   {
     id: "shifthandover",
-    label: "Handover",
+    label: "Shift Handover",
     icon: Repeat,
     href: "/carer/shifthandover",
   },

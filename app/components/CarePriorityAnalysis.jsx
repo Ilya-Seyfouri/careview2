@@ -51,7 +51,7 @@ export default function CarePriorityAnalysis({
             AI-Powered Assistant
           </div>
           <h3 className="text-2xl font-semibold text-slate-900 mb-2">
-            Patient Action Engine
+            Patient Action Recommender
           </h3>
           <p className="text-slate-500 text-sm leading-relaxed">
             Assessment of every patient with actionable recommendations

@@ -1,6 +1,5 @@
 import Dashboard from "./components/Dashboard";
-import ManagerSidebar from "./components/ManagerSidebar";
-import Residents from "./components/Residents";
+
 
 
 export default function Home() {

@@ -113,7 +113,7 @@ export async function GET() {
     });
 
     const carerIds = Object.keys(carerMap);
-    let staffVisitCounts = [];
+    let staffVisitCounts: { name: string; visits: number }[] = [];
 
     if (carerIds.length > 0) {
       const carers = await prisma.profile.findMany({

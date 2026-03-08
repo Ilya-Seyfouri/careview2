@@ -1,4 +1,4 @@
-import SpecificCarer from "../../../app/components/SpecificCarer";
+import SpecificCarer from "../../components/SpecificCarer";
 
 export default function Home({ params }) {
   return (

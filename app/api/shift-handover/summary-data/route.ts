@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
+import { TEST_VISIT_LOG_IDS, TEST_REPORT_IDS } from "../../../lib/testDataIds";
+
 
 export async function GET() {
   try {
     const [visitLogs, reports] = await Promise.all([
       prisma.visitLog.findMany({
+        where: {
+          id: { notIn: TEST_VISIT_LOG_IDS },
+        },
         orderBy: { created_at: "desc" },
         take: 3,
         select: {
@@ -21,6 +26,9 @@ export async function GET() {
       }),
 
       prisma.report.findMany({
+        where: {
+          id: { notIn: TEST_REPORT_IDS },
+        },
         orderBy: { created_at: "desc" },
         take: 3,
         select: {

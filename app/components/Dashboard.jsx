@@ -281,9 +281,10 @@ const fetchAll = async () => {
     );
   };
 const fetchAndFormatPatients = async () => {
-  const res = await fetch('/api/manager/patients-enriched');
+
+  const res = await fetch("/api/manager/patients-enriched");
   if (!res.ok) {
-    console.error('Failed to fetch enriched patients');
+    console.error("Failed to fetch enriched patients");
     return;
   }
   return await res.json();
@@ -296,22 +297,27 @@ const fetchAndFormatPatients = async () => {
     setPriorityList([]);
 
     const patients = await fetchAndFormatPatients();
-    const response = await fetch('/api/generate-dashboard', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    console.log("PATIENTS SENT TO AI:", JSON.stringify(patients, null, 2)); // ADD THIS
+
+    const response = await fetch("/api/generate-dashboard", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patients }),
     });
-    if (!response.ok) throw new Error('Failed to generate analysis');
+    if (!response.ok) throw new Error("Failed to generate analysis");
     const data = await response.json();
 
     if (data.success && data.result) {
       const parsed = JSON.parse(data.result);
       const rawList = parsed.priority_list || [];
 
-      await fetch('/api/care-analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priority_list: rawList, created_by: MANAGER_ID }),
+      await fetch("/api/care-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priority_list: rawList,
+          created_by: MANAGER_ID,
+        }),
       });
 
       const completedSet = await fetchCompletedActions();

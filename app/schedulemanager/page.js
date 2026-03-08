@@ -1,7 +1,6 @@
-import ManagerSidebar from "../components/ManagerSidebar";
 import ScheduleManager from "../components/ScheduleManager";
 
-export default function Home({ params }) {
+export default function Home() {
   return (
     <>
       <div className="flex h-screen">

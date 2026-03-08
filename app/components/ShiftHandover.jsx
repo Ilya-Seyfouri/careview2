@@ -261,6 +261,8 @@ const fetchHandoverDetails = async (handoverId) => {
       const dataRes = await fetch("/api/shift-handover/summary-data");
       if (!dataRes.ok) throw new Error("Failed to fetch shift data");
       const { visitLogs, reports } = await dataRes.json();
+      console.log('SHIFT DATA SENT TO AI:', JSON.stringify({ visitLogs, reports }, null, 2)); // ADD THIS
+
 
       const response = await fetch("/api/generate-summary", {
         method: "POST",
