@@ -6,12 +6,11 @@ An AI-assisted care home management system I built for North Senior Care during 
 
 ---
 
-## Screenshots
+![Dashboard](screenshots/dashboard.png)
 
-| Dashboard | Analytics | EMAR |
-|-----------|-----------|------|
-| ![Dashboard](screenshots/dashboard.png) | ![Analytics](screenshots/analytics.png) | ![EMAR](screenshots/emar.png) |
+![Analytics](screenshots/analytics.png)
 
+![EMAR](screenshots/emar.png)
 ---
 
 ## Features
