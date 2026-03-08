@@ -120,8 +120,8 @@ async function main() {
     create: {
       id: "dddddddd-dddd-dddd-dddd-dddddddddddd",
       role: "family",
-      full_name: "James Thompson",
-      email: "james.thompson@gmail.com",
+      full_name: "James Smith",
+      email: "james.Smith@gmail.com",
       phone: "07700 900004",
     },
   });
@@ -178,7 +178,7 @@ async function main() {
   //
   // AI Action Recommender target output:
   //
-  // Margaret Thompson → IMMEDIATE
+  // Margaret Smith → IMMEDIATE
   //   REASSIGN_EMAR    Amlodipine (08:00) missed during active BP crisis of 178 with CKD
   //   MAKE_REPORT      Confusion + blurred vision across two visit logs, no follow-up on record
   //   CONTACT_FAMILY   Acute deterioration across bp + emar + visit_logs simultaneously
@@ -202,7 +202,7 @@ async function main() {
     update: { pulse: 110, bp: 178, status: "attention" },
     create: {
       id: "11111111-1111-1111-1111-111111111111",
-      full_name: "Margaret Thompson",
+      full_name: "Margaret Smith",
       dob: new Date("1942-03-15"),
       room: "12A",
       wing: "North",
@@ -741,7 +741,7 @@ async function main() {
         title: "Hypertensive Episode — Elevated BP and Confusion",
         type: "medication",
         content:
-          "Patient Margaret Thompson presented with elevated BP 178 across two readings this morning. Displaying confusion and reported blurred vision in follow-up check. Morning medications found untouched on bedside table. No follow-up action recorded. Requires urgent clinical review.",
+          "Patient Margaret Smith presented with elevated BP 178 across two readings this morning. Displaying confusion and reported blurred vision in follow-up check. Morning medications found untouched on bedside table. No follow-up action recorded. Requires urgent clinical review.",
         created_at: today(12, 0),
       },
       // ── Margaret — 14 days ago: BP trending upward ────────────────────────
@@ -751,7 +751,7 @@ async function main() {
         title: "Monthly Health Review — BP Trending Upward",
         type: "nutrition",
         content:
-          "Monthly review for Margaret Thompson. Blood sugar levels fluctuating more than previous month. Dietary intake reviewed with kitchen staff. BP trending upward over past 3 weeks, ranging 160–172. GP notified of trend.",
+          "Monthly review for Margaret Smith. Blood sugar levels fluctuating more than previous month. Dietary intake reviewed with kitchen staff. BP trending upward over past 3 weeks, ranging 160–172. GP notified of trend.",
         created_at: daysAgo(14),
       },
 
@@ -898,7 +898,7 @@ async function main() {
       priority_list: [
         {
           patient_id: patient1.id,
-          patient_name: "Margaret Thompson",
+          patient_name: "Margaret Smith",
           urgency: "IMMEDIATE",
           reasoning:
             "REASSIGN_EMAR — Amlodipine (08:00) missed during an active BP episode of 165, directly worsening health_summary for a CKD patient with hypertensive history. MAKE_REPORT — confusion noted across both checks with no formal follow-up documentation in place. CONTACT_FAMILY — BP 165, confusion reported by carer, missed antihypertensive and no follow-up recorded. Family must be informed. URGENCY_LEVEL - IMMEDIATE: bp, missed medication and visit_logs all pointing to the same health_summary risk simultaneously.",
@@ -953,7 +953,7 @@ async function main() {
         completed_by: manager.id,
         completed_at: daysAgo(1, 10),
         notes:
-          "Called James Thompson to inform him of elevated BP readings and confusion. He will speak to their GP today.",
+          "Called James Smith to inform him of elevated BP readings and confusion. He will speak to their GP today.",
       },
       {
         patient_id: patient1.id,
@@ -1173,7 +1173,7 @@ async function main() {
       // ── CRITICAL: Margaret + Betty — BP crisis + fall ────────────────────────
       {
         id: "00000000-0000-0000-0000-000000999112",
-        patient_id: patient1.id, // Margaret Thompson
+        patient_id: patient1.id, // Margaret Smith
         carer_id: carer1.id,
         notes:
           "Margaret complained of severe headache and appeared visibly confused. Could not recall the date or the carer's name. BP reading of 182 — significantly elevated. Refused all food and medication. Skin flushed, says she feels dizzy. Sat with her for 30 minutes.",
@@ -1193,7 +1193,7 @@ async function main() {
       },
       {
         id: "00000000-0000-0000-0000-000000999114",
-        patient_id: patient1.id, // Margaret Thompson
+        patient_id: patient1.id, // Margaret Smith
         carer_id: carer1.id,
         notes:
           "Follow-up on Margaret two hours later. Confusion has not improved. Now reporting blurred vision. BP remains high at 179. Morning medications still not taken — found on bedside table again. Manager notified. No improvement since morning check.",
@@ -1274,12 +1274,12 @@ async function main() {
       // ── CRITICAL: BP crisis + fall ───────────────────────────────────────────
       {
         id: "00000000-0000-0000-0000-000000999115",
-        patient_id: patient1.id, // Margaret Thompson
+        patient_id: patient1.id, // Margaret Smith
         created_by: manager.id,
-        title: "Hypertensive Crisis — Margaret Thompson",
+        title: "Hypertensive Crisis — Margaret Smith",
         type: "medication",
         content:
-          "Margaret Thompson presenting with BP of 182 this morning, confusion and blurred vision reported. Morning medications refused and found untouched. Follow-up check at 11:00 showed no improvement. Manager notified. GP to be contacted if no improvement by next check.",
+          "Margaret Smith presenting with BP of 182 this morning, confusion and blurred vision reported. Morning medications refused and found untouched. Follow-up check at 11:00 showed no improvement. Manager notified. GP to be contacted if no improvement by next check.",
         created_at: today(11, 30),
       },
       {
@@ -1294,12 +1294,12 @@ async function main() {
       },
       {
         id: "00000000-0000-0000-0000-000000999117",
-        patient_id: patient1.id, // Margaret Thompson
+        patient_id: patient1.id, // Margaret Smith
         created_by: manager.id,
         title: "Urgent Review Required — Elevated BP Persisting",
         type: "medication",
         content:
-          "Second BP reading for Margaret Thompson at 179 — no improvement from morning. Confusion and blurred vision persisting. Amlodipine not administered. This is an active hypertensive episode in a patient with CKD Stage 3. Immediate escalation required.",
+          "Second BP reading for Margaret Smith at 179 — no improvement from morning. Confusion and blurred vision persisting. Amlodipine not administered. This is an active hypertensive episode in a patient with CKD Stage 3. Immediate escalation required.",
         created_at: today(12, 0),
       },
     ],
@@ -1320,7 +1320,7 @@ async function main() {
     "   Carer 2  → Priya Sharma      (cccccccc-cccc-cccc-cccc-cccccccccccc)",
   );
   console.log(
-    "   Family 1 → James Thompson    (dddddddd-dddd-dddd-dddd-dddddddddddd) → Margaret",
+    "   Family 1 → James Smith    (dddddddd-dddd-dddd-dddd-dddddddddddd) → Margaret",
   );
   console.log(
     "   Family 2 → Catherine Collins (eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee) → Betty",
@@ -1330,7 +1330,7 @@ async function main() {
   );
   console.log("\n🤖 AI Action Recommender — expected output:");
   console.log(
-    "   Margaret Thompson → IMMEDIATE  — REASSIGN_EMAR + MAKE_REPORT + CONTACT_FAMILY",
+    "   Margaret Smith → IMMEDIATE  — REASSIGN_EMAR + MAKE_REPORT + CONTACT_FAMILY",
   );
   console.log(
     "   Derek Okafor      → THIS_SHIFT — REASSIGN_EMAR + MAKE_REPORT + MAKE_SCHEDULE",

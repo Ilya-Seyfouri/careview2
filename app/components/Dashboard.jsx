@@ -943,7 +943,7 @@ function MakeReportModal({ patient, onClose, onCompleted }) {
                 disabled={generating}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3  bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700  hover:bg-violet-700  cursor-pointer disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
               >
                 {generating ? (
                   <>
@@ -1913,7 +1913,7 @@ function ContactFamilyModal({ patient, onClose, onCompleted }) {
                   disabled={generating}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 cursor-pointer bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-violet-900 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors"
                 >
                   {generating ? (
                     <>

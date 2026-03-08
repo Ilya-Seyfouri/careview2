@@ -292,7 +292,7 @@ const handleAdminister = async (e, entry) => {
                     placeholder="Search resident or medication..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-5 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 transition-all shadow-sm"
+                    className="w-full  placeholder:text-slate-400 pl-10 pr-5 py-3 bg-white border border-slate-100 rounded-xl text-sm font-bold outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 transition-all shadow-sm"
                   />
                 </div>
               </div>

@@ -286,111 +286,124 @@ export default function CarerDashboard() {
               </div>
             ) : (
               <div className="space-y-6">
-                {schedules.map((schedule, index) => {
-                  const cfg = getStatusConfig(schedule.status);
-                  const isCompleted =
-                    schedule.status?.toLowerCase() === "completed";
-                  const isCancelled =
-                    schedule.status?.toLowerCase() === "cancelled";
-                  const isInProgress =
-                    schedule.status?.toLowerCase() === "in_progress";
+                {[...schedules]
+                  .sort((a, b) => {
+                    const order = {
+                      in_progress: 0,
+                      scheduled: 1,
+                      pending: 2,
+                      cancelled: 3,
+                      completed: 4,
+                    };
+                    const aOrder = order[a.status?.toLowerCase()] ?? 2;
+                    const bOrder = order[b.status?.toLowerCase()] ?? 2;
+                    return aOrder - bOrder;
+                  })
+                  .map((schedule, index) => {
+                    const cfg = getStatusConfig(schedule.status);
+                    const isCompleted =
+                      schedule.status?.toLowerCase() === "completed";
+                    const isCancelled =
+                      schedule.status?.toLowerCase() === "cancelled";
+                    const isInProgress =
+                      schedule.status?.toLowerCase() === "in_progress";
 
-                  return (
-                    <div
-                      key={schedule.id}
-                      className="bg-white rounded-[32px] border border-slate-100 p-8 flex flex-col md:flex-row items-center gap-8 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all group cursor-default"
-                    >
-                      <div className="relative">
-                        <div className="w-20 h-20 rounded-[30px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-8 ring-slate-50 transition-transform group-hover:scale-105">
-                          {schedule.patient?.full_name
-                            ?.charAt(0)
-                            .toUpperCase() || "?"}
-                        </div>
-                        {isInProgress && (
-                          <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-200">
-                            <Activity size={14} strokeWidth={3} />
+                    return (
+                      <div
+                        key={schedule.id}
+                        className="bg-white rounded-[32px] border border-slate-100 p-8 flex flex-col md:flex-row items-center gap-8 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all group cursor-default"
+                      >
+                        <div className="relative">
+                          <div className="w-20 h-20 rounded-[30px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-8 ring-slate-50 transition-transform group-hover:scale-105">
+                            {schedule.patient?.full_name
+                              ?.charAt(0)
+                              .toUpperCase() || "?"}
                           </div>
-                        )}
-                        {isCompleted && (
-                          <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg shadow-emerald-200">
-                            <CheckCircle2 size={14} strokeWidth={3} />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 text-center md:text-left">
-                        <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
-                          <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full ring-1 ring-blue-100 self-center md:self-start">
-                            {formatTime(schedule.start_at)}
-                          </span>
-                          {schedule.patient?.room && (
-                            <>
-                              <span className="text-slate-300 hidden md:block">
-                                •
-                              </span>
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                Room {schedule.patient.room}
-                              </span>
-                            </>
+                          {isInProgress && (
+                            <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-200">
+                              <Activity size={14} strokeWidth={3} />
+                            </div>
+                          )}
+                          {isCompleted && (
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl shadow-lg shadow-emerald-200">
+                              <CheckCircle2 size={14} strokeWidth={3} />
+                            </div>
                           )}
                         </div>
-                        <h4 className="text-2xl font-black text-slate-900 tracking-tight mb-2 group-hover:text-blue-600 transition-colors">
-                          {schedule.patient?.full_name || "Unknown Patient"}
-                        </h4>
-                        {schedule.title && (
-                          <p className="text-slate-500 font-bold flex items-center justify-center md:justify-start gap-2">
-                            <ClipboardList
-                              size={16}
-                              className="text-slate-300"
-                            />
-                            {schedule.title}
-                          </p>
-                        )}
-                      </div>
 
-                      <div className="w-full md:w-auto">
-                        {isCompleted ? (
-                          <div className="w-full md:w-auto px-10 py-5 rounded-[20px] bg-emerald-50 text-emerald-600 font-black text-xs uppercase tracking-widest shadow-sm ring-1 ring-emerald-100 flex items-center justify-center gap-3">
-                            <CheckCircle2 size={18} strokeWidth={3} />
-                            Completed
+                        <div className="flex-1 text-center md:text-left">
+                          <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full ring-1 ring-blue-100 self-center md:self-start">
+                              {formatTime(schedule.start_at)}
+                            </span>
+                            {schedule.patient?.room && (
+                              <>
+                                <span className="text-slate-300 hidden md:block">
+                                  •
+                                </span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                  Room {schedule.patient.room}
+                                </span>
+                              </>
+                            )}
                           </div>
-                        ) : isCancelled ? (
-                          <div className="w-full md:w-auto px-10 py-5 rounded-[20px] bg-rose-50 text-rose-600 font-black text-xs uppercase tracking-widest shadow-sm ring-1 ring-rose-100 flex items-center justify-center gap-3">
-                            <Circle size={18} strokeWidth={3} />
-                            Cancelled
-                          </div>
-                        ) : isInProgress ? (
-                          <button
-                            onClick={() => {
-                              setActiveVisit(schedule);
-                              setVisitStep("active");
-                            }}
-                            className="w-full md:w-auto cursor-pointer bg-blue-600 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200 flex items-center gap-3 justify-center hover:bg-blue-700 transition-all active:scale-95"
-                          >
-                            <Square
-                              size={18}
-                              fill="currentColor"
-                              strokeWidth={0}
-                            />
-                            End Visit
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleStartVisit(schedule)}
-                            className="w-full md:w-auto  cursor-pointer bg-slate-900 text-white px-8 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
-                          >
-                            <Play
-                              size={18}
-                              fill="currentColor"
-                              strokeWidth={0}
-                            />
-                            Start Visit
-                          </button>
-                        )}
+                          <h4 className="text-2xl font-black text-slate-900 tracking-tight mb-2 group-hover:text-blue-600 transition-colors">
+                            {schedule.patient?.full_name || "Unknown Patient"}
+                          </h4>
+                          {schedule.title && (
+                            <p className="text-slate-500 font-bold flex items-center justify-center md:justify-start gap-2">
+                              <ClipboardList
+                                size={16}
+                                className="text-slate-300"
+                              />
+                              {schedule.title}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="w-full md:w-auto">
+                          {isCompleted ? (
+                            <div className="w-full md:w-auto px-10 py-5 rounded-[20px] bg-emerald-50 text-emerald-600 font-black text-xs uppercase tracking-widest shadow-sm ring-1 ring-emerald-100 flex items-center justify-center gap-3">
+                              <CheckCircle2 size={18} strokeWidth={3} />
+                              Completed
+                            </div>
+                          ) : isCancelled ? (
+                            <div className="w-full md:w-auto px-10 py-5 rounded-[20px] bg-rose-50 text-rose-600 font-black text-xs uppercase tracking-widest shadow-sm ring-1 ring-rose-100 flex items-center justify-center gap-3">
+                              <Circle size={18} strokeWidth={3} />
+                              Cancelled
+                            </div>
+                          ) : isInProgress ? (
+                            <button
+                              onClick={() => {
+                                setActiveVisit(schedule);
+                                setVisitStep("active");
+                              }}
+                              className="w-full md:w-auto cursor-pointer bg-blue-600 text-white px-10 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200 flex items-center gap-3 justify-center hover:bg-blue-700 transition-all active:scale-95"
+                            >
+                              <Square
+                                size={18}
+                                fill="currentColor"
+                                strokeWidth={0}
+                              />
+                              End Visit
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleStartVisit(schedule)}
+                              className="w-full md:w-auto  cursor-pointer bg-slate-900 text-white px-8 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 flex items-center gap-3 justify-center hover:bg-slate-800 transition-all active:scale-95 group/btn"
+                            >
+                              <Play
+                                size={18}
+                                fill="currentColor"
+                                strokeWidth={0}
+                              />
+                              Start Visit
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -465,7 +478,7 @@ function HistoryModal({ history, loading, onClose }) {
               <History size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+              <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">
                 Schedule History
               </p>
               <h2 className="text-lg font-black text-slate-900 tracking-tight">
@@ -523,7 +536,7 @@ function HistoryModal({ history, loading, onClose }) {
                             {s.patient?.full_name || "Unknown Patient"}
                           </p>
                           {s.title && (
-                            <p className="text-[10px] text-slate-500 font-bold truncate mt-1">
+                            <p className="text-[13px] text-slate-500 font-bold truncate mt-1">
                               {s.title}
                             </p>
                           )}
@@ -540,7 +553,7 @@ function HistoryModal({ history, loading, onClose }) {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-200 text-[10px] text-slate-600 font-bold">
+                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-200 text-[11px] text-slate-600 font-bold">
                       <span className="flex items-center gap-1.5">
                         <CalendarDays size={11} className="text-slate-400" />
                         {formatDate(s.start_at)}

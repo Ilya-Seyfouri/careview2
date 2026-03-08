@@ -17,7 +17,6 @@ const itemVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
     transition: {
       duration: 0.4,
       ease: [0.16, 1, 0.3, 1],
@@ -79,9 +78,7 @@ export default function CarePriorityAnalysis({
           <motion.button
             onClick={generatePriorityAnalysis}
             disabled={loadingAnalysis}
-            whileHover={{ scale: loadingAnalysis ? 1 : 1.02 }}
-            whileTap={{ scale: loadingAnalysis ? 1 : 0.98 }}
-            className=" cursor-pointer bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2.5 font-medium text-sm shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
+            className=" cursor-pointer bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 active:scale-95 text-white px-6 py-3 rounded-xl flex items-center gap-2.5 font-medium text-sm shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loadingAnalysis ? (
               <>
