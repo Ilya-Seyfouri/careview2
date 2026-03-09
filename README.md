@@ -8,7 +8,7 @@ An AI-powered care home management platform I built for North Senior Care during
 
 ---
 
-## Screenshots
+
 
 | Dashboard | Analytics |
 |-----------|-----------|
