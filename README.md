@@ -4,7 +4,7 @@ An AI-powered care home management platform I built for North Senior Care during
 
 ## Try it Out
 
-🔗 [Live Demo](https://careview-847694957064.europe-west2.run.app/)
+🔗 [Live Demo](https://careview2-847694957064.europe-west2.run.app/)
 
 ---
 
